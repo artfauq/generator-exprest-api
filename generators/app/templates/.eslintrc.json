@@ -3,10 +3,8 @@
     "airbnb-base",
     "plugin:import/recommended",
     "plugin:promise/recommended",
-    "plugin:node/recommended",
-    <%_ if (prettier) { _%>
-    "plugin:prettier/recommended"
-    <%_ } _%>
+    "plugin:node/recommended"<%_ if (prettier) { _%>,
+    "plugin:prettier/recommended"<%_ } _%>
   ],
   "env": {
     "es6": true,

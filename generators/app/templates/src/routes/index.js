@@ -6,7 +6,7 @@ const router = Router();
 //
 // ─── API ROUTES ──────────────────────────────────────────────────────
 //
-router.get('/', (req, res) => res.status(200).send(<%= name %>));
+router.get('/', (req, res) => res.status(200).send('<%= name %>'));
 
 //
 // ─── 404 ERROR HANDLING ───────────────────────────────────────────────────────────────
