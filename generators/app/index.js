@@ -17,7 +17,7 @@ module.exports = class extends Generator {
   }
 
   prompting() {
-    this.log(yosay(`Welcome to the glorious ${chalk.red('generator-exrest-api')} generator!`));
+    this.log(yosay(`Welcome to the glorious ${chalk.red('generator-exprest-api')} generator!`));
 
     const prompts = [
       {

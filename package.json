@@ -1,9 +1,9 @@
 {
-  "name": "generator-exrest-api",
+  "name": "generator-exprest-api",
   "version": "1.0.3",
   "description": "REST API generator with Express",
-  "repository": "arthurfauq/generator-exrest-api",
-  "homepage": "https://github.com/arthurfauq/generator-exrest-api",
+  "repository": "arthurfauq/generator-exprest-api",
+  "homepage": "https://github.com/arthurfauq/generator-exprest-api",
   "author": {
     "name": "Arthur Fauquenot",
     "email": "arthurfauquenot@yahoo.com",
