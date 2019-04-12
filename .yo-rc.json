@@ -1,0 +1,9 @@
+{
+  "generator-node": {
+    "promptValues": {
+      "authorName": "Arthur Fauquenot",
+      "authorEmail": "arthurfauquenot@yahoo.com",
+      "authorUrl": "https://github.com/arthurfauq"
+    }
+  }
+}

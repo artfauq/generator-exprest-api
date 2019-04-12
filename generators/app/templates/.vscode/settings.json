@@ -1,0 +1,11 @@
+{
+  /* Editor */
+  "editor.formatOnSave": true,
+  "editor.rulers": [120],
+  /* ESLint */
+  "eslint.autoFixOnSave": true,
+  /* Files */
+  "files.associations": {
+    "*DockerFile": "dockerfile"
+  }
+}

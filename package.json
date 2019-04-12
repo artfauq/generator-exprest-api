@@ -1,0 +1,72 @@
+{
+  "name": "@kazaar/generator-express-api",
+  "version": "1.0.0",
+  "description": "REST API generator with Express",
+  "repository": "arthurfauq/generator-express-api",
+  "homepage": "https://github.com/arthurfauq/generator-express-api",
+  "author": {
+    "name": "Arthur Fauquenot",
+    "email": "arthurfauquenot@yahoo.com",
+    "url": "https://github.com/arthurfauq"
+  },
+  "files": [
+    "generators"
+  ],
+  "main": "generators/index.js",
+  "keywords": [
+    "yeoman-generator",
+    "generator",
+    "generators",
+    "yeoman",
+    "nodejs",
+    "rest",
+    "rest-api",
+    "restful",
+    "node",
+    "nodejs",
+    "express",
+    "winston",
+    "swagger",
+    "docker"
+  ],
+  "scripts": {
+    "lint": "eslint . --ignore-path .gitignore && prettier --check \"**/*.{json,md,html,yaml}\" --ignore-path .gitignore",
+    "lint:fix": "eslint . --ignore-path .gitignore --fix && prettier --write \"**/*.{json,md,html,yaml}\" --ignore-path .gitignore"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.{json,md,html,yaml}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "dependencies": {
+    "yeoman-generator": "^2.0.1",
+    "chalk": "^2.1.0",
+    "yosay": "^2.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^5.13.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^4.1.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-prettier": "^3.0.1",
+    "eslint-plugin-promise": "^4.0.1",
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.3",
+    "prettier": "^1.16.4"
+  },
+  "engines": {
+    "npm": ">= 4.0.0"
+  },
+  "license": "MIT"
+}

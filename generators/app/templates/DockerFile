@@ -1,0 +1,14 @@
+FROM node:latest
+
+WORKDIR /<%= shortname %>
+
+# install packages
+COPY package*.json ./
+RUN npm set progress=false && npm install --production
+
+# copy server files
+COPY <%= srcDir %> <%= srcDir %>
+
+EXPOSE 8080
+
+CMD [ "npm", "start" ]
