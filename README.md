@@ -1,4 +1,4 @@
-# generator-express-api
+# generator-expressapi
 
 ![](https://img.shields.io/badge/license-MIT-blue.svg)
 
@@ -17,10 +17,10 @@
 
 ## Installation
 
-First, install [Yeoman](http://yeoman.io) and generator-express-api using [npm](https://www.npmjs.com/).
+First, install [Yeoman](http://yeoman.io) and generator-expressapi using [npm](https://www.npmjs.com/).
 
 ```bash
-npm install -g yo @kazaar/generator-express-api
+npm install -g yo generator-expressapi
 ```
 
 ## Usage
@@ -28,7 +28,7 @@ npm install -g yo @kazaar/generator-express-api
 Then generate your new project:
 
 ```bash
-yo api
+yo expressapi
 ```
 
 ## License
