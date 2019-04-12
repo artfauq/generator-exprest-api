@@ -90,7 +90,7 @@ module.exports = class extends Generator {
 
     copy(src('.editorconfig'), dest(`${this.shortname}/.editorconfig`));
     copy(src('.gitattributes'), dest(`${this.shortname}/.gitattributes`));
-    copy(src('.gitignore'), dest(`${this.shortname}/.gitignore`));
+    copy(src('gitignore'), dest(`${this.shortname}/.gitignore`));
     copy(src('src/index.js'), dest(`${this.shortname}/${props.srcDir}/index.js`));
     copy(src('src/config/index.js'), dest(`${this.shortname}/${props.srcDir}/config/index.js`));
     copy(src('src/config/winston.js'), dest(`${this.shortname}/${props.srcDir}/config/winston.js`));
