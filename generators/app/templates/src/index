@@ -2,13 +2,17 @@ const bodyParser = require('body-parser');
 const chalk = require('chalk').default;
 const cors = require('cors');
 const express = require('express');
+const expressErrorHandler = require('@kazaar/express-error-handler');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const errorHandler = require('@kazaar/express-error-handler');
 
-const logger = require('./config/winston');
+<%_ if (!winston) { _%>const logger = console;
+<%_ } _%>
+<%_ if (winston) { _%>const logger = require('./config/winston');
+<%_ } _%>
 const router = require('./routes');
-const { onServerError } = require('./utils/error');
+
+const { httpErrorHandler, handleServerError } = expressErrorHandler(logger);
 
 //
 // ─── EXPRESS SERVER CREATION ────────────────────────────────────────────────────
@@ -43,7 +47,7 @@ app.use(router);
 //
 // ─── GLOBAL ERROR HANDLING ──────────────────────────────────────────────────────
 //
-app.use(errorHandler(logger));
+app.use(httpErrorHandler);
 
 //
 // ─── SERVER START ───────────────────────────────────────────────────────────────
@@ -56,4 +60,4 @@ app
       `${chalk.green('✓')} App is running on port ${chalk.yellow(`${port}`)} in ${chalk.yellow(app.get('env'))} mode`
     )
   )
-  .on('error', onServerError);
+  .on('error', handleServerError);

@@ -25,11 +25,13 @@ npm install -g yo generator-exprest-api
 
 ## Usage
 
-Then generate your new project:
+Then generate your new project with:
 
 ```bash
 yo exprest-api
 ```
+
+**NOTE:** There is no need to create a new folder before running the command, the generator will do it for you.
 
 ## License
 

@@ -32,7 +32,7 @@
     <%_ } _%>
   },
   "dependencies": {
-    "@kazaar/express-error-handler": "^1.1.0",
+    "@kazaar/express-error-handler": "^2.0.0",
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
     "chalk": "^2.4.2",
@@ -43,8 +43,9 @@
     "http-errors": "^1.7.2",
     "joi": "^14.3.1",
     "moment": "^2.24.0",
-    "morgan": "^1.9.1",
+    "morgan": "^1.9.1"<%_ if (winston) { _%>,
     "winston": "^3.2.1"
+    <%_ } _%>
   },
   "devDependencies": {
     "cross-env": "^5.2.0",
