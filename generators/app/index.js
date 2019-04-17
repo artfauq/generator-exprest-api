@@ -118,7 +118,7 @@ module.exports = class extends Generator {
     copyTpl(src('eslintrc.json'), dest(`${this.shortname}/.eslintrc.json`), props);
     copyTpl(src('README.md'), dest(`${this.shortname}/README.md`), props);
     copyTpl(src('CONTRIBUTING.md'), dest(`${this.shortname}/CONTRIBUTING.md`), props);
-    copyTpl(src('_package.json'), dest(`${this.shortname}/package.json`), props);
+    copyTpl(src('_package'), dest(`${this.shortname}/package.json`), props);
     copyTpl(src('src/index'), dest(`${this.shortname}/${props.srcDir}/index.js`), props);
     copyTpl(src('src/docs/index.html'), dest(`${this.shortname}/${props.srcDir}/docs/index.html`), props);
     copyTpl(src('src/docs/openapi.yaml'), dest(`${this.shortname}/${props.srcDir}/docs/openapi.yaml`), props);
