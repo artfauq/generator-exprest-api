@@ -1,5 +1,5 @@
 const Generator = require('yeoman-generator');
-const chalk = require('chalk').default;
+const { gray, red, yellow } = require('chalk').default;
 const yosay = require('yosay');
 const { join } = require('path');
 
@@ -8,70 +8,84 @@ module.exports = class extends Generator {
     super(args, opts);
 
     this.winston = true;
+    this.axios = true;
+    this.celebrate = true;
     this.docker = true;
     this.prettier = true;
-    this.npm = true;
+    this.openapi = true;
   }
 
   prompting() {
-    this.log(yosay(`Welcome to the glorious ${chalk.red('generator-exprest-api')} generator!`));
+    this.log(yosay(`Welcome to the glorious ${red('generator-exprest-api')} generator!`));
 
     const prompts = [
       {
         type: 'input',
         name: 'shortname',
-        message: `App shortname [ex: ${chalk.gray('rest-api')}]`,
-        validate: input => (input.trim() !== '')
+        message: `App ${yellow('shortname')} [ex: ${gray('rest-api')}]`,
+        validate: input => input.trim() !== '',
       },
       {
         type: 'input',
         name: 'name',
-        message: `App full name [ex: ${chalk.gray('My REST API')}]`,
-        validate: input => (input.trim() !== '')
+        message: `App ${yellow('full name')} [ex: ${gray('My REST API')}]`,
+        validate: input => input.trim() !== '',
       },
       {
         type: 'input',
         name: 'description',
-        message: `App description [ex: ${chalk.gray('A REST API for cats and dogs')}]`,
-        validate: input => (input.trim() !== '')
+        message: `App ${yellow('description')} [ex: ${gray('A REST API for cats and dogs')}]`,
+        validate: input => input.trim() !== '',
       },
       {
         type: 'input',
         name: 'version',
-        message: `App version [ex: ${chalk.gray('0.0.0')}]`,
-        validate: input => (input.trim() !== ''),
+        message: `App ${yellow('version')} [ex: ${gray('0.0.0')}]`,
+        validate: input => input.trim() !== '',
         default: '0.0.0',
       },
       {
         type: 'input',
         name: 'srcDir',
-        message: `Source files directory name [ex: ${chalk.gray('src')}]`,
-        validate: input => (input.trim() !== ''),
+        message: `Source files ${yellow('directory name')} [ex: ${gray('src')}]`,
+        validate: input => input.trim() !== '',
         default: 'src',
       },
       {
         type: 'confirm',
         name: 'winston',
-        message: 'Use Winston for logging ?',
+        message: `Use ${yellow.bold('Winston')} for logging ?`,
         default: this.winston,
       },
       {
         type: 'confirm',
-        name: 'docker',
-        message: 'Generate a DockerFile ?',
-        default: this.docker,
+        name: 'celebrate',
+        message: `Use ${yellow.bold('celebrate/joi')} for object validation ?`,
+        default: this.celebrate,
+      },
+      {
+        type: 'confirm',
+        name: 'axios',
+        message: `Use ${yellow.bold('axios')} for HTTP requests ?`,
+        default: this.axios,
       },
       {
         type: 'confirm',
         name: 'prettier',
-        message: 'Use Prettier ?',
+        message: `Use ${yellow.bold('Prettier')} for code formatting ?`,
         default: this.prettier,
       },
       {
         type: 'confirm',
-        name: 'npm',
-        message: 'Install dependencies ?',
-        default: this.npm,
+        name: 'docker',
+        message: `Generate a ${yellow('DockerFile')} ?`,
+        default: this.docker,
+      },
+      {
+        type: 'confirm',
+        name: 'openapi',
+        message: `Generate an ${yellow.bold('OpenAPI')} documentation file ?`,
+        default: this.openapi,
       },
     ];
 
@@ -82,9 +96,11 @@ module.exports = class extends Generator {
       this.version = props.version || this.version;
       this.srcDir = props.srcDir || this.srcDir;
       this.winston = props.winston;
+      this.axios = props.axios;
+      this.celebrate = props.celebrate;
       this.docker = props.docker;
       this.prettier = props.prettier;
-      this.npm = props.npm;
+      this.openapi = props.prettier;
 
       return null;
     });
@@ -105,6 +121,9 @@ module.exports = class extends Generator {
       docker: this.docker,
       prettier: this.prettier,
       winston: this.winston,
+      celebrate: this.celebrate,
+      axios: this.axios,
+      openapi: this.openapi,
     };
 
     copy(src('editorconfig'), dest(`${this.shortname}/.editorconfig`));
@@ -115,17 +134,24 @@ module.exports = class extends Generator {
     copy(src('src/controllers/empty'), dest(`${this.shortname}/${props.srcDir}/controllers/empty`));
     copy(src('src/utils/empty'), dest(`${this.shortname}/${props.srcDir}/utils/empty`));
 
-    copyTpl(src('eslintrc.json'), dest(`${this.shortname}/.eslintrc.json`), props);
+    copyTpl(src('eslintrc'), dest(`${this.shortname}/.eslintrc.json`), props);
     copyTpl(src('README.md'), dest(`${this.shortname}/README.md`), props);
     copyTpl(src('CONTRIBUTING.md'), dest(`${this.shortname}/CONTRIBUTING.md`), props);
     copyTpl(src('_package'), dest(`${this.shortname}/package.json`), props);
     copyTpl(src('src/index'), dest(`${this.shortname}/${props.srcDir}/index.js`), props);
-    copyTpl(src('src/docs/index.html'), dest(`${this.shortname}/${props.srcDir}/docs/index.html`), props);
-    copyTpl(src('src/docs/openapi.yaml'), dest(`${this.shortname}/${props.srcDir}/docs/openapi.yaml`), props);
     copyTpl(src('src/routes/index.js'), dest(`${this.shortname}/${props.srcDir}/routes/index.js`), props);
 
     if (props.winston) {
       copy(src('src/config/winston.js'), dest(`${this.shortname}/${props.srcDir}/config/winston.js`));
+    }
+
+    if (props.celebrate) {
+      copy(src('src/validation/empty'), dest(`${this.shortname}/${props.srcDir}/validation/empty`));
+    }
+
+    if (props.openapi) {
+      copyTpl(src('src/docs/index.html'), dest(`${this.shortname}/${props.srcDir}/docs/index.html`), props);
+      copyTpl(src('src/docs/openapi.yaml'), dest(`${this.shortname}/${props.srcDir}/docs/openapi.yaml`), props);
     }
 
     if (props.docker) {
@@ -138,12 +164,16 @@ module.exports = class extends Generator {
   }
 
   install() {
-    if (this.npm) {
-      const appDir = join(process.cwd(), this.shortname);
+    const appDir = join(process.cwd(), this.shortname);
 
-      process.chdir(appDir);
+    process.chdir(appDir);
 
-      this.installDependencies({ bower: false, npm: true });
-    }
+    this.installDependencies({ bower: false, npm: true })
+      .then(() => {
+        return this.spawnCommand('npm', ['run', 'lint:fix']);
+      })
+      .catch(err => {
+        throw err;
+      });
   }
 };

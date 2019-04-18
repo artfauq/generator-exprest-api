@@ -33,15 +33,19 @@
   },
   "dependencies": {
     "@kazaar/express-error-handler": "^2.2.0",
+    <%_ if (axios) { _%>
     "axios": "^0.18.0",
+    <%_ } _%>
     "body-parser": "^1.18.3",
+    <%_ if (celebrate) { _%>
+    "celebrate": "^9.1.0",
+    <%_ } _%>
     "chalk": "^2.4.2",
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-promise-router": "^3.0.3",
     "helmet": "^3.15.0",
     "http-errors": "^1.7.2",
-    "joi": "^14.3.1",
     "moment": "^2.24.0",
     "morgan": "^1.9.1"<%_ if (winston) { _%>,
     "winston": "^3.2.1"

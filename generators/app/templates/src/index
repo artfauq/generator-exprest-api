@@ -12,7 +12,7 @@ const morgan = require('morgan');
 <%_ } _%>
 const router = require('./routes');
 
-const { httpErrorHandler, handleServerError } = expressErrorHandler(logger);
+const { httpErrorHandler, handleServerError<%_ if (axios) { _%>, axiosErrorParser<%_ } _%><%_ if (celebrate) { _%>, celebrateErrorParser<%_ } _%> } = expressErrorHandler(logger);
 
 //
 // ─── EXPRESS SERVER CREATION ────────────────────────────────────────────────────
@@ -34,11 +34,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(cors());
 
-//
+<%_ if (openapi) { _%>//
 // ─── API DOCUMENTATION ──────────────────────────────────────────────────────────
 //
 app.use('/api-docs', express.static(`${__dirname}/docs`));
-
+<%_ } _%>
 //
 // ─── SERVER ROUTES ──────────────────────────────────────────────────────────────
 //
@@ -47,6 +47,12 @@ app.use(router);
 //
 // ─── GLOBAL ERROR HANDLING ──────────────────────────────────────────────────────
 //
+<%_ if (axios) { _%>
+app.use(axiosErrorParser);
+<%_ } _%>
+<%_ if (celebrate) { _%>
+app.use(celebrateErrorParser);
+<%_ } _%>
 app.use(httpErrorHandler);
 
 //

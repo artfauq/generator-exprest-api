@@ -1,16 +1,6 @@
-# <%= name %> <!-- omit in toc -->
+# <%= name %>
 
 > <%= description %>
-
-- [Getting started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Main commands](#main-commands)
-    - [Development](#development)
-    - [Deployment](#deployment)
-    - [Lint](#lint)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
 
 ## Getting started
 
@@ -58,16 +48,12 @@ Automatically fix linting errors with:
 
 `$ npm run lint:fix`
 
-Under the hood, these two commands use:
-
-- [ESlint](https://eslint.org/) for JavaScript linting errors (configuration file: [`.eslintrc`](.eslintrc))
-- [Prettier](https://prettier.io/) for formatting errors (configuration file: [`.prettierrc`](.prettierrc))
-
-## Documentation
+<%_ if (openapi) { _%>## Documentation
 
 All the API is documented with [ReDoc](https://github.com/Rebilly/ReDoc) from an [OpenAPI](https://swagger.io/specification/) document.
 
 To explore the documentation, run the server and navigate to `localhost:8080/api-docs`.
+<%_ } _%>
 
 ## Contributing
 
