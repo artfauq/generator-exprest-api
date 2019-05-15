@@ -145,10 +145,6 @@ module.exports = class extends Generator {
       copy(src('src/config/winston.js'), dest(`${this.shortname}/${props.srcDir}/config/winston.js`));
     }
 
-    if (props.celebrate) {
-      copy(src('src/validation/empty'), dest(`${this.shortname}/${props.srcDir}/validation/empty`));
-    }
-
     if (props.openapi) {
       copyTpl(src('src/docs/index.html'), dest(`${this.shortname}/${props.srcDir}/docs/index.html`), props);
       copyTpl(src('src/docs/openapi.yaml'), dest(`${this.shortname}/${props.srcDir}/docs/openapi.yaml`), props);

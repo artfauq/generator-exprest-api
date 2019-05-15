@@ -37,7 +37,7 @@ app.use(cors());
 <%_ if (openapi) { _%>//
 // ─── API DOCUMENTATION ──────────────────────────────────────────────────────────
 //
-app.use('/api-docs', express.static(`${__dirname}/docs`));
+app.use('/docs', express.static(`${__dirname}/docs`));
 <%_ } _%>
 //
 // ─── SERVER ROUTES ──────────────────────────────────────────────────────────────

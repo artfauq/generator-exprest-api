@@ -9,13 +9,10 @@ The following is a set of guidelines for contributing to the <%= name %> project
 The project is structured as follows:
 
 - `<%= srcDir %>/`: holds all the server/API source files
-  - `config/`: server configuration (database connection configuration, etc)
-  - `controllers/`: API routes controllers (methods to handle API requests)
+  - `config/`: server configuration files
+  - `controllers/`: API routes controllers / request handlers
   - `routes/`: API routes definitions
-  - `docs/`: API documentation
-    <%_ if (celebrate) { _%>
-  - `validation/`: Joi validation schemas
-    <%_ } _%>
+  - `docs/`: API documentation files
   - `utils/`: utility functions and helpers used throughout the server files
   - `index.js`: entry point of the application that holds all the Express server configuration (middlewares, routes, error handling...)
 
@@ -67,20 +64,18 @@ For example, to define a new endpoint `/articles` and add the route `GET /articl
 
   - Finally, in the `routes/index.js` file, import the endpoint router and declare the `/articles` route under `API ROUTES`:
 
-        ```javascript
-        const articlesRouter = require('./articles');
+    ```javascript
+    const articlesRouter = require('./articles');
 
-        // ...
+    // ...
 
-        //
-        // ─── API ROUTES ──────────────────────────────────────────────────────
-        //
-        router.use('/api/articles', articlesRouter);
+    //
+    // ─── API ROUTES ──────────────────────────────────────────────────────
+    //
+    router.use('/api/articles', articlesRouter);
+    ```
 
-        // ...
-        ```
-
-    <%_ if (celebrate) { _%>
+<%_ if (celebrate) { _%>
 
 ### Object validation
 
@@ -88,56 +83,46 @@ Object validation (request parameters, request body, etc) should be handled by [
 
 To do this, declare validation schemas in the `validation/` folder and use these schemas in the route definitions by using the `celebrate` middleware.
 
-For example, to add validation to the `id` parameter of the `GET articles/:id` route, do the following:
+For example, to add validation to the `id` parameter of the `GET articles/:id` route, add the celebrate middleware in `routes/articles.js`:
 
-- Create the validation schema:
+```javascript
+const Router = require('express');
+const { celebrate, Joi } = require('celebrate');
 
-  - Create a new file called `articles.js` in the `validation/` folder
-  - In this new file, import `Joi` from `celebrate`, add a new schema for the `id` property and export it:
+const router = Router();
 
-    ```javascript
-    const { Joi } = require('celebrate');
+const articlesController = require('../controllers/articles');
 
-    // Declare here request parameters schemas
-    const params = {
-      id: Joi.number().integer().positive();
-    };
+router.get(
+  '/',
+  celebrate({
+    params: {
+      id: Joi.number()
+        .integer()
+        .positive()
+        .required(),
+    },
+  }),
+  articlesController.getArticles
+);
 
-    module.exports = { params };
-    ```
+module.exports = router;
+```
 
-- User this schema in the desired route(s):
+Validation errors are handled by the `celebrateErrorParser` middleware from [@kazaar/express-error-handler](https://www.npmjs.com/package/@kazaar/express-error-handler).
 
-  - In the `routes/articles.js` file, add the celebrate middleware:
+```javascript
+//
+// ─── GLOBAL ERROR HANDLING ──────────────────────────────────────────────────────
+//
+app.use(celebrateErrorParser);
+```
 
-        ```javascript
-        const Router = require('express');
-        const { celebrate } = require('celebrate');
-
-        const router = Router();
-
-        const articlesController = require('../controllers/articles');
-        const { params } = require('../validation/articles');
-
-        router.get('/',
-          celebrate({
-            params: {
-              id: params.id.required()
-            }
-          }),
-          articlesController.getArticles
-        );
-
-        module.exports = router;
-        ```
-
-    <%_ } _%>
+<%_ } _%>
 
 ### Error handling
 
-HTTP error responses are handled by [@kazaar/express-error-handler](https://www.npmjs.com/package/@kazaar/express-error-handler).
-
-When an error is thrown inside of a controller with `next()` or `throw`, a middleware will automatically parse the error as an HTTP error to retrieve the error details, log the error and send back the error to the client. This behavior is defined in `<%= srcDir %>/index.js`:
+HTTP error responses are handled by the `httpErrorHandler` middleware from [@kazaar/express-error-handler](https://www.npmjs.com/package/@kazaar/express-error-handler).
 
 ```javascript
 //
@@ -145,6 +130,8 @@ When an error is thrown inside of a controller with `next()` or `throw`, a middl
 //
 app.use(httpErrorHandler);
 ```
+
+When an error is thrown inside of a controller with `next()` or `throw`, this middleware will eventually parse the error as an HTTP error to retrieve the error details, log the error and send back the error to the client.
 
 To throw custom HTTP errors, use the `http-errors` module:
 
@@ -177,7 +164,7 @@ The API documentation is written as an [OpenAPI](https://swagger.io/specificatio
 
 The `openapi.yaml` acts as the entry point of the API definition.
 
-The interface is generated by [ReDoc](https://github.com/Rebilly/ReDoc) and is available at `localhost:8080api-docs` when the server is running.
+The interface is generated by [ReDoc](https://github.com/Rebilly/ReDoc) and is available at `localhost:8080/docs` when the server is running.
 <%_ } _%>
 
 ### Version update
