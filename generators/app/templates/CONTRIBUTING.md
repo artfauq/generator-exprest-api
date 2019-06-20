@@ -9,12 +9,13 @@ The following is a set of guidelines for contributing to the <%= name %> project
 The project is structured as follows:
 
 - `<%= srcDir %>/`: holds all the server/API source files
-  - `config/`: server configuration files
-  - `controllers/`: API routes controllers / request handlers
-  - `routes/`: API routes definitions
-  - `docs/`: API documentation files
-  - `utils/`: utility functions and helpers used throughout the server files
   - `index.js`: entry point of the application that holds all the Express server configuration (middlewares, routes, error handling...)
+  - `config/`: application configuration files
+  - `controllers/`: API routes controllers (request handlers)
+  - `doc/`: API documentation
+  - `routes/`: API routes definitions
+  - `services/`: business logic files
+  - `utils/`: utility functions and helpers used throughout the server files
 
 <%_ if (winston) { _%>When running the app or performing some commands, additional folders (ignored by Git) will be created such as:
 
@@ -23,51 +24,89 @@ The project is structured as follows:
 
 ### Routing
 
-- All routes are defined in the `routes/` folder. Each file represents a main route endpoint (ex: `/articles`) and the filename should match this endpoint (ex: `articles.js`). New route files should be added to the `routes/index.js` file.
-- The associated controllers are defined in the `controllers/` folder. The controllers folder should mirror the `routes/` folder: one controller file per route file, with a filename matching the associated route endpoint (ex: `articles.js`).
-- Each controller should define and export one request handler function per route defined in its associated route file.
+#### How to
 
-For example, to define a new endpoint `/articles` and add the route `GET /articles`:
+- All routes should be defined in the `routes/` folder.
+- New route files should be added to the `routes/index.js` file.
+- Each file should represent a main route endpoint and its filename should match this endpoint: for example, `routes/articles.js` should define all routes from the `/articles` endpoint.
+- Request handlers associated to these routes should be defined in the `controllers/` folder.
+- The folder should mirror the `routes/` folder: one controller file per route file with a filename matching the associated route endpoint (ex: `controllers/articles.js`).
+- Each controller should define and export one request handler function per route.
+- Finally, all the business logic (retrieving, creating or updating data, etc) should be defined in the `services/` folder.
 
-- Create the route request handler:
+#### Example
 
-  - Create a new file called `articles.js` in the `controllers/` folder
-  - In this new file, define a `getArticles` request handler inside the `module.exports` object:
+To define a new endpoint `/articles` and two routes `GET /articles` and `GET /articles/:id`, follow the steps below.
+
+- Create the service with the business logic to retrieve the articles:
+
+  - Create a new file called `article.js` in the `services/` folder
+  - In this new file, define and export two methods `getAllArticles` and `getArticleById`:
 
     ```javascript
     module.exports = {
-      getArticles: async (req, res, next) => {
-        // Fetch articles (from database for example)
-        const articles = await fetchArticles();
+      getAllArticles: async () => {
+        // Fetch all articles from a database (using Sequelize for example)
+        const articles = await Article.findAll();
 
         return articles;
+      },
+
+      getArticleById: async id => {
+        // Fetch one article from a database (using Sequelize for example)
+        const article = await Article.findByPk(id);
+
+        return article;
       },
     };
     ```
 
-- Create the endpoint route:
+- Create the route request handler:
 
-  - Create a new file called `articles.js` in the `routes/` folder
-  - In this new file, initialize a router object, import the controller and add a new route with its associated request handler:
+  - Create a new file called `articles.js` in the `controllers/` folder
+  - In this new file, define and export the request handlers associated to these routes:
 
     ```javascript
-    const Router = require('express');
+    const ArticleService = require('../services/article');
 
-    const router = Router();
+    module.exports = {
+      getArticles: async (req, res, next) => {
+        const articles = await ArticleService.getAllArticles();
+
+        return articles;
+      },
+
+      getArticle: async (req, res, next) => {
+        const { id } = req.params;
+        const article = await ArticleService.getArticleById(id);
+
+        return article;
+      },
+    };
+    ```
+
+- Create the endpoint and routes:
+
+  - Create a new file called `articles.js` in the `routes/` folder
+  - In this new file, initialize a router object, import the controller and the new routes with its associated request handlers:
+
+    ```javascript
+    const Router = require('express-promise-router').default;
 
     const articlesController = require('../controllers/articles');
 
+    const router = Router();
+
     router.get('/', articlesController.getArticles);
+    router.get('/:id', articlesController.getArticle);
 
     module.exports = router;
     ```
 
-  - Finally, in the `routes/index.js` file, import the endpoint router and declare the `/articles` route under `API ROUTES`:
+  - Finally, import the endpoint router in the `routes/index.js` file and declare the `/articles` route:
 
     ```javascript
     const articlesRouter = require('./articles');
-
-    // ...
 
     //
     // ─── API ROUTES ──────────────────────────────────────────────────────
@@ -81,20 +120,20 @@ For example, to define a new endpoint `/articles` and add the route `GET /articl
 
 Object validation (request parameters, request body, etc) should be handled by [celebrate](https://www.npmjs.com/package/celebrate).
 
-To do this, declare validation schemas in the `validation/` folder and use these schemas in the route definitions by using the `celebrate` middleware.
+To do this, add validation schemas in the route definitions by using the `celebrate` middleware.
 
-For example, to add validation to the `id` parameter of the `GET articles/:id` route, add the celebrate middleware in `routes/articles.js`:
+For example, to add validation to the `id` parameter of the `GET /articles/:id` route, add the celebrate middleware in `routes/articles.js`:
 
 ```javascript
-const Router = require('express');
+const Router = require('express-promise-router').default;
 const { celebrate, Joi } = require('celebrate');
-
-const router = Router();
 
 const articlesController = require('../controllers/articles');
 
+const router = Router();
+
 router.get(
-  '/',
+  '/:id',
   celebrate({
     params: {
       id: Joi.number()
@@ -103,10 +142,8 @@ router.get(
         .required(),
     },
   }),
-  articlesController.getArticles
+  articlesController.getArticle
 );
-
-module.exports = router;
 ```
 
 Validation errors are handled by the `celebrateErrorParser` middleware from [@kazaar/express-error-handler](https://www.npmjs.com/package/@kazaar/express-error-handler).
@@ -145,7 +182,7 @@ if (!filename) {
 }
 ```
 
-In addition, the route files defined in `<%= srcDir %>/routes/` can use the `Router` from the `express-promise-router` package instead of the `express` package. It provides a convenient way to write async controller methods without `try/catch` blocks and `next()` (see [express-promise-router](https://github.com/express-promise-router/express-promise-router)).
+In addition, the routes defined in `<%= srcDir %>/routes/` should use the `Router` from the `express-promise-router` package instead of the `express` package. It provides a convenient way to write async controller methods without `try/catch` blocks and `next()` (see [express-promise-router](https://github.com/express-promise-router/express-promise-router)).
 
 <%_ if (winston) { _%>### Logs
 
@@ -160,11 +197,11 @@ Please refer to `<%= srcDir %>/config/winston.js` to see winston configuration.<
 
 <%_ if (openapi) { _%>### API documentation
 
-The API documentation is written as an [OpenAPI](https://swagger.io/specification/) definition and located in the `<%= srcDir %>/docs/` folder.
+The API documentation is written as an [OpenAPI](https://swagger.io/specification/) definition and located in the `<%= srcDir %>/doc/` folder.
 
 The `openapi.yaml` acts as the entry point of the API definition.
 
-The interface is generated by [ReDoc](https://github.com/Rebilly/ReDoc) and is available at `localhost:8080/docs` when the server is running.
+The interface is generated by [ReDoc](https://github.com/Rebilly/ReDoc) and is available at `localhost:8080` when the server is running.
 <%_ } _%>
 
 ### Version update
@@ -172,7 +209,7 @@ The interface is generated by [ReDoc](https://github.com/Rebilly/ReDoc) and is a
 When updating the project's version number, do not forget to update:
 
 - The `version` field in `package.json`
-- The `info > version` field in `<%= srcDir %>/docs/openapi.yaml`
+- The `info > version` field in `<%= srcDir %>/doc/openapi.yaml`
 
 ## Style Guide
 

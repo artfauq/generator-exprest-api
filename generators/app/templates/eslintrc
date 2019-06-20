@@ -27,6 +27,39 @@
         "allowTemplateLiterals": false
       }
     ],
+    "require-jsdoc": [
+      "error",
+      {
+        "require": {
+          "FunctionDeclaration": true,
+          "MethodDefinition": true,
+          "ClassDeclaration": true,
+          "ArrowFunctionExpression": false,
+          "FunctionExpression": true
+        }
+      }
+    ],
+    "valid-jsdoc": [
+      "warn",
+      {
+        "prefer": {
+          "arg": "param",
+          "argument": "param",
+          "return": "returns"
+        },
+        "preferType": {
+          "Boolean": "boolean",
+          "Number": "number",
+          "object": "Object",
+          "String": "string"
+        },
+        "requireParamDescription": false,
+        "requireParamType": true,
+        "requireReturn": true,
+        "requireReturnDescription": false,
+        "requireReturnType": true
+      }
+    ],
     "import/order": [
       "error",
       {

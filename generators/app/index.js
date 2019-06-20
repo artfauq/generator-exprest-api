@@ -22,7 +22,7 @@ module.exports = class extends Generator {
       {
         type: 'input',
         name: 'shortname',
-        message: `App ${yellow('shortname')} [ex: ${gray('rest-api')}]`,
+        message: `App / package ${yellow('shortname')} [ex: ${gray('rest-api')}]`,
         validate: input => input.trim() !== '',
       },
       {
@@ -54,7 +54,7 @@ module.exports = class extends Generator {
       {
         type: 'confirm',
         name: 'winston',
-        message: `Use ${yellow.bold('Winston')} for logging ?`,
+        message: `Use ${yellow.bold('winston')} for logging ?`,
         default: this.winston,
       },
       {
@@ -118,11 +118,11 @@ module.exports = class extends Generator {
       description: this.description,
       version: this.version,
       srcDir: this.srcDir,
+      winston: this.winston,
+      axios: this.axios,
+      celebrate: this.celebrate,
       docker: this.docker,
       prettier: this.prettier,
-      winston: this.winston,
-      celebrate: this.celebrate,
-      axios: this.axios,
       openapi: this.openapi,
     };
 
@@ -130,8 +130,8 @@ module.exports = class extends Generator {
     copy(src('gitattributes'), dest(`${this.shortname}/.gitattributes`));
     copy(src('gitignore'), dest(`${this.shortname}/.gitignore`));
     copy(src('src/config/index.js'), dest(`${this.shortname}/${props.srcDir}/config/index.js`));
-    copy(src('src/config/winston.js'), dest(`${this.shortname}/${props.srcDir}/config/winston.js`));
     copy(src('src/controllers/empty'), dest(`${this.shortname}/${props.srcDir}/controllers/empty`));
+    copy(src('src/services/empty'), dest(`${this.shortname}/${props.srcDir}/services/empty`));
     copy(src('src/utils/empty'), dest(`${this.shortname}/${props.srcDir}/utils/empty`));
 
     copyTpl(src('eslintrc'), dest(`${this.shortname}/.eslintrc.json`), props);
@@ -146,8 +146,8 @@ module.exports = class extends Generator {
     }
 
     if (props.openapi) {
-      copyTpl(src('src/docs/index.html'), dest(`${this.shortname}/${props.srcDir}/docs/index.html`), props);
-      copyTpl(src('src/docs/openapi.yaml'), dest(`${this.shortname}/${props.srcDir}/docs/openapi.yaml`), props);
+      copyTpl(src('src/doc/index.html'), dest(`${this.shortname}/${props.srcDir}/doc/index.html`), props);
+      copyTpl(src('src/doc/openapi.yaml'), dest(`${this.shortname}/${props.srcDir}/doc/openapi.yaml`), props);
     }
 
     if (props.docker) {
@@ -164,12 +164,6 @@ module.exports = class extends Generator {
 
     process.chdir(appDir);
 
-    this.installDependencies({ bower: false, npm: true })
-      .then(() => {
-        return this.spawnCommand('npm', ['run', 'lint:fix']);
-      })
-      .catch(err => {
-        throw err;
-      });
+    this.installDependencies({ bower: false, npm: true }).then(() => this.spawnCommand('npm', ['run', 'lint:fix']));
   }
 };

@@ -1,11 +1,12 @@
 const bodyParser = require('body-parser');
-const chalk = require('chalk').default;
+const { green, yellow } = require('chalk').default;
 const cors = require('cors');
 const express = require('express');
 const expressErrorHandler = require('@kazaar/express-error-handler');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
+const { host, port, env } = require('./config');
 <%_ if (!winston) { _%>const logger = console;
 <%_ } _%>
 <%_ if (winston) { _%>const logger = require('./config/winston');
@@ -30,14 +31,13 @@ app.use(
   })
 );
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(cors());
 
 <%_ if (openapi) { _%>//
 // ─── API DOCUMENTATION ──────────────────────────────────────────────────────────
 //
-app.use('/docs', express.static(`${__dirname}/docs`));
+app.use('/docs', express.static(`${__dirname}/doc`));
 <%_ } _%>
 //
 // ─── SERVER ROUTES ──────────────────────────────────────────────────────────────
@@ -58,12 +58,10 @@ app.use(httpErrorHandler);
 //
 // ─── SERVER START ───────────────────────────────────────────────────────────────
 //
-const port = 8080;
-
 app
-  .listen(port, () =>
+  .listen(port, host, () =>
     logger.info(
-      `${chalk.green('✓')} App is running on port ${chalk.yellow(`${port}`)} in ${chalk.yellow(app.get('env'))} mode`
+      `${green('✓')} App is running at ${yellow(`${host}:${port}`)} in ${yellow(env)} mode`
     )
   )
   .on('error', handleServerError);
