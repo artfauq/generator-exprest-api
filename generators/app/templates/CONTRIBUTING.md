@@ -3,6 +3,17 @@
 The following is a set of guidelines for contributing to the <%= name %> project.
 
 ## About
+<%_ if (sequelize) { _%>
+### External services
+
+#### MySQL database
+
+The project uses [Sequelize](https://github.com/sequelize/sequelize) as an ORM to connect to a MySQL database.
+
+All configuration (database connection and Sequelize initialization) are defined in `src/config`.
+
+All the models are defined in `src/models`.
+<%_ } _%>
 
 ### Project structure
 

@@ -49,8 +49,9 @@
     ]
   },
   "dependencies": {
-    "yeoman-generator": "^2.0.1",
     "chalk": "^2.1.0",
+    "validate-npm-package-name": "^3.0.0",
+    "yeoman-generator": "^2.0.1",
     "yosay": "^2.0.1"
   },
   "devDependencies": {

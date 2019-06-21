@@ -7,13 +7,18 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 
 const { host, port, env } = require('./config');
-<%_ if (!winston) { _%>const logger = console;
+<%_ if (!winston) { _%>
+const logger = console;
 <%_ } _%>
-<%_ if (winston) { _%>const logger = require('./config/winston');
+<%_ if (winston) { _%>
+const logger = require('./config/winston');
+<%_ } _%>
+<%_ if (sequelize) { _%>
+const { sequelize } = require('./models');
 <%_ } _%>
 const router = require('./routes');
 
-const { httpErrorHandler, handleServerError<%_ if (axios) { _%>, axiosErrorParser<%_ } _%><%_ if (celebrate) { _%>, celebrateErrorParser<%_ } _%> } = expressErrorHandler(logger);
+const { httpErrorHandler, handleServerError<%_ if (axios) { _%>, axiosErrorParser<%_ } _%><%_ if (celebrate) { _%>, celebrateErrorParser<%_ } _%><%_ if (sequelize) { _%>, handleSequelizeConnectionError<%_ } _%> } = expressErrorHandler(logger);
 
 //
 // ─── EXPRESS SERVER CREATION ────────────────────────────────────────────────────
@@ -59,9 +64,14 @@ app.use(httpErrorHandler);
 // ─── SERVER START ───────────────────────────────────────────────────────────────
 //
 app
-  .listen(port, host, () =>
-    logger.info(
-      `${green('✓')} App is running at ${yellow(`${host}:${port}`)} in ${yellow(env)} mode`
-    )
-  )
+  .listen(port, host, () => {
+    logger.info(`${green('✓')} App is running at ${yellow(`${host}:${port}`)} in ${yellow(env)} mode`);
+
+    <%_ if (sequelize) { _%>
+    sequelize
+      .authenticate()
+      .then(() => logger.info(`${green('✓')} Successfully connected to ${yellow(sequelize.options.database)} database`))
+      .catch(handleSequelizeConnectionError);
+    <%_ } _%>
+  })
   .on('error', handleServerError);

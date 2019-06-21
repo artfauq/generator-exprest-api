@@ -2,28 +2,20 @@ const Generator = require('yeoman-generator');
 const { gray, red, yellow } = require('chalk').default;
 const yosay = require('yosay');
 const { join } = require('path');
+const validate = require('validate-npm-package-name');
+
+const SEQUELIZE_DIALECT = require('./utils/sequelize-dialect-enum');
 
 module.exports = class extends Generator {
-  constructor(args, opts) {
-    super(args, opts);
+  async prompting() {
+    this.log(yosay(`Welcome to the ${red('generator-exprest-api')} generator!`));
 
-    this.winston = true;
-    this.axios = true;
-    this.celebrate = true;
-    this.docker = true;
-    this.prettier = true;
-    this.openapi = true;
-  }
-
-  prompting() {
-    this.log(yosay(`Welcome to the glorious ${red('generator-exprest-api')} generator!`));
-
-    const prompts = [
+    this.answers = await this.prompt([
       {
         type: 'input',
         name: 'shortname',
-        message: `App / package ${yellow('shortname')} [ex: ${gray('rest-api')}]`,
-        validate: input => input.trim() !== '',
+        message: `Package ${yellow('shortname')} [ex: ${gray('rest-api')}]`,
+        validate: input => validate(input).validForNewPackages || 'Must be a valid package name',
       },
       {
         type: 'input',
@@ -48,122 +40,153 @@ module.exports = class extends Generator {
         type: 'input',
         name: 'srcDir',
         message: `Source files ${yellow('directory name')} [ex: ${gray('src')}]`,
-        validate: input => input.trim() !== '',
+        validate: input =>
+          (validate(input).validForNewPackages && new RegExp('^[^\\/?%*:|"<>.]+$').test(input)) ||
+          'Must be a valid directory name',
+
         default: 'src',
+      },
+      {
+        type: 'confirm',
+        name: 'sequelize',
+        message: `Use ${yellow.bold('Sequelize')} as ORM ?`,
+        default: true,
+      },
+      {
+        type: 'list',
+        name: 'sequelizeDialect',
+        message: `What is your database ${yellow.bold('dialect')} ?`,
+        choices: Object.values(SEQUELIZE_DIALECT),
+        when: ({ sequelize }) => {
+          // Only run if user set Sequelize
+          return !!sequelize;
+        },
       },
       {
         type: 'confirm',
         name: 'winston',
         message: `Use ${yellow.bold('winston')} for logging ?`,
-        default: this.winston,
+        default: true,
       },
       {
         type: 'confirm',
         name: 'celebrate',
         message: `Use ${yellow.bold('celebrate/joi')} for object validation ?`,
-        default: this.celebrate,
+        default: true,
       },
       {
         type: 'confirm',
         name: 'axios',
         message: `Use ${yellow.bold('axios')} for HTTP requests ?`,
-        default: this.axios,
+        default: true,
       },
       {
         type: 'confirm',
         name: 'prettier',
         message: `Use ${yellow.bold('Prettier')} for code formatting ?`,
-        default: this.prettier,
+        default: true,
       },
       {
         type: 'confirm',
         name: 'docker',
         message: `Generate a ${yellow('DockerFile')} ?`,
-        default: this.docker,
+        default: true,
       },
       {
         type: 'confirm',
         name: 'openapi',
         message: `Generate an ${yellow.bold('OpenAPI')} documentation file ?`,
-        default: this.openapi,
+        default: true,
       },
-    ];
-
-    return this.prompt(prompts).then(props => {
-      this.shortname = props.shortname || this.shortname;
-      this.name = props.name || this.name;
-      this.description = props.description || this.description;
-      this.version = props.version || this.version;
-      this.srcDir = props.srcDir || this.srcDir;
-      this.winston = props.winston;
-      this.axios = props.axios;
-      this.celebrate = props.celebrate;
-      this.docker = props.docker;
-      this.prettier = props.prettier;
-      this.openapi = props.prettier;
-
-      return null;
-    });
+    ]);
   }
 
   writing() {
+    const { answers } = this;
+    const { shortname, srcDir } = answers;
     const copy = this.fs.copy.bind(this.fs);
     const copyTpl = this.fs.copyTpl.bind(this.fs);
     const src = this.templatePath.bind(this);
     const dest = this.destinationPath.bind(this);
-
-    const props = {
-      shortname: this.shortname,
-      name: this.name,
-      description: this.description,
-      version: this.version,
-      srcDir: this.srcDir,
-      winston: this.winston,
-      axios: this.axios,
-      celebrate: this.celebrate,
-      docker: this.docker,
-      prettier: this.prettier,
-      openapi: this.openapi,
+    const extendJSON = this.fs.extendJSON.bind(this.fs);
+    const pkgJson = {
+      devDependencies: {},
+      dependencies: {},
     };
 
-    copy(src('editorconfig'), dest(`${this.shortname}/.editorconfig`));
-    copy(src('gitattributes'), dest(`${this.shortname}/.gitattributes`));
-    copy(src('gitignore'), dest(`${this.shortname}/.gitignore`));
-    copy(src('src/config/index.js'), dest(`${this.shortname}/${props.srcDir}/config/index.js`));
-    copy(src('src/controllers/empty'), dest(`${this.shortname}/${props.srcDir}/controllers/empty`));
-    copy(src('src/services/empty'), dest(`${this.shortname}/${props.srcDir}/services/empty`));
-    copy(src('src/utils/empty'), dest(`${this.shortname}/${props.srcDir}/utils/empty`));
+    copy(src('editorconfig'), dest(`${shortname}/.editorconfig`));
+    copy(src('gitattributes'), dest(`${shortname}/.gitattributes`));
+    copy(src('gitignore'), dest(`${shortname}/.gitignore`));
 
-    copyTpl(src('eslintrc'), dest(`${this.shortname}/.eslintrc.json`), props);
-    copyTpl(src('README.md'), dest(`${this.shortname}/README.md`), props);
-    copyTpl(src('CONTRIBUTING.md'), dest(`${this.shortname}/CONTRIBUTING.md`), props);
-    copyTpl(src('_package'), dest(`${this.shortname}/package.json`), props);
-    copyTpl(src('src/index'), dest(`${this.shortname}/${props.srcDir}/index.js`), props);
-    copyTpl(src('src/routes/index.js'), dest(`${this.shortname}/${props.srcDir}/routes/index.js`), props);
+    copy(src('src/controllers/empty'), dest(`${shortname}/${srcDir}/controllers/empty`));
+    copy(src('src/services/empty'), dest(`${shortname}/${srcDir}/services/empty`));
+    copy(src('src/utils/empty'), dest(`${shortname}/${srcDir}/utils/empty`));
 
-    if (props.winston) {
-      copy(src('src/config/winston.js'), dest(`${this.shortname}/${props.srcDir}/config/winston.js`));
+    copyTpl(src('eslintrc'), dest(`${shortname}/.eslintrc.json`), answers);
+    copyTpl(src('README.md'), dest(`${shortname}/README.md`), answers);
+    copyTpl(src('CONTRIBUTING.md'), dest(`${shortname}/CONTRIBUTING.md`), answers);
+    copyTpl(src('_package'), dest(`${shortname}/package.json`), answers);
+    copyTpl(src('src/index'), dest(`${shortname}/${srcDir}/index.js`), answers);
+    copyTpl(src('src/config/index'), dest(`${shortname}/${srcDir}/config/index.js`), answers);
+    copyTpl(src('src/routes/index.js'), dest(`${shortname}/${srcDir}/routes/index.js`), answers);
+
+    if (answers.sequelize) {
+      const dialect = Object.values(SEQUELIZE_DIALECT).find(d => d.value === answers.sequelizeDialect);
+
+      copy(src('src/models/index.js'), dest(`${shortname}/${srcDir}/models/index.js`));
+      copyTpl(src('src/config/sequelize'), dest(`${shortname}/${srcDir}/config/sequelize.js`), {
+        sequelizeDialect: dialect.value,
+      });
+
+      pkgJson.dependencies.sequelize = '^4.43.0';
+      pkgJson.dependencies = Object.assign(pkgJson.dependencies, ...dialect.packages);
     }
 
-    if (props.openapi) {
-      copyTpl(src('src/doc/index.html'), dest(`${this.shortname}/${props.srcDir}/doc/index.html`), props);
-      copyTpl(src('src/doc/openapi.yaml'), dest(`${this.shortname}/${props.srcDir}/doc/openapi.yaml`), props);
+    if (answers.winston) {
+      copy(src('src/config/winston.js'), dest(`${shortname}/${answers.srcDir}/config/winston.js`));
+
+      pkgJson.dependencies.winston = '^3.2.1';
     }
 
-    if (props.docker) {
-      copyTpl(src('DockerFile'), dest(`${this.shortname}/DockerFile`), props);
+    if (answers.celebrate) {
+      pkgJson.dependencies.celebrate = '^9.1.0';
     }
 
-    if (props.prettier) {
-      copy(src('prettierrc'), dest(`${this.shortname}/.prettierrc`));
+    if (answers.axios) {
+      pkgJson.dependencies.axios = '^0.18.0';
     }
+
+    if (answers.prettier) {
+      copy(src('prettierrc'), dest(`${shortname}/.prettierrc`));
+
+      pkgJson.devDependencies['eslint-config-prettier'] = '^4.1.0';
+      pkgJson.devDependencies['eslint-plugin-prettier'] = '^3.0.1';
+      pkgJson.devDependencies.prettier = '^1.16.4';
+    }
+
+    if (answers.docker) {
+      copyTpl(src('DockerFile'), dest(`${shortname}/DockerFile`), answers);
+    }
+
+    if (answers.openapi) {
+      copyTpl(src('src/doc/index.html'), dest(`${shortname}/${answers.srcDir}/doc/index.html`), answers);
+      copyTpl(src('src/doc/openapi.yaml'), dest(`${shortname}/${answers.srcDir}/doc/openapi.yaml`), answers);
+    }
+
+    extendJSON(dest(`${shortname}/package.json`), pkgJson);
   }
 
   install() {
-    const appDir = join(process.cwd(), this.shortname);
+    const { shortname } = this.answers;
+
+    const appDir = join(process.cwd(), shortname);
 
     process.chdir(appDir);
 
     this.installDependencies({ bower: false, npm: true }).then(() => this.spawnCommand('npm', ['run', 'lint:fix']));
+  }
+
+  end() {
+    this.log(yosay(`All done ! Thanks for using ${yellow('generator-exprest-api')} generator!`));
   }
 };

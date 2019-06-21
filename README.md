@@ -4,16 +4,17 @@
 
 > Yeoman generator for creating REST APIs with Express
 
-## Features
+## Features / options
 
 - **RESTful API** - Using [Express](https://github.com/expressjs/express/)
-- **Request body validation** - Using [joi](https://github.com/hapijs/joi)
 - **Standard error responses** - Using [http-errors](https://www.npmjs.com/package/http-errors)
 - **Logging** - Using [winston](https://github.com/winstonjs/winston) and [morgan](https://github.com/expressjs/morgan#readme)
 - **Error linting** - Using [ESLint](https://eslint.org/)
 - **Code formatting** - Using [Prettier](https://prettier.io/)
 - **Pre-commit linting hook** - Using [husky](https://github.com/typicode/husky) and [lint-staged](https://github.com/okonet/lint-staged)
 - **API documentation** - Using [Swagger](https://swagger.io/)
+- **Object validation** - Using [celebrate/joi](https://www.npmjs.com/package/celebrate)
+- **Database ORM** - Using [Sequelize](http://docs.sequelizejs.com/)
 
 ## Installation
 
@@ -31,7 +32,7 @@ Then generate your new project with:
 yo exprest-api
 ```
 
-**NOTE:** There is no need to create a new folder before running the command, the generator will do it for you.
+**NOTE:** No need to create a new folder before running the command, the generator will do it for you.
 
 ## License
 
