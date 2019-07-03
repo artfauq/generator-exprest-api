@@ -6,9 +6,9 @@ The following is a set of guidelines for contributing to the <%= name %> project
 <%_ if (sequelize) { _%>
 ### External services
 
-#### MySQL database
+#### <%= sequelizeDialect %> database
 
-The project uses [Sequelize](https://github.com/sequelize/sequelize) as an ORM to connect to a MySQL database.
+The project uses [Sequelize](https://github.com/sequelize/sequelize) as an ORM to connect to a <%= sequelizeDialect %> database.
 
 All configuration (database connection and Sequelize initialization) are defined in `src/config`.
 
@@ -20,13 +20,13 @@ All the models are defined in `src/models`.
 The project is structured as follows:
 
 - `<%= srcDir %>/`: holds all the server/API source files
-  - `index.js`: entry point of the application that holds all the Express server configuration (middlewares, routes, error handling...)
   - `config/`: application configuration files
   - `controllers/`: API routes controllers (request handlers)
   - `doc/`: API documentation
   - `routes/`: API routes definitions
   - `services/`: business logic files
   - `utils/`: utility functions and helpers used throughout the server files
+  - `index.js`: entry point of the application that holds all the Express server configuration (middlewares, routes, error handling...)
 
 <%_ if (winston) { _%>When running the app or performing some commands, additional folders (ignored by Git) will be created such as:
 

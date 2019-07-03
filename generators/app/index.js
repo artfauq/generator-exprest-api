@@ -114,6 +114,8 @@ module.exports = class extends Generator {
       dependencies: {},
     };
 
+    const dialect = Object.values(SEQUELIZE_DIALECT).find(d => d.value === answers.sequelizeDialect);
+
     copy(src('editorconfig'), dest(`${shortname}/.editorconfig`));
     copy(src('gitattributes'), dest(`${shortname}/.gitattributes`));
     copy(src('gitignore'), dest(`${shortname}/.gitignore`));
@@ -124,15 +126,16 @@ module.exports = class extends Generator {
 
     copyTpl(src('eslintrc'), dest(`${shortname}/.eslintrc.json`), answers);
     copyTpl(src('README.md'), dest(`${shortname}/README.md`), answers);
-    copyTpl(src('CONTRIBUTING.md'), dest(`${shortname}/CONTRIBUTING.md`), answers);
+    copyTpl(src('CONTRIBUTING.md'), dest(`${shortname}/CONTRIBUTING.md`), {
+      ...answers,
+      sequelizeDialect: dialect.name,
+    });
     copyTpl(src('_package'), dest(`${shortname}/package.json`), answers);
     copyTpl(src('src/index'), dest(`${shortname}/${srcDir}/index.js`), answers);
     copyTpl(src('src/config/index'), dest(`${shortname}/${srcDir}/config/index.js`), answers);
     copyTpl(src('src/routes/index.js'), dest(`${shortname}/${srcDir}/routes/index.js`), answers);
 
     if (answers.sequelize) {
-      const dialect = Object.values(SEQUELIZE_DIALECT).find(d => d.value === answers.sequelizeDialect);
-
       copy(src('src/models/index.js'), dest(`${shortname}/${srcDir}/models/index.js`));
       copyTpl(src('src/config/sequelize'), dest(`${shortname}/${srcDir}/config/sequelize.js`), {
         sequelizeDialect: dialect.value,

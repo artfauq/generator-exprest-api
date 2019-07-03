@@ -1,6 +1,5 @@
 const bodyParser = require('body-parser');
 const { green, yellow } = require('chalk').default;
-const cors = require('cors');
 const express = require('express');
 const expressErrorHandler = require('@kazaar/express-error-handler');
 const helmet = require('helmet');
@@ -37,7 +36,6 @@ app.use(
 );
 app.use(bodyParser.json());
 app.use(helmet());
-app.use(cors());
 
 <%_ if (openapi) { _%>//
 // ─── API DOCUMENTATION ──────────────────────────────────────────────────────────
