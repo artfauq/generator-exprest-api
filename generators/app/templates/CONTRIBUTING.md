@@ -10,23 +10,23 @@ The following is a set of guidelines for contributing to the <%= name %> project
 
 The project uses [Sequelize](https://github.com/sequelize/sequelize) as an ORM to connect to a <%= sequelizeDialect %> database.
 
-All configuration (database connection and Sequelize initialization) are defined in `src/config`.
-
-All the models are defined in `src/models`.
+- Database connection options are defined in `config/index.js`.
+- Sequelize instance options is defined in `config/sequelize.js`.
+- Sequelize models are defined in `models/`.
 <%_ } _%>
 
 ### Project structure
 
 The project is structured as follows:
 
-- `<%= srcDir %>/`: holds all the server/API source files
-  - `config/`: application configuration files
-  - `controllers/`: API routes controllers (request handlers)
-  - `doc/`: API documentation
-  - `routes/`: API routes definitions
-  - `services/`: business logic files
-  - `utils/`: utility functions and helpers used throughout the server files
-  - `index.js`: entry point of the application that holds all the Express server configuration (middlewares, routes, error handling...)
+- `config/`: configuration files
+- `controllers/`: API routes controllers (request handlers)<%_ if (openapi) { _%>
+- `doc/`: API documentation<%_ } _%><%_ if (sequelize) { _%>
+- `models/`: Sequelize models definitions<%_ } _%>
+- `routes/`: API routes definitions
+- `services/`: business logic files
+- `utils/`: utility functions and helpers
+- `index.js`: entry point of the application that holds all the Express server configuration (middlewares, routes, error handling...)
 
 <%_ if (winston) { _%>When running the app or performing some commands, additional folders (ignored by Git) will be created such as:
 
@@ -52,18 +52,18 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
 - Create the service with the business logic to retrieve the articles:
 
   - Create a new file called `article.js` in the `services/` folder
-  - In this new file, define and export two methods `getAllArticles` and `getArticleById`:
+  - In this new file, define and export two new methods `getAllArticles` and `getArticleById`:
 
     ```javascript
     module.exports = {
-      getAllArticles: async () => {
+      async getAllArticles() {
         // Fetch all articles from a database (using Sequelize for example)
         const articles = await Article.findAll();
 
         return articles;
       },
 
-      getArticleById: async id => {
+      async getArticleById(id) {
         // Fetch one article from a database (using Sequelize for example)
         const article = await Article.findByPk(id);
 
@@ -72,7 +72,7 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
     };
     ```
 
-- Create the route request handler:
+- Create the controller / request handler:
 
   - Create a new file called `articles.js` in the `controllers/` folder
   - In this new file, define and export the request handlers associated to these routes:
@@ -81,14 +81,15 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
     const ArticleService = require('../services/article');
 
     module.exports = {
-      getArticles: async (req, res, next) => {
+      async getArticles(req, res, next) {
         const articles = await ArticleService.getAllArticles();
 
         return articles;
       },
 
-      getArticle: async (req, res, next) => {
+      async getArticle(req, res, next) {
         const { id } = req.params;
+
         const article = await ArticleService.getArticleById(id);
 
         return article;
@@ -96,7 +97,7 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
     };
     ```
 
-- Create the endpoint and routes:
+- Create the route and endpoints:
 
   - Create a new file called `articles.js` in the `routes/` folder
   - In this new file, initialize a router object, import the controller and the new routes with its associated request handlers:
@@ -114,14 +115,14 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
     module.exports = router;
     ```
 
-  - Finally, import the endpoint router in the `routes/index.js` file and declare the `/articles` route:
+- Finally, import the router in the `routes/index.js` file and declare a new `/articles` route:
 
     ```javascript
     const articlesRouter = require('./articles');
 
-    //
-    // ─── API ROUTES ──────────────────────────────────────────────────────
-    //
+    /**
+     * API routes
+     */
     router.use('/api/articles', articlesRouter);
     ```
 
@@ -150,7 +151,8 @@ router.get(
       id: Joi.number()
         .integer()
         .positive()
-        .required(),
+        .required()
+        .error(() => 'Article id is required and must be a positive integer.'),
     },
   }),
   articlesController.getArticle
@@ -160,9 +162,9 @@ router.get(
 Validation errors are handled by the `celebrateErrorParser` middleware from [@kazaar/express-error-handler](https://www.npmjs.com/package/@kazaar/express-error-handler).
 
 ```javascript
-//
-// ─── GLOBAL ERROR HANDLING ──────────────────────────────────────────────────────
-//
+/**
+ * Error handling
+ */
 app.use(celebrateErrorParser);
 ```
 
@@ -173,9 +175,9 @@ app.use(celebrateErrorParser);
 HTTP error responses are handled by the `httpErrorHandler` middleware from [@kazaar/express-error-handler](https://www.npmjs.com/package/@kazaar/express-error-handler).
 
 ```javascript
-//
-// ─── GLOBAL ERROR HANDLING ──────────────────────────────────────────────────────
-//
+/**
+ * Error handling
+ */
 app.use(httpErrorHandler);
 ```
 
@@ -184,16 +186,22 @@ When an error is thrown inside of a controller with `next()` or `throw`, this mi
 To throw custom HTTP errors, use the `http-errors` module:
 
 ```javascript
-const { BadRequest } = require('http-errors');
+const { NotFound } = require('http-errors');
 
-// ...
+module.exports = {
+  async getArticleById(id) {
+    const article = await Article.findByPk(id);
 
-if (!filename) {
-  throw new BadRequest('Invalid or missing filename.');
-}
+    if (!article) {
+      throw new NotFound('Article not found.');
+    }
+
+    return article;
+  },
+};
 ```
 
-In addition, the routes defined in `<%= srcDir %>/routes/` should use the `Router` from the `express-promise-router` package instead of the `express` package. It provides a convenient way to write async controller methods without `try/catch` blocks and `next()` (see [express-promise-router](https://github.com/express-promise-router/express-promise-router)).
+In addition, the routes defined in `routes/` should use the `Router` from the `express-promise-router` package instead of the `express` package. It provides a convenient way to write async controller methods without `try/catch` blocks and `next()` (see [express-promise-router](https://github.com/express-promise-router/express-promise-router)).
 
 <%_ if (winston) { _%>### Logs
 
@@ -204,11 +212,11 @@ When running, the application outputs some logs to the `logs/` folder. Two modul
 
 In development mode (`NODE_ENV` set to `development`), the application will also output logs to the console.
 
-Please refer to `<%= srcDir %>/config/winston.js` to see winston configuration.<%_ } _%>
+Please refer to `config/winston.js` to see winston configuration.<%_ } _%>
 
 <%_ if (openapi) { _%>### API documentation
 
-The API documentation is written as an [OpenAPI](https://swagger.io/specification/) definition and located in the `<%= srcDir %>/doc/` folder.
+The API documentation is written as an [OpenAPI](https://swagger.io/specification/) definition and located in the `doc/` folder.
 
 The `openapi.yaml` acts as the entry point of the API definition.
 
@@ -220,13 +228,13 @@ The interface is generated by [ReDoc](https://github.com/Rebilly/ReDoc) and is a
 When updating the project's version number, do not forget to update:
 
 - The `version` field in `package.json`
-- The `info > version` field in `<%= srcDir %>/doc/openapi.yaml`
+- The `info > version` field in `doc/openapi.yaml`
 
 ## Style Guide
 
 ### ES6
 
-All the JavaScript source files located in `<%= srcDir %>/` are written in ES6 syntax (see [ECMAScript 6](https://www.w3schools.com/js/js_es6.asp)).
+JavaScript files are written in ES6 syntax (see [ECMAScript 6](https://www.w3schools.com/js/js_es6.asp)).
 
 Most of the ES6 features are supported by the latest versions of Node (`async/await`, `let`, `const`...). However, some features like ES6's `import/export` require to be "transpiled" first for Node.js to understand them.
 
@@ -234,7 +242,7 @@ If you want to use ES6's `import/export` syntax instead of the CommonJS `require
 
 ### Filenames
 
-All filenames should use `kebab-case` (ex: `well-known.js`).
+All filenames should use `kebab-case`.
 
 ### Formatting
 

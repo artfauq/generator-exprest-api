@@ -6,8 +6,8 @@ WORKDIR /<%= shortname %>
 COPY package*.json ./
 RUN npm set progress=false && npm install --production
 
-# copy server files
-COPY <%= srcDir %> <%= srcDir %>
+# copy application files
+COPY . /<%= shortname %>
 
 EXPOSE 8080
 

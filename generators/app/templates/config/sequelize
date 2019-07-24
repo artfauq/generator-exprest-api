@@ -1,7 +1,8 @@
-const { dbConfig } = require('.');
+const { db } = require('.');
 
 module.exports = {
-  ...dbConfig,
+  ...db,
   dialect: '<%= sequelizeDialect %>',
   operatorsAliases: false,
+  logging: false,
 };

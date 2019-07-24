@@ -1,15 +1,10 @@
 openapi: 3.0.0
 info:
   title: <%= name %>
-  version: <%= version %>
+  version: 0.0.0
   description: <%= description %>
 servers:
   - url: http://localhost:8080/
     description: Local development server
 paths:
-  /:
-    get:
-      summary: Live
-      responses:
-        200:
-          description: OK
+

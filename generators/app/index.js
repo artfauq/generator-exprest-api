@@ -20,7 +20,7 @@ module.exports = class extends Generator {
       {
         type: 'input',
         name: 'name',
-        message: `App ${yellow('full name')} [ex: ${gray('My REST API')}]`,
+        message: `App ${yellow('(pretty) name')} [ex: ${gray('My REST API')}]`,
         validate: input => input.trim() !== '',
       },
       {
@@ -28,23 +28,6 @@ module.exports = class extends Generator {
         name: 'description',
         message: `App ${yellow('description')} [ex: ${gray('A REST API for cats and dogs')}]`,
         validate: input => input.trim() !== '',
-      },
-      {
-        type: 'input',
-        name: 'version',
-        message: `App ${yellow('version')} [ex: ${gray('0.0.0')}]`,
-        validate: input => input.trim() !== '',
-        default: '0.0.0',
-      },
-      {
-        type: 'input',
-        name: 'srcDir',
-        message: `Source files ${yellow('directory name')} [ex: ${gray('src')}]`,
-        validate: input =>
-          (validate(input).validForNewPackages && new RegExp('^[^\\/?%*:|"<>.]+$').test(input)) ||
-          'Must be a valid directory name',
-
-        default: 'src',
       },
       {
         type: 'confirm',
@@ -103,7 +86,7 @@ module.exports = class extends Generator {
 
   writing() {
     const { answers } = this;
-    const { shortname, srcDir } = answers;
+    const { shortname } = answers;
     const copy = this.fs.copy.bind(this.fs);
     const copyTpl = this.fs.copyTpl.bind(this.fs);
     const src = this.templatePath.bind(this);
@@ -120,9 +103,9 @@ module.exports = class extends Generator {
     copy(src('gitattributes'), dest(`${shortname}/.gitattributes`));
     copy(src('gitignore'), dest(`${shortname}/.gitignore`));
 
-    copy(src('src/controllers/empty'), dest(`${shortname}/${srcDir}/controllers/empty`));
-    copy(src('src/services/empty'), dest(`${shortname}/${srcDir}/services/empty`));
-    copy(src('src/utils/empty'), dest(`${shortname}/${srcDir}/utils/empty`));
+    copy(src('controllers/empty'), dest(`${shortname}/controllers/empty`));
+    copy(src('services/empty'), dest(`${shortname}/services/empty`));
+    copy(src('utils/empty'), dest(`${shortname}/utils/empty`));
 
     copyTpl(src('eslintrc'), dest(`${shortname}/.eslintrc.json`), answers);
     copyTpl(src('README.md'), dest(`${shortname}/README.md`), answers);
@@ -131,13 +114,13 @@ module.exports = class extends Generator {
       sequelizeDialect: dialect.name,
     });
     copyTpl(src('_package'), dest(`${shortname}/package.json`), answers);
-    copyTpl(src('src/index'), dest(`${shortname}/${srcDir}/index.js`), answers);
-    copyTpl(src('src/config/index'), dest(`${shortname}/${srcDir}/config/index.js`), answers);
-    copyTpl(src('src/routes/index.js'), dest(`${shortname}/${srcDir}/routes/index.js`), answers);
+    copyTpl(src('index'), dest(`${shortname}/index.js`), answers);
+    copyTpl(src('config/index'), dest(`${shortname}/config/index.js`), answers);
+    copyTpl(src('routes/index.js'), dest(`${shortname}/routes/index.js`), answers);
 
     if (answers.sequelize) {
-      copy(src('src/models/index.js'), dest(`${shortname}/${srcDir}/models/index.js`));
-      copyTpl(src('src/config/sequelize'), dest(`${shortname}/${srcDir}/config/sequelize.js`), {
+      copy(src('models/index.js'), dest(`${shortname}/models/index.js`));
+      copyTpl(src('config/sequelize'), dest(`${shortname}/config/sequelize.js`), {
         sequelizeDialect: dialect.value,
       });
 
@@ -146,7 +129,7 @@ module.exports = class extends Generator {
     }
 
     if (answers.winston) {
-      copy(src('src/config/winston.js'), dest(`${shortname}/${answers.srcDir}/config/winston.js`));
+      copy(src('config/winston.js'), dest(`${shortname}/config/winston.js`));
 
       pkgJson.dependencies.winston = '^3.2.1';
     }
@@ -172,8 +155,8 @@ module.exports = class extends Generator {
     }
 
     if (answers.openapi) {
-      copyTpl(src('src/doc/index.html'), dest(`${shortname}/${answers.srcDir}/doc/index.html`), answers);
-      copyTpl(src('src/doc/openapi.yaml'), dest(`${shortname}/${answers.srcDir}/doc/openapi.yaml`), answers);
+      copyTpl(src('doc/index.html'), dest(`${shortname}/doc/index.html`), answers);
+      copyTpl(src('doc/openapi.yaml'), dest(`${shortname}/doc/openapi.yaml`), answers);
     }
 
     extendJSON(dest(`${shortname}/package.json`), pkgJson);
@@ -186,10 +169,13 @@ module.exports = class extends Generator {
 
     process.chdir(appDir);
 
-    this.installDependencies({ bower: false, npm: true }).then(() => this.spawnCommand('npm', ['run', 'lint:fix']));
+    this.installDependencies({ bower: false, npm: true })
+      .then(() => this.spawnCommandSync('npm', ['remove', '-S', 'example']))
+      .then(() => this.spawnCommandSync('npm', ['remove', '-D', 'example']))
+      .then(() => this.spawnCommandSync('npm', ['run', 'lint:fix']));
   }
 
   end() {
-    this.log(yosay(`All done ! Thanks for using ${yellow('generator-exprest-api')} generator!`));
+    this.log(yosay(`All done ! \n\nStart a development server by running ${yellow('npm run dev')}`));
   }
 };
