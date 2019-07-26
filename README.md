@@ -15,6 +15,7 @@
 - **API documentation** - Using [Swagger](https://swagger.io/)
 - **Object validation** - Using [celebrate/joi](https://www.npmjs.com/package/celebrate)
 - **Database ORM** - Using [Sequelize](http://docs.sequelizejs.com/)
+- **JWT** - Using (jsonwebtoken)[https://github.com/auth0/node-jsonwebtoken] and [express-jwt](https://github.com/auth0/express-jwt)
 
 ## Installation
 
