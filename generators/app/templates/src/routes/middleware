@@ -1,0 +1,58 @@
+/**
+ * @typedef {import('express-jwt').RequestHandler} JWTRequestHandler
+ * @typedef {import('express').Request} Request
+ * @typedef {import('express').Response} Response
+ * @typedef {import('express').NextFunction} NextFunction
+ */
+
+const jwt = require('express-jwt');
+
+const { JWT } = require('../config');
+
+const { SECRET } = JWT;
+
+function getToken(req) {
+  const { headers, query } = req;
+
+  if (headers.authorization && headers.authorization.split(' ')[0] === 'Bearer') {
+    return headers.authorization.split(' ')[1];
+  }
+
+  if (query && query.token) {
+    return query.token;
+  }
+
+  return null;
+}
+
+module.exports = {
+  /**
+   * Express request handlers that verify if a valid token exists in request.
+   *
+   * The token can be passed as an `Authorization` header or a query parameter named `token`.
+   *
+   * Decoded payload will then be available in `req.auth`.
+   *
+   * @example
+   *
+   * // routes/articles/index.js
+   *
+   * const articlesController = require('./controller');
+   * const { auth } = require('../middleware');
+   *
+   * router.get('/articles', auth.required, articlesController.getArticles);
+   */
+  auth: {
+    required: jwt({
+      secret: SECRET,
+      requestProperty: 'auth',
+      getToken,
+    }),
+    optional: jwt({
+      secret: SECRET,
+      requestProperty: 'auth',
+      credentialsRequired: false,
+      getToken,
+    }),
+  },
+};

@@ -3,7 +3,9 @@
 The following is a set of guidelines for contributing to the <%= name %> project.
 
 ## About
+
 <%_ if (sequelize) { _%>
+
 ### External services
 
 #### <%= sequelizeDialect %> database
@@ -13,13 +15,20 @@ The project uses [Sequelize](https://github.com/sequelize/sequelize) as an ORM t
 - Database connection options are defined in `src/config/index.js`.
 - Sequelize instance options is defined in `src/config/sequelize.js`.
 - Sequelize models are defined in `src/models/`.
-<%_ } _%>
+  <%_ } _%>
+
+### Environment variables
+
+The `.env.example` should list all the environment variables that the application relies on to run.
+
+A `.env` file with the environement variables key/values can be added at the root of the project. The `dotenv` package imported in `src/config/index.js` will make those variables available in the app.
 
 ### Project structure
 
 The project is structured as follows:
 
 <%_ if (openapi) { _%>- `doc/`: API documentation<%_ } _%>
+
 - `src/`: application source files
   - `config/`: configuration files<%_ if (sequelize) { _%>
   - `models/`: Sequelize models definitions<%_ } _%>

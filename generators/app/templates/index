@@ -12,7 +12,7 @@ const logger = require('./src/config/winston');<%_ } _%><%_ if (sequelize) { _%>
 const { sequelize } = require('./src/models');<%_ } _%>
 const router = require('./src/routes');
 
-const { httpErrorHandler, handleServerError<%_ if (axios) { _%>, axiosErrorParser<%_ } _%><%_ if (celebrate) { _%>, celebrateErrorParser<%_ } _%><%_ if (sequelize) { _%>, handleSequelizeConnectionError<%_ } _%> } = expressErrorHandler(logger);
+const { httpErrorHandler, handleServerError<%_ if (axios) { _%>, axiosErrorParser<%_ } _%><%_ if (celebrate) { _%>, celebrateErrorParser<%_ } _%><%_ if (sequelize) { _%>, handleSequelizeConnectionError<%_ } _%><%_ if (jwt) { _%>, jwtErrorParser<%_ } _%> } = expressErrorHandler(logger);
 
 /**
  * Express server initialization
@@ -53,6 +53,9 @@ app.use(axiosErrorParser);
 <%_ } _%>
 <%_ if (celebrate) { _%>
 app.use(celebrateErrorParser);
+<%_ } _%>
+<%_ if (jwt) { _%>
+app.use(jwtErrorParser);
 <%_ } _%>
 app.use(httpErrorHandler);
 

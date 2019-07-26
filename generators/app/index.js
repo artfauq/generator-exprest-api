@@ -65,6 +65,12 @@ module.exports = class extends Generator {
       },
       {
         type: 'confirm',
+        name: 'jwt',
+        message: `Use ${yellow.bold('JWT')} for user authentication ?`,
+        default: true,
+      },
+      {
+        type: 'confirm',
         name: 'prettier',
         message: `Use ${yellow.bold('Prettier')} for code formatting ?`,
         default: true,
@@ -102,10 +108,9 @@ module.exports = class extends Generator {
     copy(src('editorconfig'), dest(`${shortname}/.editorconfig`));
     copy(src('gitattributes'), dest(`${shortname}/.gitattributes`));
     copy(src('gitignore'), dest(`${shortname}/.gitignore`));
-    copy(src('.env.example'), dest(`${shortname}/.env.example`));
 
     copy(src('src/services/empty'), dest(`${shortname}/src/services/empty`));
-    copy(src('src/utils/empty'), dest(`${shortname}/src/utils/empty`));
+    copy(src('src/utils/env'), dest(`${shortname}/src/utils/env.js`));
 
     copyTpl(src('eslintrc'), dest(`${shortname}/.eslintrc.json`), answers);
     copyTpl(src('README.md'), dest(`${shortname}/README.md`), answers);
@@ -115,6 +120,7 @@ module.exports = class extends Generator {
     });
     copyTpl(src('_package'), dest(`${shortname}/package.json`), answers);
     copyTpl(src('index'), dest(`${shortname}/index.js`), answers);
+    copyTpl(src('env.example'), dest(`${shortname}/.env.example`), answers);
     copyTpl(src('src/config/index'), dest(`${shortname}/src/config/index.js`), answers);
     copyTpl(src('src/routes/index.js'), dest(`${shortname}/src/routes/index.js`), answers);
 
@@ -140,6 +146,13 @@ module.exports = class extends Generator {
 
     if (answers.axios) {
       pkgJson.dependencies.axios = '^0.18.0';
+    }
+
+    if (answers.jwt) {
+      pkgJson.dependencies.jsonwebtoken = '^8.5.1';
+      pkgJson.dependencies['express-jwt'] = '^5.3.1';
+      copy(src('src/utils/jwt'), dest(`${shortname}/src/utils/jwt.js`));
+      copy(src('src/routes/middleware'), dest(`${shortname}/src/routes/middleware.js`));
     }
 
     if (answers.prettier) {
