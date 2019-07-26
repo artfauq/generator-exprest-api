@@ -7,7 +7,9 @@ COPY package*.json ./
 RUN npm set progress=false && npm install --production
 
 # copy application files
-COPY . /<%= shortname %>
+COPY doc doc
+COPY src src
+COPY index.js index.js
 
 EXPOSE 8080
 
