@@ -102,10 +102,10 @@ module.exports = class extends Generator {
     copy(src('editorconfig'), dest(`${shortname}/.editorconfig`));
     copy(src('gitattributes'), dest(`${shortname}/.gitattributes`));
     copy(src('gitignore'), dest(`${shortname}/.gitignore`));
+    copy(src('.env.example'), dest(`${shortname}/.env.example`));
 
-    copy(src('controllers/empty'), dest(`${shortname}/controllers/empty`));
-    copy(src('services/empty'), dest(`${shortname}/services/empty`));
-    copy(src('utils/empty'), dest(`${shortname}/utils/empty`));
+    copy(src('src/services/empty'), dest(`${shortname}/src/services/empty`));
+    copy(src('src/utils/empty'), dest(`${shortname}/src/utils/empty`));
 
     copyTpl(src('eslintrc'), dest(`${shortname}/.eslintrc.json`), answers);
     copyTpl(src('README.md'), dest(`${shortname}/README.md`), answers);
@@ -115,12 +115,12 @@ module.exports = class extends Generator {
     });
     copyTpl(src('_package'), dest(`${shortname}/package.json`), answers);
     copyTpl(src('index'), dest(`${shortname}/index.js`), answers);
-    copyTpl(src('config/index'), dest(`${shortname}/config/index.js`), answers);
-    copyTpl(src('routes/index.js'), dest(`${shortname}/routes/index.js`), answers);
+    copyTpl(src('src/config/index'), dest(`${shortname}/src/config/index.js`), answers);
+    copyTpl(src('src/routes/index.js'), dest(`${shortname}/src/routes/index.js`), answers);
 
     if (answers.sequelize) {
-      copy(src('models/index.js'), dest(`${shortname}/models/index.js`));
-      copyTpl(src('config/sequelize'), dest(`${shortname}/config/sequelize.js`), {
+      copy(src('src/models/index.js'), dest(`${shortname}/src/models/index.js`));
+      copyTpl(src('src/config/sequelize'), dest(`${shortname}/src/config/sequelize.js`), {
         sequelizeDialect: dialect.value,
       });
 
@@ -129,7 +129,7 @@ module.exports = class extends Generator {
     }
 
     if (answers.winston) {
-      copy(src('config/winston.js'), dest(`${shortname}/config/winston.js`));
+      copy(src('src/config/winston.js'), dest(`${shortname}/src/config/winston.js`));
 
       pkgJson.dependencies.winston = '^3.2.1';
     }
@@ -172,10 +172,11 @@ module.exports = class extends Generator {
     this.installDependencies({ bower: false, npm: true })
       .then(() => this.spawnCommandSync('npm', ['remove', '-S', 'example']))
       .then(() => this.spawnCommandSync('npm', ['remove', '-D', 'example']))
+      .then(() => this.spawnCommandSync('npm', ['update']))
       .then(() => this.spawnCommandSync('npm', ['run', 'lint:fix']));
   }
 
   end() {
-    this.log(yosay(`All done ! \n\nStart a development server by running ${yellow('npm run dev')}`));
+    this.log(yosay(`All done ! \n\nStart a development server by running ${yellow('npm run dev')}.`));
   }
 };

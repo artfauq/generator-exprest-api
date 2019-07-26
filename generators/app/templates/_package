@@ -4,7 +4,7 @@
   "description": "<%= description %>",
   "main": "index.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "dev": "cross-env NODE_ENV=development nodemon --watch src index.js",
     "start": "node index.js",
     <%_ if (!prettier) { _%>
     "lint": "eslint .",

@@ -4,7 +4,7 @@ const { createLogger, format, transports } = require('winston');
 
 const { isDevelopment, isProduction } = require('.');
 
-const logsDir = `${__dirname}/../logs`;
+const logsDir = `${__dirname}/../../logs`;
 
 // Check if logs folder exists
 if (!existsSync(logsDir)) {

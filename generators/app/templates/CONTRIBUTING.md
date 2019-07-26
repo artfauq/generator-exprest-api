@@ -10,22 +10,22 @@ The following is a set of guidelines for contributing to the <%= name %> project
 
 The project uses [Sequelize](https://github.com/sequelize/sequelize) as an ORM to connect to a <%= sequelizeDialect %> database.
 
-- Database connection options are defined in `config/index.js`.
-- Sequelize instance options is defined in `config/sequelize.js`.
-- Sequelize models are defined in `models/`.
+- Database connection options are defined in `src/config/index.js`.
+- Sequelize instance options is defined in `src/config/sequelize.js`.
+- Sequelize models are defined in `src/models/`.
 <%_ } _%>
 
 ### Project structure
 
 The project is structured as follows:
 
-- `config/`: configuration files
-- `controllers/`: API routes controllers (request handlers)<%_ if (openapi) { _%>
-- `doc/`: API documentation<%_ } _%><%_ if (sequelize) { _%>
-- `models/`: Sequelize models definitions<%_ } _%>
-- `routes/`: API routes definitions
-- `services/`: business logic files
-- `utils/`: utility functions and helpers
+<%_ if (openapi) { _%>- `doc/`: API documentation<%_ } _%>
+- `src/`: application source files
+  - `config/`: configuration files<%_ if (sequelize) { _%>
+  - `models/`: Sequelize models definitions<%_ } _%>
+  - `routes/`: API routes definitions
+  - `services/`: business logic files
+  - `utils/`: utility functions and helpers
 - `index.js`: entry point of the application that holds all the Express server configuration (middlewares, routes, error handling...)
 
 <%_ if (winston) { _%>When running the app or performing some commands, additional folders (ignored by Git) will be created such as:
@@ -37,13 +37,11 @@ The project is structured as follows:
 
 #### How to
 
-- All routes should be defined in the `routes/` folder.
-- New route files should be added to the `routes/index.js` file.
-- Each file should represent a main route endpoint and its filename should match this endpoint: for example, `routes/articles.js` should define all routes from the `/articles` endpoint.
-- Request handlers associated to these routes should be defined in the `controllers/` folder.
-- The folder should mirror the `routes/` folder: one controller file per route file with a filename matching the associated route endpoint (ex: `controllers/articles.js`).
-- Each controller should define and export one request handler function per route.
-- Finally, all the business logic (retrieving, creating or updating data, etc) should be defined in the `services/` folder.
+- All routes should be defined in `routes/`
+  - For each main route endpoint, a folder with the route endpoint as folder name should be added to the `routes/` folder and contain at least:
+    - An `index.js` file declaring the various route endpoints
+    - A `controller.js` file defining the request handlers associated to these routes
+- All the business logic (retrieving, creating or updating data, etc) should be defined in the `services/` folder.
 
 #### Example
 
@@ -55,16 +53,18 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
   - In this new file, define and export two new methods `getAllArticles` and `getArticleById`:
 
     ```javascript
+    // Sequelize example
+
+    const { Article } = require('../models');
+
     module.exports = {
       async getAllArticles() {
-        // Fetch all articles from a database (using Sequelize for example)
         const articles = await Article.findAll();
 
         return articles;
       },
 
       async getArticleById(id) {
-        // Fetch one article from a database (using Sequelize for example)
         const article = await Article.findByPk(id);
 
         return article;
@@ -72,9 +72,11 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
     };
     ```
 
+- Create a new folder `articles/` in the `routes/` folder
+
 - Create the controller / request handler:
 
-  - Create a new file called `articles.js` in the `controllers/` folder
+  - Create a new file `controller.js` in `routes/articles/`
   - In this new file, define and export the request handlers associated to these routes:
 
     ```javascript
@@ -97,15 +99,15 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
     };
     ```
 
-- Create the route and endpoints:
+- Create the route endpoints:
 
-  - Create a new file called `articles.js` in the `routes/` folder
+  - Create a new file `index.js` in `routes/articles/`
   - In this new file, initialize a router object, import the controller and the new routes with its associated request handlers:
 
     ```javascript
     const Router = require('express-promise-router').default;
 
-    const articlesController = require('../controllers/articles');
+    const articlesController = require('./controller');
 
     const router = Router();
 
@@ -115,16 +117,16 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
     module.exports = router;
     ```
 
-- Finally, import the router in the `routes/index.js` file and declare a new `/articles` route:
+- Finally, import the routes in `routes/index.js` and declare a new `/articles` route:
 
-    ```javascript
-    const articlesRouter = require('./articles');
+  ```javascript
+  const articlesRouter = require('./articles');
 
-    /**
-     * API routes
-     */
-    router.use('/api/articles', articlesRouter);
-    ```
+  /**
+   * API routes
+   */
+  router.use('/api/articles', articlesRouter);
+  ```
 
 <%_ if (celebrate) { _%>
 
@@ -144,6 +146,9 @@ const articlesController = require('../controllers/articles');
 
 const router = Router();
 
+/**
+ * Get article
+ */
 router.get(
   '/:id',
   celebrate({
@@ -234,7 +239,7 @@ When updating the project's version number, do not forget to update:
 
 ### ES6
 
-JavaScript files are written in ES6 syntax (see [ECMAScript 6](https://www.w3schools.com/js/js_es6.asp)).
+JavaScript files located in `src/` are written in ES6 syntax (see [ECMAScript 6](https://www.w3schools.com/js/js_es6.asp)).
 
 Most of the ES6 features are supported by the latest versions of Node (`async/await`, `let`, `const`...). However, some features like ES6's `import/export` require to be "transpiled" first for Node.js to understand them.
 
