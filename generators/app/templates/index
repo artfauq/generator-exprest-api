@@ -2,7 +2,6 @@ const bodyParser = require('body-parser');
 const { green, yellow } = require('chalk').default;
 const express = require('express');
 const expressErrorHandler = require('@kazaar/express-error-handler');
-const compression = require('compression');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
@@ -30,7 +29,6 @@ app.use(
   })
 );
 app.use(bodyParser.json());
-app.use(compression());
 app.use(helmet());
 
 <%_ if (openapi) { _%>
