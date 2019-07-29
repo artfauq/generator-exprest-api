@@ -1,6 +1,6 @@
-# Contributing to <%= name %>
+# Contributing to <%- name %>
 
-The following is a set of guidelines for contributing to the <%= name %> project.
+The following is a set of guidelines for contributing to the <%- name %> project.
 
 ## About
 
