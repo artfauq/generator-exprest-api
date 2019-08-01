@@ -32,7 +32,7 @@
     <%_ } _%>
   },
   "dependencies": {
-    "@kazaar/express-error-handler": "^2.2.9",
+    "@kazaar/express-error-handler": "^2.2.10",
     "body-parser": "^1.18.3",
     "chalk": "^2.4.2",
     "dotenv": "^8.0.0",
