@@ -1,8 +1,12 @@
+const { Sequelize } = require('sequelize');
+
 const { db } = require('.');
 
-module.exports = {
+// Sequelize instance configuration
+const sequelize = new Sequelize({
   ...db,
   dialect: '<%= sequelizeDialect %>',
-  operatorsAliases: false,
   logging: false,
-};
+});
+
+module.exports = sequelize;

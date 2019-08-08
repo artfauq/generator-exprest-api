@@ -53,6 +53,7 @@ Automatically fix linting errors with:
 All the API is documented with [ReDoc](https://github.com/Rebilly/ReDoc) from an [OpenAPI](https://swagger.io/specification/) document.
 
 To explore the documentation, run the server and navigate to `localhost:8080/docs`.
+
 <%_ } _%>
 
 ## Contributing

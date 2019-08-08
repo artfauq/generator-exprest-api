@@ -2,15 +2,36 @@ FROM node:latest
 
 WORKDIR /<%= shortname %>
 
-# install packages
+<%_ if (react) { _%># install frontend packages
+COPY client/package*.json client/
+RUN cd client && npm set progress=false && npm install
+
+# copy frontend files
+COPY client/src client/src
+COPY client/public client/public
+
+# build app
+RUN cd client && npm run build
+
+<%_ } _%>
+# install server packages
 COPY package*.json ./
 RUN npm set progress=false && npm install --production
 
-# copy application files
+# copy server files
 COPY doc doc
 COPY src src
 COPY index.js index.js
 
+<%_ if (react) { _%>FROM node:latest
+
+COPY --from=build /<%= shortname %>/doc doc
+COPY --from=build /<%= shortname %>/src src
+COPY --from=build /<%= shortname %>/index.js index.js
+COPY --from=build /<%= shortname %>/client/build client/build
+COPY --from=build /<%= shortname %>/node_modules node_modules
+
+<%_ } _%>
 EXPOSE 8080
 
 CMD [ "npm", "start" ]

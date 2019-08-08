@@ -65,7 +65,7 @@
     "prettier": "^1.18.2"
   },
   "engines": {
-    "npm": ">= 4.0.0"
+    "npm": ">= 10.0.0"
   },
   "license": "MIT"
 }

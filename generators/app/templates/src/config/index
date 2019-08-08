@@ -1,15 +1,14 @@
-require('dotenv').config({ path: `${__dirname}/../../.env` });
-
 const { checkEnvironmentVariables } = require('../utils/env');
 
 const envVariables = [
    <%_ if (sequelize) { _%>
-    'DB_HOST',
-    'DB_NAME',
-    'DB_USER',
-    'DB_PASSWORD',<%_ } _%>
+    '<%= name %>_DB_HOST',
+    '<%= name %>_DB_NAME',
+    '<%= name %>_DB_USER',
+    '<%= name %>_DB_PASSWORD',
+    <%_ } _%>
     <%_ if (jwt) { _%>
-    'JWT_SECRET',
+    '<%= name %>_JWT_SECRET',
     <%_ } _%>
 ];
 
@@ -32,10 +31,10 @@ module.exports = {
   <%_ if (sequelize) { _%>
   // Database config
   db: {
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    username: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    host: process.env.<%= name %>_DB_HOST,
+    database: process.env.<%= name %>_DB_NAME,
+    username: process.env.<%= name %>_DB_USER,
+    password: process.env.<%= name %>_DB_PASSWORD,
   },
   <%_ } _%>
 
@@ -45,7 +44,7 @@ module.exports = {
     algorithm: 'HS256',
     accessTokenExpiryTime: 900, // 15 minutes
     refreshTokenExpiryTime: 3600, // 1 hour
-    SECRET: process.env.JWT_SECRET,
+    secret: process.env.<%= name %>_JWT_SECRET,
   },
   <%_ } _%>
 };

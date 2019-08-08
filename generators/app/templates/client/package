@@ -1,0 +1,42 @@
+{
+  "name": "<%= shortname %>-front",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    <%_ if (!prettier) { _%>
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+    <%_ } _%>
+    <%_ if (prettier) { _%>
+    "lint": "eslint . && prettier --check \"**/*.{json,md,html,yaml,css}\"",
+    "lint:fix": "eslint . --fix && prettier --write \"**/*.{json,md,html,yaml,css}\""
+    <%_ } _%>
+  },
+  "dependencies": {
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-scripts": "3.0.1"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb": "^17.1.1"<%_ if (prettier) { _%>,
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "prettier": "^1.18.2"
+  <%_ } _%>},
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "private": true
+}

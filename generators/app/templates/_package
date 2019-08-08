@@ -1,18 +1,20 @@
 {
   "name": "<%= shortname %>",
   "version": "0.0.0",
-  "description": "<%- description %>",
+  "description": <%- description %>,
   "main": "index.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon --watch src index.js",
     "start": "node index.js",
     <%_ if (!prettier) { _%>
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint": "eslint index.js src/",
+    "lint:fix": "eslint index.js src/ --fix"
     <%_ } _%>
     <%_ if (prettier) { _%>
-    "lint": "eslint . && prettier --check \"**/*.{json,md,html,yaml}\"",
-    "lint:fix": "eslint . --fix && prettier --write \"**/*.{json,md,html,yaml}\""
+    "lint": "eslint index.js src/ && prettier --check \"**/*.{json,md,html,yaml,css}\"",
+    "lint:fix": "eslint index.js src/ --fix && prettier --write \"**/*.{json,md,html,yaml,css}\""<%_ } _%><%_ if (react) { _%>,
+    "lint-client": "cd client && npm run lint:fix",
+    "postinstall": "cd client && npm install"
     <%_ } _%>
   },
   "husky": {
@@ -21,11 +23,21 @@
     }
   },
   "lint-staged": {
+    <%_ if(!react) { _%>
     "*.js": [
       "eslint --fix",
       "git add"
-    ]<%_ if (prettier) { _%>,
-    "*.{json,md,html,yaml}": [
+    ]<%_ } _%>
+    <%_ if(react) { _%>
+    "{,!(client)/**/}*.js": [
+      "eslint --fix",
+      "git add"
+    ],
+    "client/**/*.js": [
+      "npm run lint-client",
+      "git add"
+    ]<%_ } _%><%_ if (prettier) { _%>,
+    "*.{json,md,html,yaml,css}": [
       "prettier --write",
       "git add"
     ]

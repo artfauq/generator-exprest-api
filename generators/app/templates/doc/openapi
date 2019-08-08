@@ -1,0 +1,67 @@
+openapi: 3.0.0
+info:
+  title: <%- name %>
+  version: 0.0.0
+  description: <%- description %>
+servers:
+  - url: http://localhost:8080/
+    description: Local development server
+components:
+<%_ if (jwt) { _%>
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+<%_ } _%>
+  responses:
+    204:
+      description: No Content
+    400:
+      description: Bad Request - Invalid or missing request parameters / body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HttpError'
+    404:
+      description: Not Found - Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HttpError'
+    401:
+      description: Unauthorized - Invalid or missing authorization token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HttpError'
+    403:
+      description: Forbidden - Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HttpError'
+  schemas:
+<%_ if (jwt) { _%>
+    Token:
+      description: Token JWT
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+        refresh_token:
+          type: string
+<%_ } _%>
+    HttpError:
+      required:
+        - status
+        - name
+        - message
+      properties:
+        status:
+          type: number
+        name:
+          type: string
+        message:
+          type: string

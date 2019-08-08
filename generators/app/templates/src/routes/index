@@ -6,13 +6,15 @@ const router = Router();
 /**
  * API routes
  */
-router.get('/', (req, res) => res.redirect('/docs'));
+router.get('/', (req, res) => res.sendStatus(200));
 
 /**
  * 404 error handling
  */
 router.use((req, res, next) => {
-  next(new NotFound(`The requested route '${req.method} ${req.url}' does not exist.`));
+  const { baseUrl, url, method } = req;
+
+  next(new NotFound(`The route '${method} ${baseUrl}${url}' doesn't exist.`));
 });
 
 module.exports = router;

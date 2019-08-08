@@ -87,6 +87,12 @@ module.exports = class extends Generator {
         message: `Generate an ${yellow.bold('OpenAPI')} documentation file ?`,
         default: true,
       },
+      {
+        type: 'confirm',
+        name: 'react',
+        message: `Generate a ${yellow.bold('React')} app ?`,
+        default: true,
+      },
     ]);
   }
 
@@ -97,10 +103,10 @@ module.exports = class extends Generator {
     const copyTpl = this.fs.copyTpl.bind(this.fs);
     const src = this.templatePath.bind(this);
     const dest = this.destinationPath.bind(this);
-    const extendJSON = this.fs.extendJSON.bind(this.fs);
-    const pkgJson = {
-      devDependencies: {},
-      dependencies: {},
+
+    this.packages = {
+      devDependencies: [],
+      dependencies: [],
     };
 
     const dialect = Object.values(SEQUELIZE_DIALECT).find(d => d.value === answers.sequelizeDialect);
@@ -114,15 +120,22 @@ module.exports = class extends Generator {
 
     copyTpl(src('eslintrc'), dest(`${shortname}/.eslintrc.json`), answers);
     copyTpl(src('README.md'), dest(`${shortname}/README.md`), answers);
-    copyTpl(src('CONTRIBUTING.md'), dest(`${shortname}/CONTRIBUTING.md`), {
+    copyTpl(src('CONTRIBUTING'), dest(`${shortname}/CONTRIBUTING.md`), {
       ...answers,
-      sequelizeDialect: dialect.name,
+      sequelizeDialect: dialect ? dialect.name : '',
     });
-    copyTpl(src('_package'), dest(`${shortname}/package.json`), answers);
+    copyTpl(src('_package'), dest(`${shortname}/package.json`), {
+      ...answers,
+      description: JSON.stringify(answers.description),
+    });
     copyTpl(src('index'), dest(`${shortname}/index.js`), answers);
-    copyTpl(src('env.example'), dest(`${shortname}/.env.example`), answers);
-    copyTpl(src('src/config/index'), dest(`${shortname}/src/config/index.js`), answers);
-    copyTpl(src('src/routes/index.js'), dest(`${shortname}/src/routes/index.js`), answers);
+    copyTpl(src('env'), dest(`${shortname}/.env`), { ...answers, name: shortname.toUpperCase() });
+    copyTpl(src('env.example'), dest(`${shortname}/.env.example`), { ...answers, name: shortname.toUpperCase() });
+    copyTpl(src('src/config/index'), dest(`${shortname}/src/config/index.js`), {
+      ...answers,
+      name: shortname.toUpperCase(),
+    });
+    copyTpl(src('src/routes/index'), dest(`${shortname}/src/routes/index.js`), answers);
 
     if (answers.sequelize) {
       copy(src('src/models/index.js'), dest(`${shortname}/src/models/index.js`));
@@ -130,27 +143,28 @@ module.exports = class extends Generator {
         sequelizeDialect: dialect.value,
       });
 
-      pkgJson.dependencies.sequelize = '^4.43.0';
-      pkgJson.dependencies = Object.assign(pkgJson.dependencies, ...dialect.packages);
+      this.packages.dependencies.push('sequelize');
+      this.packages.dependencies.push(...dialect.packages);
     }
 
     if (answers.winston) {
       copy(src('src/config/winston.js'), dest(`${shortname}/src/config/winston.js`));
 
-      pkgJson.dependencies.winston = '^3.2.1';
+      this.packages.dependencies.push('winston');
     }
 
     if (answers.celebrate) {
-      pkgJson.dependencies.celebrate = '^9.1.0';
+      this.packages.dependencies.push('celebrate');
     }
 
     if (answers.axios) {
-      pkgJson.dependencies.axios = '^0.18.0';
+      this.packages.dependencies.push('axios');
     }
 
     if (answers.jwt) {
-      pkgJson.dependencies.jsonwebtoken = '^8.5.1';
-      pkgJson.dependencies['express-jwt'] = '^5.3.1';
+      this.packages.dependencies.push('jsonwebtoken');
+      this.packages.dependencies.push('express-jwt');
+
       copy(src('src/utils/jwt'), dest(`${shortname}/src/utils/jwt.js`));
       copy(src('src/routes/middleware'), dest(`${shortname}/src/routes/middleware.js`));
     }
@@ -158,38 +172,55 @@ module.exports = class extends Generator {
     if (answers.prettier) {
       copy(src('prettierrc'), dest(`${shortname}/.prettierrc`));
 
-      pkgJson.devDependencies['eslint-config-prettier'] = '^4.1.0';
-      pkgJson.devDependencies['eslint-plugin-prettier'] = '^3.0.1';
-      pkgJson.devDependencies.prettier = '^1.16.4';
+      this.packages.devDependencies.push('eslint-config-prettier');
+      this.packages.devDependencies.push('eslint-plugin-prettier');
+      this.packages.devDependencies.push('prettier');
     }
 
     if (answers.docker) {
-      copyTpl(src('DockerFile'), dest(`${shortname}/DockerFile`), answers);
+      copyTpl(src('DockerFile'), dest(`${shortname}/${shortname}DockerFile`), answers);
     }
 
     if (answers.openapi) {
       copyTpl(src('doc/index.html'), dest(`${shortname}/doc/index.html`), answers);
-      copyTpl(src('doc/openapi.yaml'), dest(`${shortname}/doc/openapi.yaml`), answers);
+      copyTpl(src('doc/openapi'), dest(`${shortname}/doc/openapi.yaml`), answers);
     }
 
-    extendJSON(dest(`${shortname}/package.json`), pkgJson);
+    if (answers.react) {
+      copyTpl(src('client/public/index'), dest(`${shortname}/client/public/index.html`), answers);
+      copyTpl(src('client/public/manifest'), dest(`${shortname}/client/public/manifest.json`), answers);
+      copyTpl(src('client/src/App'), dest(`${shortname}/client/src/App.js`), answers);
+      copy(src('client/src/index.css'), dest(`${shortname}/client/src/index.css`));
+      copy(src('client/src/index.js'), dest(`${shortname}/client/src/index.js`));
+      copy(src('client/src/serviceWorker.js'), dest(`${shortname}/client/src/serviceWorker.js`));
+
+      copy(src('client/.gitignore'), dest(`${shortname}/client/.gitignore`));
+      copyTpl(src('client/eslintrc'), dest(`${shortname}/client/.eslintrc.json`), answers);
+      copyTpl(src('client/package'), dest(`${shortname}/client/package.json`), answers);
+      copyTpl(src('client/README.md'), dest(`${shortname}/client/README.md`), answers);
+
+      if (answers.prettier) {
+        copy(src('client/prettierrc'), dest(`${shortname}/client/.prettierrc`));
+      }
+    }
   }
 
   install() {
-    const { shortname } = this.answers;
-
-    const appDir = join(process.cwd(), shortname);
+    const appDir = join(process.cwd(), this.answers.shortname);
+    const dependencies = this.packages.dependencies.map(dep => `${dep}@latest`);
+    const devDependencies = this.packages.devDependencies.map(dep => `${dep}@latest`);
 
     process.chdir(appDir);
 
-    this.installDependencies({ bower: false, npm: true })
-      .then(() => this.spawnCommandSync('npm', ['remove', '-S', 'example']))
-      .then(() => this.spawnCommandSync('npm', ['remove', '-D', 'example']))
-      .then(() => this.spawnCommandSync('npm', ['update']))
-      .then(() => this.spawnCommandSync('npm', ['run', 'lint:fix']));
+    this.installDependencies({ bower: false, npm: true }).then(() => {
+      this.spawnCommandSync('npm', ['i', '--save', ...dependencies]);
+      this.spawnCommandSync('npm', ['i', '--save-dev', ...devDependencies]);
+      this.spawnCommandSync('npm', ['update']);
+      this.spawnCommandSync('npm', ['run', 'lint:fix']);
+    });
   }
 
   end() {
-    this.log(yosay(`All done ! \n\nStart a development server by running ${yellow('npm run dev')}.`));
+    this.log(yosay('All done !'));
   }
 };

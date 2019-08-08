@@ -1,29 +1,8 @@
-/**
- * @typedef {import('express-jwt').RequestHandler} JWTRequestHandler
- * @typedef {import('express').Request} Request
- * @typedef {import('express').Response} Response
- * @typedef {import('express').NextFunction} NextFunction
- */
-
 const jwt = require('express-jwt');
 
 const { JWT } = require('../config');
 
-const { SECRET } = JWT;
-
-function getToken(req) {
-  const { headers, query } = req;
-
-  if (headers.authorization && headers.authorization.split(' ')[0] === 'Bearer') {
-    return headers.authorization.split(' ')[1];
-  }
-
-  if (query && query.token) {
-    return query.token;
-  }
-
-  return null;
-}
+const { secret } = JWT;
 
 module.exports = {
   /**
@@ -44,15 +23,13 @@ module.exports = {
    */
   auth: {
     required: jwt({
-      secret: SECRET,
+      secret,
       requestProperty: 'auth',
-      getToken,
     }),
     optional: jwt({
-      secret: SECRET,
+      secret,
       requestProperty: 'auth',
       credentialsRequired: false,
-      getToken,
     }),
   },
 };
