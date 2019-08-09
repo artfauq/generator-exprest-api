@@ -119,7 +119,7 @@ module.exports = class extends Generator {
     copy(src('src/utils/env'), dest(`${shortname}/src/utils/env.js`));
 
     copyTpl(src('eslintrc'), dest(`${shortname}/.eslintrc.json`), answers);
-    copyTpl(src('README.md'), dest(`${shortname}/README.md`), answers);
+    copyTpl(src('README'), dest(`${shortname}/README.md`), answers);
     copyTpl(src('CONTRIBUTING'), dest(`${shortname}/CONTRIBUTING.md`), {
       ...answers,
       sequelizeDialect: dialect ? dialect.name : '',
