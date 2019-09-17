@@ -87,12 +87,6 @@ module.exports = class extends Generator {
         message: `Generate an ${yellow.bold('OpenAPI')} documentation file ?`,
         default: true,
       },
-      {
-        type: 'confirm',
-        name: 'react',
-        message: `Generate a ${yellow.bold('React')} app ?`,
-        default: true,
-      },
     ]);
   }
 
@@ -184,24 +178,6 @@ module.exports = class extends Generator {
     if (answers.openapi) {
       copyTpl(src('doc/index.html'), dest(`${shortname}/doc/index.html`), answers);
       copyTpl(src('doc/openapi'), dest(`${shortname}/doc/openapi.yaml`), answers);
-    }
-
-    if (answers.react) {
-      copyTpl(src('client/public/index'), dest(`${shortname}/client/public/index.html`), answers);
-      copyTpl(src('client/public/manifest'), dest(`${shortname}/client/public/manifest.json`), answers);
-      copyTpl(src('client/src/App'), dest(`${shortname}/client/src/App.js`), answers);
-      copy(src('client/src/index.css'), dest(`${shortname}/client/src/index.css`));
-      copy(src('client/src/index.js'), dest(`${shortname}/client/src/index.js`));
-      copy(src('client/src/serviceWorker.js'), dest(`${shortname}/client/src/serviceWorker.js`));
-
-      copy(src('client/.gitignore'), dest(`${shortname}/client/.gitignore`));
-      copyTpl(src('client/eslintrc'), dest(`${shortname}/client/.eslintrc.json`), answers);
-      copyTpl(src('client/package'), dest(`${shortname}/client/package.json`), answers);
-      copyTpl(src('client/README.md'), dest(`${shortname}/client/README.md`), answers);
-
-      if (answers.prettier) {
-        copy(src('client/prettierrc'), dest(`${shortname}/client/.prettierrc`));
-      }
     }
   }
 

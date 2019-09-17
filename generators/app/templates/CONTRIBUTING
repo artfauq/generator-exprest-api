@@ -25,9 +25,7 @@ A `.env` file with the environement variable key/value pairs can be added at the
 
 The project is structured as follows:
 
-<%_ if (react) { _%>
-- `client/`: frontend application files
-  <%_ } _%><%_ if (openapi) { _%>
+<%_ if (openapi) { _%>
 - `doc/`: API documentation files
   <%_ } _%>
 - `src/`: server source files
