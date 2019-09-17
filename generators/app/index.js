@@ -178,7 +178,7 @@ module.exports = class extends Generator {
     }
 
     if (answers.docker) {
-      copyTpl(src('DockerFile'), dest(`${shortname}/${shortname}DockerFile`), answers);
+      copyTpl(src('DockerFile'), dest(`${shortname}/DockerFile`), answers);
     }
 
     if (answers.openapi) {
