@@ -44,8 +44,9 @@ app.use(
 );
 app.use(bodyParser.json());
 app.use(helmet());
+<%_ if (openapi) { _%>
 
-<%_ if (openapi) { _%>/**
+/**
  * API documentation
  */
 app.use('/api/docs', express.static(`${__dirname}/doc`));
@@ -80,7 +81,7 @@ app
     <%_ if (sequelize) { _%>
     sequelize
       .authenticate()
-      .then(() => logger.info(`${green('✓')} Successfully connected to ${yellow(sequelize.config.database)} database`))
+      .then(() => logger.info(`${green('✓')} Successfully ${green('connected')} to ${yellow(sequelize.config.database)} database`))
       .catch(handleSequelizeConnectionError);
     <%_ } _%>
   })

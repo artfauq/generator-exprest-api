@@ -8,32 +8,38 @@ const SEQUELIZE_DIALECT = require('./utils/sequelize-dialect-enum');
 
 module.exports = class extends Generator {
   async prompting() {
-    this.log(yosay(`Welcome to the ${red('generator-exprest-api')} generator!`));
+    this.log(yosay(`Welcome to the ${red('REST API')} generator!`));
 
     this.answers = await this.prompt([
       {
         type: 'input',
         name: 'shortname',
         message: `Package ${yellow('shortname')} [ex: ${gray('rest-api')}]`,
-        validate: input => validate(input).validForNewPackages || 'Must be a valid package name',
+        validate: input =>
+          (validate(input).validForNewPackages && new RegExp(/^[a-zA-Z0-9_-]*$/).test(input)) ||
+          'Must be a valid package name',
+        store: true,
       },
       {
         type: 'input',
         name: 'name',
         message: `App ${yellow('(pretty) name')} [ex: ${gray('My REST API')}]`,
         validate: input => input.trim() !== '',
+        store: true,
       },
       {
         type: 'input',
         name: 'description',
         message: `App ${yellow('description')} [ex: ${gray('A REST API for cats and dogs')}]`,
         validate: input => input.trim() !== '',
+        store: true,
       },
       {
         type: 'confirm',
         name: 'sequelize',
         message: `Use ${yellow.bold('Sequelize')} as ORM ?`,
         default: true,
+        store: true,
       },
       {
         type: 'list',
@@ -44,48 +50,56 @@ module.exports = class extends Generator {
           // Only run if user set Sequelize
           return !!sequelize;
         },
+        store: true,
       },
       {
         type: 'confirm',
         name: 'winston',
         message: `Use ${yellow.bold('winston')} for logging ?`,
         default: true,
+        store: true,
       },
       {
         type: 'confirm',
         name: 'celebrate',
         message: `Use ${yellow.bold('celebrate/joi')} for object validation ?`,
         default: true,
+        store: true,
       },
       {
         type: 'confirm',
         name: 'axios',
         message: `Use ${yellow.bold('axios')} for HTTP requests ?`,
         default: true,
+        store: true,
       },
       {
         type: 'confirm',
         name: 'jwt',
         message: `Use ${yellow.bold('JWT')} for user authentication ?`,
         default: true,
+        store: true,
       },
       {
         type: 'confirm',
         name: 'prettier',
         message: `Use ${yellow.bold('Prettier')} for code formatting ?`,
         default: true,
+        store: true,
       },
       {
         type: 'confirm',
         name: 'docker',
         message: `Generate a ${yellow('DockerFile')} ?`,
         default: true,
+        store: true,
       },
       {
         type: 'confirm',
         name: 'openapi',
         message: `Generate an ${yellow.bold('OpenAPI')} documentation file ?`,
         default: true,
+        store: true,
       },
     ]);
   }
@@ -105,6 +119,8 @@ module.exports = class extends Generator {
 
     const dialect = Object.values(SEQUELIZE_DIALECT).find(d => d.value === answers.sequelizeDialect);
 
+    const envName = shortname.toUpperCase().replace(/-/g, '_');
+
     copy(src('editorconfig'), dest(`${shortname}/.editorconfig`));
     copy(src('gitattributes'), dest(`${shortname}/.gitattributes`));
     copy(src('gitignore'), dest(`${shortname}/.gitignore`));
@@ -123,12 +139,9 @@ module.exports = class extends Generator {
       description: JSON.stringify(answers.description),
     });
     copyTpl(src('index'), dest(`${shortname}/index.js`), answers);
-    copyTpl(src('env'), dest(`${shortname}/.env`), { ...answers, name: shortname.toUpperCase() });
-    copyTpl(src('env.example'), dest(`${shortname}/.env.example`), { ...answers, name: shortname.toUpperCase() });
-    copyTpl(src('src/config/index'), dest(`${shortname}/src/config/index.js`), {
-      ...answers,
-      name: shortname.toUpperCase(),
-    });
+    copyTpl(src('env'), dest(`${shortname}/.env`), { ...answers, name: envName });
+    copyTpl(src('env.example'), dest(`${shortname}/.env.example`), { ...answers, name: envName });
+    copyTpl(src('src/config/index'), dest(`${shortname}/src/config/index.js`), { ...answers, name: envName });
     copyTpl(src('src/routes/index'), dest(`${shortname}/src/routes/index.js`), answers);
 
     if (answers.sequelize) {

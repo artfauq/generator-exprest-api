@@ -1,12 +1,10 @@
-<%_ if (sequelize) { _%>
-# Database
+<%_ if (sequelize) { _%># Database
 <%= name %>_DB_HOST=
 <%= name %>_DB_NAME=
 <%= name %>_DB_USER=
 <%= name %>_DB_PASSWORD=
+
 <%_ } _%>
 <%_ if (jwt) { _%>
-
 # JWT
-<%= name %>_JWT_SECRET=
-<%_ } _%>
+<%= name %>_JWT_SECRET=<%_ } _%>

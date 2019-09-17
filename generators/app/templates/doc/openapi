@@ -6,6 +6,9 @@ info:
 servers:
   - url: http://localhost:8080/
     description: Local development server
+    variables:
+      basePath:
+        default: api
 components:
 <%_ if (jwt) { _%>
   securitySchemes:

@@ -7,7 +7,9 @@ COPY package*.json ./
 RUN npm set progress=false && npm install --production
 
 # copy server files
+<%_ if (openapi) { _%>
 COPY doc doc
+<%_ } _%>
 COPY src src
 COPY index.js index.js
 

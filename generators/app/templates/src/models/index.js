@@ -1,27 +1,18 @@
-const { readdirSync } = require('fs');
-const { join, basename } = require('path');
 const Sequelize = require('sequelize');
 
 const sequelize = require('../config/sequelize');
-
-const db = {};
+// const User = require('./user');
 
 // Import models
-readdirSync(__dirname)
-  .filter(file => file.indexOf('.') !== 0 && file !== basename(__filename) && file.slice(-3) === '.js')
-  .forEach(file => {
-    const model = sequelize.import(join(__dirname, file));
-    db[model.name] = model;
-  });
+const models = {
+  // User,
+};
 
 // Associate models
-Object.keys(db).forEach(model => {
-  if (db[model].associate) {
-    db[model].associate(db);
+Object.keys(models).forEach(model => {
+  if (models[model].associate && typeof models[model].associate === 'function') {
+    models[model].associate(models);
   }
 });
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
-
-module.exports = db;
+module.exports = { ...models, Sequelize, sequelize };
