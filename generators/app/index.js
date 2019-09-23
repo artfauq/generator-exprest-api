@@ -204,6 +204,8 @@ module.exports = class extends Generator {
     this.installDependencies({ bower: false, npm: true }).then(() => {
       this.spawnCommandSync('npm', ['i', '--save', ...dependencies]);
       this.spawnCommandSync('npm', ['i', '--save-dev', ...devDependencies]);
+      this.spawnCommandSync('npm', ['remove', '-S', 'example']);
+      this.spawnCommandSync('npm', ['remove', '-D', 'example']);
       this.spawnCommandSync('npm', ['update']);
       this.spawnCommandSync('npm', ['run', 'lint:fix']);
     });
