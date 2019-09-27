@@ -1,11 +1,7 @@
-require('dotenv').config();
-
 const bodyParser = require('body-parser');
-const { green, yellow } = require('chalk').default;
 const express = require('express');
 const expressErrorHandler = require('@kazaar/express-error-handler');
 const helmet = require('helmet');
-const morgan = require('morgan');
 
 const { host, port, env } = require('./src/config');
 <%_ if (sequelize) { _%>
@@ -32,16 +28,12 @@ const {
  */
 const app = express();
 
+app.set('host', host);
+app.set('port', port);
+
 /**
  * Application configuration
  */
-app.use(
-  morgan('dev', {
-    stream: {
-      write: message => logger.info(message),
-    },
-  })
-);
 app.use(bodyParser.json());
 app.use(helmet());
 <%_ if (openapi) { _%>
@@ -49,13 +41,19 @@ app.use(helmet());
 /**
  * API documentation
  */
-app.use('/api/docs', express.static(`${__dirname}/doc`));
+app.use('/docs', express.static(`${__dirname}/doc`));
 <%_ } _%>
 
 /**
  * API routes
  */
 app.use('/api', router);
+
+/**
+ * Base route
+ */
+<%_ if (openapi) { _%>app.get('/', (req, res) => res.redirect('/docs'));<%_ } _%>
+<%_ if (!openapi) { _%>app.get('/', (req, res) => res.sendStatus(200));<%_ } _%>
 
 /**
  * Error handling
@@ -76,13 +74,15 @@ app.use(httpErrorHandler);
  */
 app
   .listen(port, host, () => {
-    logger.info(`${green('✓')} App is running at ${yellow(`${host}:${port}`)} in ${yellow(env)} mode`);
+    logger.info(`App is running at ${host}:${port} in ${env} mode`);
 
     <%_ if (sequelize) { _%>
     sequelize
       .authenticate()
-      .then(() => logger.info(`${green('✓')} Successfully ${green('connected')} to ${yellow(sequelize.config.database)} database`))
+      .then(() => logger.info(`Successfully connected to ${sequelize.config.database} database`))
       .catch(handleSequelizeConnectionError);
     <%_ } _%>
   })
   .on('error', handleServerError);
+
+module.exports = app;

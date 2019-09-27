@@ -1,7 +1,27 @@
 const { Router } = require('express');
 const { NotFound } = require('http-errors');
+const morgan = require('morgan');
+
+<%_ if (!winston) { _%>
+const logger = console;<%_ } _%>
+<%_ if (winston) { _%>
+const logger = require('../config/winston');<%_ } _%>
 
 const router = Router();
+
+/**
+ * Router configuration
+ */
+router.use(
+  morgan(
+    '[:date[clf]] ":method :url HTTP/:http-version" :status - :remote-addr - :remote-user ":referrer" ":user-agent"',
+    {
+      stream: {
+        write: message => logger.info(message),
+      },
+    }
+  )
+);
 
 /**
  * API routes

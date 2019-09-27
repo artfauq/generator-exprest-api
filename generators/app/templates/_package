@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon index.js",
     "start": "node index.js",
+    <%_ if (mocha) { _%>"test": "cross-env NODE_ENV=test nyc mocha --timeout=15000 --reporter spec --exit",
+    <%_ } _%>
     <%_ if (!prettier) { _%>
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
@@ -34,7 +36,6 @@
   "dependencies": {
     "@kazaar/express-error-handler": "^2.3.0",
     "body-parser": "^1.18.3",
-    "chalk": "^2.4.2",
     "dotenv": "^8.0.0",
     "express": "^4.16.4",
     "express-promise-router": "^3.0.3",

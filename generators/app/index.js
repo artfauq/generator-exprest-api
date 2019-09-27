@@ -18,28 +18,24 @@ module.exports = class extends Generator {
         validate: input =>
           (validate(input).validForNewPackages && new RegExp(/^[a-zA-Z0-9_-]*$/).test(input)) ||
           'Must be a valid package name',
-        store: true,
       },
       {
         type: 'input',
         name: 'name',
         message: `App ${yellow('(pretty) name')} [ex: ${gray('My REST API')}]`,
         validate: input => input.trim() !== '',
-        store: true,
       },
       {
         type: 'input',
         name: 'description',
         message: `App ${yellow('description')} [ex: ${gray('A REST API for cats and dogs')}]`,
         validate: input => input.trim() !== '',
-        store: true,
       },
       {
         type: 'confirm',
         name: 'sequelize',
         message: `Use ${yellow.bold('Sequelize')} as ORM ?`,
         default: true,
-        store: true,
       },
       {
         type: 'list',
@@ -50,56 +46,54 @@ module.exports = class extends Generator {
           // Only run if user set Sequelize
           return !!sequelize;
         },
-        store: true,
       },
       {
         type: 'confirm',
         name: 'winston',
         message: `Use ${yellow.bold('winston')} for logging ?`,
         default: true,
-        store: true,
       },
       {
         type: 'confirm',
         name: 'celebrate',
-        message: `Use ${yellow.bold('celebrate/joi')} for object validation ?`,
+        message: `Use ${yellow.bold('celebrate')} and ${yellow.bold('Joi')} for object validation ?`,
         default: true,
-        store: true,
       },
       {
         type: 'confirm',
         name: 'axios',
         message: `Use ${yellow.bold('axios')} for HTTP requests ?`,
         default: true,
-        store: true,
       },
       {
         type: 'confirm',
         name: 'jwt',
         message: `Use ${yellow.bold('JWT')} for user authentication ?`,
         default: true,
-        store: true,
       },
       {
         type: 'confirm',
         name: 'prettier',
         message: `Use ${yellow.bold('Prettier')} for code formatting ?`,
         default: true,
-        store: true,
+      },
+      {
+        type: 'confirm',
+        name: 'mocha',
+        message: `Use ${yellow.bold('Mocha')} and ${yellow.bold('Chai')} for testing ?`,
+        default: true,
       },
       {
         type: 'confirm',
         name: 'docker',
         message: `Generate a ${yellow('DockerFile')} ?`,
         default: true,
-        store: true,
       },
       {
         type: 'confirm',
         name: 'openapi',
         message: `Generate an ${yellow.bold('OpenAPI')} documentation file ?`,
         default: true,
-        store: true,
       },
     ]);
   }
@@ -182,6 +176,16 @@ module.exports = class extends Generator {
       this.packages.devDependencies.push('eslint-config-prettier');
       this.packages.devDependencies.push('eslint-plugin-prettier');
       this.packages.devDependencies.push('prettier');
+    }
+
+    if (answers.mocha) {
+      copy(src('test/index'), dest(`${shortname}/test/index.js`));
+      copy(src('nycrc'), dest(`${shortname}/.nycrc`));
+
+      this.packages.devDependencies.push('chai');
+      this.packages.devDependencies.push('mocha');
+      this.packages.devDependencies.push('nyc');
+      this.packages.devDependencies.push('supertest');
     }
 
     if (answers.docker) {

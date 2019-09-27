@@ -1,8 +1,9 @@
 {
   "env": {
     "es6": true,
-    "node": true
-  },
+    "node": true<%_ if (mocha) { _%>,
+    "mocha": true
+  <%_ } _%>},
   "extends": [
     "airbnb-base",
     "plugin:import/recommended",
@@ -78,5 +79,14 @@
     "node/no-missing-import": "error",
     "node/no-extraneous-import": "error",
     "node/exports-style": ["error", "module.exports"]
-  }
+  }<%_ if (mocha) { _%>,
+  "overrides": [
+    {
+      "files": "test/**",
+      "rules": {
+        "node/no-unpublished-require": 0,
+        "node/no-missing-require": 0
+      }
+    }
+  ]<%_ } _%>
 }
