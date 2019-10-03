@@ -1,4 +1,4 @@
-# generator-exprest-api
+# Express / Rest API generator
 
 ![](https://img.shields.io/badge/license-MIT-blue.svg)
 
