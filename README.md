@@ -1,4 +1,4 @@
-# generator-exprest-api
+# Express / Rest API generator
 
 ![](https://img.shields.io/badge/license-MIT-blue.svg)
 
@@ -12,10 +12,11 @@
 - **Error linting** - Using [ESLint](https://eslint.org/)
 - **Code formatting** - Using [Prettier](https://prettier.io/)
 - **Pre-commit linting hook** - Using [husky](https://github.com/typicode/husky) and [lint-staged](https://github.com/okonet/lint-staged)
-- **API documentation** - Using [Swagger](https://swagger.io/)
-- **Object validation** - Using [celebrate/joi](https://www.npmjs.com/package/celebrate)
+- **API documentation** - Using [Swagger](https://swagger.io/) and [ReDoc](https://github.com/Redocly/redoc)
+- **Object validation** - Using [celebrate/Joi](https://www.npmjs.com/package/celebrate)
 - **Database ORM** - Using [Sequelize](http://docs.sequelizejs.com/)
 - **JWT** - Using [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) and [express-jwt](https://github.com/auth0/express-jwt)
+- **Testing** - Using [mocha](https://mochajs.org/), [chai](https://www.chaijs.com/), [supertest](https://github.com/visionmedia/supertest) and coverage with [nyc](https://github.com/istanbuljs/nyc)
 
 ## Installation
 
