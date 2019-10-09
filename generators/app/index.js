@@ -189,6 +189,7 @@ module.exports = class extends Generator {
     }
 
     if (answers.docker) {
+      copy(src('.dockerignore'), dest(`${shortname}/.dockerignore`));
       copyTpl(src('DockerFile'), dest(`${shortname}/DockerFile`), answers);
     }
 

@@ -1,6 +1,7 @@
-FROM node:latest
+FROM node:10.16-alpine
 
-WORKDIR /<%= shortname %>
+# set working directory
+WORKDIR /app
 
 # install server packages
 COPY package*.json ./
