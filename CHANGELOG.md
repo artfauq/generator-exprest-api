@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.1.1 (October 10, 2019)
+
+- Addded `.dockerignore` file
+- Changed `node` Docker image
+
 ## 3.1.0 (September 27, 2019)
 
 - Addded test option with `mocha`, `chai`, `supertest` and `nyc`
