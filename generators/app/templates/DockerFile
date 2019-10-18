@@ -1,17 +1,20 @@
 FROM node:10.16-alpine
 
+RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+
 # set working directory
-WORKDIR /app
+WORKDIR /home/node/app
 
 # install server packages
 COPY package*.json ./
 RUN npm set progress=false && npm install --production
 
 # copy server files
-<%_ if (openapi) { _%>
-COPY doc doc
-<%_ } _%>
+<% if (openapi) { %>COPY doc doc
+<% } -%>
 COPY src src
+<% if (sequelize) { %>COPY .sequelizerc .
+<% } -%>
 COPY index.js index.js
 
 EXPOSE 8080

@@ -37,15 +37,13 @@ For deployment use, start the server with:
 `$ npm run start`
 
 **NOTE:** the application makes use of the `NODE_ENV` environment variable do determine its running environment.
-<%_ if (mocha) { _%>
-
+<% if (mocha) { %>
 #### Test
 
 Run tests with [Mocha](https://mochajs.org/) and [Chai](https://www.chaijs.com/) with the following command:
 
 `$ npm run test`
-<%_ } _%>
-
+<% } %>
 #### Lint
 
 Check for linting errors with:
@@ -55,14 +53,13 @@ Check for linting errors with:
 Automatically fix linting errors with:
 
 `$ npm run lint:fix`
-
-<%_ if (openapi) { _%>## Documentation
+<% if (openapi) { %>
+## Documentation
 
 All the API is documented with [ReDoc](https://github.com/Rebilly/ReDoc) from an [OpenAPI](https://swagger.io/specification/) document.
 
 To explore the documentation, run the server and navigate to `localhost:8080/docs`.
-
-<%_ } _%>
+<% } %>
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).

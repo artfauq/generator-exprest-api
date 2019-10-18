@@ -2,21 +2,50 @@ openapi: 3.0.0
 info:
   title: <%- name %>
   version: 0.0.0
-  description: <%- description %>
+  description: |
+    # Introduction
+    This is the API documentation of **<%- name %>**. It is documented in *OpenAPI* format.
+<% if (jwt) { %>
+    # Authentication
+    <%- name %> uses **JWT** Bearer authentication to authenticate requests.
+
+    Protected endpoints require an HTTP Bearer Authorization header in the form of:
+
+    ```
+    Authorization: Bearer <token>
+    ```
+
+    <SecurityDefinitions />
+<% } %>
+    # Errors
+
+    This API uses conventional HTTP response codes to indicate the success or failure of an API request.
+
+    All errors are in the following format:
+
+    | Attribute   | Type     | Description                                                 |
+    |-------------|----------|-------------------------------------------------------------|
+    | **status**  | *number* | HTTP response code (`2xx`, `4xx`, `500`)                    |
+    | **name**    | *string* | Name of the error (`ValidationError`, `NotFoundError`, etc) |
+    | **message** | *string* | A readable error message
 servers:
-  - url: http://localhost:8080/
+  - url: http://localhost:8080/api
     description: Local development server
-    variables:
-      basePath:
-        default: api
+paths:
+  /:
+    get:
+      summary: Base route
+      responses:
+        200:
+          description: OK
 components:
-<%_ if (jwt) { _%>
+<% if (jwt) { -%>
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-<%_ } _%>
+<% } -%>
   responses:
     204:
       description: No Content
@@ -45,9 +74,9 @@ components:
           schema:
             $ref: '#/components/schemas/HttpError'
   schemas:
-<%_ if (jwt) { _%>
+<% if (jwt) { -%>
     Token:
-      description: Token JWT
+      description: JWT token
       properties:
         access_token:
           type: string
@@ -55,12 +84,8 @@ components:
           type: integer
         refresh_token:
           type: string
-<%_ } _%>
+<% } -%>
     HttpError:
-      required:
-        - status
-        - name
-        - message
       properties:
         status:
           type: number

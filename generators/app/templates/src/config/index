@@ -1,17 +1,17 @@
-require('dotenv').config({ path: `${__dirname}/../../.env` });
+require('dotenv').config();
 
 const { checkEnvironmentVariables } = require('../utils/env');
 
 const envVariables = [
-   <%_ if (sequelize) { _%>
-    '<%= name %>_DB_HOST',
-    '<%= name %>_DB_NAME',
-    '<%= name %>_DB_USER',
-    '<%= name %>_DB_PASSWORD',
-    <%_ } _%>
-    <%_ if (jwt) { _%>
-    '<%= name %>_JWT_SECRET',
-    <%_ } _%>
+<% if (sequelize) { -%>
+  '<%= name %>_DB_HOST',
+  '<%= name %>_DB_NAME',
+  '<%= name %>_DB_USER',
+  '<%= name %>_DB_PASSWORD',
+<% } -%>
+<% if (jwt) { -%>
+  '<%= name %>_JWT_SECRET',
+<% } -%>
 ];
 
 checkEnvironmentVariables(envVariables);
@@ -19,28 +19,42 @@ checkEnvironmentVariables(envVariables);
 const env = process.env.NODE_ENV || 'development';
 const isProduction = env === 'production';
 const isDevelopment = !isProduction;
+<% if (mocha) { -%>
+const isTest = env === 'test';
+<% } -%>
 
 module.exports = {
   // Server options
   host: '0.0.0.0',
-  port: parseInt(process.env.PORT, 10) || 8080,,
+  port: parseInt(process.env.PORT, 10) || 8080,
 
   // Application environment
   env,
   isProduction,
   isDevelopment,
-
-  <%_ if (sequelize) { _%>
+<% if (mocha) { -%>
+  isTest,
+<% } -%>
+<% if (sequelize && mocha) { %>
   // Database config
   db: {
     host: process.env.<%= name %>_DB_HOST,
-    database: process.env.<%= name %>_DB_NAME,
     username: process.env.<%= name %>_DB_USER,
     password: process.env.<%= name %>_DB_PASSWORD,
+    database: process.env.<%= name %>_DB_NAME,
+    testDatabase: process.env.<%= name %>_DB_TEST_NAME,
   },
-  <%_ } _%>
-
-  <%_ if (jwt) { _%>
+<% } -%>
+<% if (sequelize && !mocha) { %>
+  // Database config
+  db: {
+    host: process.env.<%= name %>_DB_HOST,
+    username: process.env.<%= name %>_DB_USER,
+    password: process.env.<%= name %>_DB_PASSWORD,
+    database: process.env.<%= name %>_DB_NAME,
+  },
+<% } -%>
+<% if (jwt) { %>
   // JWT config
   JWT: {
     algorithm: 'HS256',
@@ -48,5 +62,5 @@ module.exports = {
     refreshTokenExpiryTime: 3600, // 1 hour
     secret: process.env.<%= name %>_JWT_SECRET,
   },
-  <%_ } _%>
+<% } -%>
 };

@@ -4,23 +4,23 @@ const expressErrorHandler = require('@kazaar/express-error-handler');
 const helmet = require('helmet');
 
 const { host, port, env } = require('./src/config');
-<%_ if (sequelize) { _%>
-const { sequelize } = require('./src/models');
-<%_ } _%>
+<% if (sequelize) { -%>
+const { sequelize } = require('./src/db');
+<% } -%>
 const router = require('./src/routes');
 
-<%_ if (!winston) { _%>
-const logger = console;<%_ } _%>
-<%_ if (winston) { _%>
-const logger = require('./src/config/winston');<%_ } _%>
+<% if (winston) { %>const logger = require('./src/config/logger');<% } else { %>const logger = console;<% } %>
 
 const {
   httpErrorHandler,
-  handleServerError<%_ if (axios) { _%>,
-  axiosErrorParser<%_ } _%><%_ if (celebrate) { _%>,
-  celebrateErrorParser<%_ } _%><%_ if (sequelize) { _%>,
-  handleSequelizeConnectionError<%_ } _%><%_ if (jwt) { _%>,
-  jwtErrorParser<%_ } _%>
+  handleServerError,
+<% if (celebrate) { -%>
+  celebrateErrorParser,
+<% } -%>
+<% if (sequelize) { -%>
+  sequelizeErrorParser,
+  handleSequelizeConnectionError,
+<% } -%>
 } = expressErrorHandler(logger);
 
 /**
@@ -36,14 +36,12 @@ app.set('port', port);
  */
 app.use(bodyParser.json());
 app.use(helmet());
-<%_ if (openapi) { _%>
-
+<% if (openapi) { %>
 /**
  * API documentation
  */
 app.use('/docs', express.static(`${__dirname}/doc`));
-<%_ } _%>
-
+<% } %>
 /**
  * API routes
  */
@@ -52,21 +50,15 @@ app.use('/api', router);
 /**
  * Base route
  */
-<%_ if (openapi) { _%>app.get('/', (req, res) => res.redirect('/docs'));<%_ } _%>
-<%_ if (!openapi) { _%>app.get('/', (req, res) => res.sendStatus(200));<%_ } _%>
+<% if (openapi) { %>app.get('/', (req, res) => res.redirect('/docs'));<% } else { %>app.get('/', (req, res) => res.sendStatus(200));<% } %>
 
 /**
  * Error handling
  */
-<%_ if (axios) { _%>
-app.use(axiosErrorParser);
-<%_ } _%>
-<%_ if (celebrate) { _%>
-app.use(celebrateErrorParser);
-<%_ } _%>
-<%_ if (jwt) { _%>
-app.use(jwtErrorParser);
-<%_ } _%>
+<% if (celebrate) { %>app.use(celebrateErrorParser);
+<% } -%>
+<% if (sequelize) { %>app.use(sequelizeErrorParser);
+<% } -%>
 app.use(httpErrorHandler);
 
 /**
@@ -75,13 +67,12 @@ app.use(httpErrorHandler);
 app
   .listen(port, host, () => {
     logger.info(`App is running at ${host}:${port} in ${env} mode`);
-
-    <%_ if (sequelize) { _%>
+<% if (sequelize) { %>
     sequelize
       .authenticate()
       .then(() => logger.info(`Successfully connected to ${sequelize.config.database} database`))
       .catch(handleSequelizeConnectionError);
-    <%_ } _%>
+<% } -%>
   })
   .on('error', handleServerError);
 

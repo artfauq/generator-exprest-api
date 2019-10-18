@@ -1,0 +1,25 @@
+const { db } = require('.');
+
+module.exports = {
+  development: {
+    dialect: '<%= dialect %>',
+    host: db.host,
+    username: db.username,
+    password: db.password,
+    database: db.database,
+  },
+  test: {
+    dialect: '<%= dialect %>',
+    host: db.host,
+    username: db.username,
+    password: db.password,
+    database: db.testDatabase,
+  },
+  production: {
+    dialect: '<%= dialect %>',
+    host: db.host,
+    username: db.username,
+    password: db.password,
+    database: db.database,
+  },
+};

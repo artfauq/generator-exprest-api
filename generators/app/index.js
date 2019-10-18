@@ -118,6 +118,7 @@ module.exports = class extends Generator {
     copy(src('editorconfig'), dest(`${shortname}/.editorconfig`));
     copy(src('gitattributes'), dest(`${shortname}/.gitattributes`));
     copy(src('gitignore'), dest(`${shortname}/.gitignore`));
+    copy(src('nodemon'), dest(`${shortname}/nodemon.json`));
 
     copy(src('src/services/empty'), dest(`${shortname}/src/services/empty`));
     copy(src('src/utils/env'), dest(`${shortname}/src/utils/env.js`));
@@ -139,17 +140,23 @@ module.exports = class extends Generator {
     copyTpl(src('src/routes/index'), dest(`${shortname}/src/routes/index.js`), answers);
 
     if (answers.sequelize) {
-      copy(src('src/models/index.js'), dest(`${shortname}/src/models/index.js`));
-      copyTpl(src('src/config/sequelize'), dest(`${shortname}/src/config/sequelize.js`), {
-        sequelizeDialect: dialect.value,
+      copy(src('.sequelizerc'), dest(`${shortname}/.sequelizerc`));
+      copy(src('src/db/models'), dest(`${shortname}/src/db/models`));
+      copy(src('src/db/migrations'), dest(`${shortname}/src/db/migrations`));
+      copy(src('src/db/seeders'), dest(`${shortname}/src/db/seeders`));
+      copy(src('src/db/index'), dest(`${shortname}/src/db/index.js`));
+      copy(src('src/config/sequelize'), dest(`${shortname}/src/config/sequelize.js`));
+      copyTpl(src('src/config/database'), dest(`${shortname}/src/config/database.js`), {
+        dialect: dialect.value,
       });
 
       this.packages.dependencies.push('sequelize');
+      this.packages.dependencies.push('sequelize-cli');
       this.packages.dependencies.push(...dialect.packages);
     }
 
     if (answers.winston) {
-      copy(src('src/config/winston.js'), dest(`${shortname}/src/config/winston.js`));
+      copy(src('src/config/logger'), dest(`${shortname}/src/config/logger.js`));
 
       this.packages.dependencies.push('winston');
     }

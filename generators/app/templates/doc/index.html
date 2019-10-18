@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title><%- name %> | Documentation</title>
 
@@ -17,7 +17,7 @@
   </head>
 
   <body>
-    <redoc spec-url="openapi.yaml"></redoc>
+    <redoc spec-url="openapi.yaml" no-auto-auth="true" json-sample-expand-level="4"></redoc>
     <script src="https://cdn.jsdelivr.net/npm/redoc/bundles/redoc.standalone.js"></script>
   </body>
 </html>

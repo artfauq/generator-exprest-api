@@ -4,17 +4,27 @@
   "description": <%- description %>,
   "main": "index.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon index.js",
-    "start": "node index.js",
-    <%_ if (mocha) { _%>"test": "cross-env NODE_ENV=test nyc mocha --timeout=15000 --reporter spec --exit",
-    <%_ } _%>
-    <%_ if (!prettier) { _%>
+    "dev": "cross-env NODE_ENV=development<% if (sequelize) { %> npm run migrate &&<% } %> nodemon index.js",
+    "start": "<% if (sequelize) { %>npm run migrate && <% } %>node index.js",
+<% if (sequelize) { -%>
+    "migrate": "sequelize db:migrate && sequelize db:seed:all",
+<% } -%>
+<% if (mocha && !sequelize) { -%>
+    "test": "cross-env NODE_ENV=test nyc mocha --timeout=15000 --reporter spec --exit",
+<% } -%>
+<% if (mocha && sequelize) { -%>
+    "test": "cross-env NODE_ENV=test npm run migrate && nyc mocha --timeout=15000 --reporter spec --exit",
+<% } -%>
+<% if (jwt) { -%>
+    "generate-secret": "node -e console.log(require('crypto').randomBytes(256).toString('base64'));",
+<% } -%>
+<% if (prettier) { -%>
+    "lint": "eslint . && prettier --check \"**/*.{json,md,html,yaml,css}\"",
+    "lint:fix": "eslint . --fix && prettier --write \"**/*.{json,md,html,yaml,css}\""
+<% } else { -%>
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
-    <%_ } _%>
-    <%_ if (prettier) { _%>
-    "lint": "eslint . && prettier --check \"**/*.{json,md,html,yaml,css}\"",
-    "lint:fix": "eslint . --fix && prettier --write \"**/*.{json,md,html,yaml,css}\""<%_ } _%>
+<% } -%>
   },
   "husky": {
     "hooks": {
@@ -25,16 +35,15 @@
     "*.js": [
       "eslint --fix",
       "git add"
-    ]
-    <%_ if (prettier) { _%>,
+    ]<% if (prettier) { %>,
     "*.{json,md,html,yaml,css}": [
       "prettier --write",
       "git add"
     ]
-    <%_ } _%>
+<% } -%>
   },
   "dependencies": {
-    "@kazaar/express-error-handler": "^2.3.0",
+    "@kazaar/express-error-handler": "^2.4.0",
     "body-parser": "^1.18.3",
     "dotenv": "^8.0.0",
     "express": "^4.16.4",

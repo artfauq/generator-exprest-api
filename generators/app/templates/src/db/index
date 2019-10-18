@@ -1,9 +1,12 @@
 const Sequelize = require('sequelize');
 
 const sequelize = require('../config/sequelize');
+// const User = require('./models/user');
 
 // Import models
-const models = {};
+const models = {
+  // User
+};
 
 // Associate models
 Object.keys(models).forEach(model => {
@@ -12,4 +15,4 @@ Object.keys(models).forEach(model => {
   }
 });
 
-module.exports = { ...models, Sequelize, sequelize };
+module.exports = { ...models, sequelize, Sequelize };
