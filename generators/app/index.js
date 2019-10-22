@@ -61,12 +61,6 @@ module.exports = class extends Generator {
       },
       {
         type: 'confirm',
-        name: 'axios',
-        message: `Use ${yellow.bold('axios')} for HTTP requests ?`,
-        default: true,
-      },
-      {
-        type: 'confirm',
         name: 'jwt',
         message: `Use ${yellow.bold('JWT')} for user authentication ?`,
         default: true,
@@ -166,10 +160,6 @@ module.exports = class extends Generator {
 
     if (answers.celebrate) {
       this.packages.dependencies.push('celebrate');
-    }
-
-    if (answers.axios) {
-      this.packages.dependencies.push('axios');
     }
 
     if (answers.jwt) {

@@ -3,6 +3,7 @@
 ## 3.3.0 (October 22, 2019)
 
 - Moved `/routes` folder into `/api` folder
+- Removed `axios` option
 
 ## 3.2.0 (October 22, 2019)
 
