@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.2.0 (October 22, 2019)
+
+- Added `sequelize-cli` + config files
+- Added `nodemon.json` config file
+- Added `migrate` npm script
+- Added `generate-secret` npm script
+- Added `sequelizeErrorParser`
+- Updated `express-error-handler`
+- Renamed `winston.js` to `logger.js`
+- Moved `/models` to `/db/models`
+- Removed `jwtErrorParser`
+- Removed `axiosErrorParser`
+
 ## 3.1.1 (October 10, 2019)
 
 - Addded `.dockerignore` file
