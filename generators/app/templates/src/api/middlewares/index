@@ -1,0 +1,7 @@
+<% if (jwt) { %>const auth = require('./auth');<% } %>
+
+module.exports = {
+<% if (jwt) { -%>
+  auth ,
+<% } -%>
+};

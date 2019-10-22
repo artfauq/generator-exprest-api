@@ -3,11 +3,11 @@ const express = require('express');
 const expressErrorHandler = require('@kazaar/express-error-handler');
 const helmet = require('helmet');
 
+const api = require('./src/api');
 const { host, port, env } = require('./src/config');
 <% if (sequelize) { -%>
 const { sequelize } = require('./src/db');
 <% } -%>
-const router = require('./src/routes');
 
 <% if (winston) { %>const logger = require('./src/config/logger');<% } else { %>const logger = console;<% } %>
 
@@ -45,7 +45,7 @@ app.use('/docs', express.static(`${__dirname}/doc`));
 /**
  * API routes
  */
-app.use('/api', router);
+app.use('/api', api);
 
 /**
  * Base route

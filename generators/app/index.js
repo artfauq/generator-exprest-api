@@ -120,6 +120,8 @@ module.exports = class extends Generator {
     copy(src('gitignore'), dest(`${shortname}/.gitignore`));
     copy(src('nodemon'), dest(`${shortname}/nodemon.json`));
 
+    copy(src('src/api/controllers/empty'), dest(`${shortname}/src/api/controllers/empty`));
+    copy(src('src/api/routes/empty'), dest(`${shortname}/src/api/routes/empty`));
     copy(src('src/services/empty'), dest(`${shortname}/src/services/empty`));
     copy(src('src/utils/env'), dest(`${shortname}/src/utils/env.js`));
 
@@ -137,7 +139,8 @@ module.exports = class extends Generator {
     copyTpl(src('env'), dest(`${shortname}/.env`), { ...answers, name: envName });
     copyTpl(src('env.example'), dest(`${shortname}/.env.example`), { ...answers, name: envName });
     copyTpl(src('src/config/index'), dest(`${shortname}/src/config/index.js`), { ...answers, name: envName });
-    copyTpl(src('src/routes/index'), dest(`${shortname}/src/routes/index.js`), answers);
+    copyTpl(src('src/api/index'), dest(`${shortname}/src/api/index.js`), answers);
+    copyTpl(src('src/api/middlewares/index'), dest(`${shortname}/src/api/middlewares/index.js`), answers);
 
     if (answers.sequelize) {
       copy(src('.sequelizerc'), dest(`${shortname}/.sequelizerc`));
@@ -174,7 +177,7 @@ module.exports = class extends Generator {
       this.packages.dependencies.push('express-jwt');
 
       copy(src('src/utils/jwt'), dest(`${shortname}/src/utils/jwt.js`));
-      copy(src('src/routes/middleware'), dest(`${shortname}/src/routes/middleware.js`));
+      copy(src('src/api/middlewares/auth'), dest(`${shortname}/src/api/middlewares/auth.js`));
     }
 
     if (answers.prettier) {

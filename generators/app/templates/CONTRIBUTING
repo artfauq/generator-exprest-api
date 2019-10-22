@@ -28,14 +28,17 @@ The project is structured as follows:
 - `/doc`: API documentation files
 <% } -%>
 - `/src`: server source files
-  - `/config`: configuration files
+  - `/api`: API source files
+    - `/controllers`: request handlers
+    - `/middlewares`: custom middlewares
+    - `/routes`: route definitions
+  - `/config`: configuration files (database options, logging configuration, etc)
 <% if (sequelize) { -%>
   - `/db`: database related files
     - `/migrations`: Sequelize migration definitions
     - `/models`: Sequelize model definitions
     - `/seeders`: Sequelize seeder definitions
 <% } -%>
-  - `/routes`: API route definitions
   - `/services`: business logic files
   - `/utils`: utilities and helpers
 - `index.js`: entry point of the application that holds all the Express server configuration (middlewares, routes, error handling...)
@@ -64,9 +67,7 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
   - In this new file, define and export two new methods `getAllArticles` and `getArticleById`:
 
     ```javascript
-    // /src/services/articles.js
-
-    const { Article } = require('../db');
+    // /src/services/article.js
 
     module.exports = {
       async getAllArticles() {
@@ -83,17 +84,15 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
     };
     ```
 
-- Create a new folder `/articles` in the `/src/routes` folder
+- Create the controller:
 
-- Create the controller / request handler:
-
-  - Create a new file `controller.js` in `/src/routes/articles`
+  - Create a new file `articles.js` in `/src/api/controllers`
   - In this new file, define and export the request handlers associated to these routes:
 
     ```javascript
-    // /src/routes/articles/controller.js
+    // /src/api/controllers/articles.js
 
-    const ArticleService = require('../services/article');
+    const ArticleService = require('../../services/article');
 
     module.exports = {
       async getArticles(req, res, next) {
@@ -114,15 +113,15 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
 
 - Create the route endpoints:
 
-  - Create a new file `index.js` in `/src/routes/articles`
+  - Create a new file `articles.js` in `/src/api/routes`
   - In this new file, initialize a router object, import the controller and the new routes with its associated request handlers:
 
     ```javascript
-    // /src/routes/articles/index.js
+    // /src/api/routes/articles.js
 
     const Router = require('express-promise-router').default;
 
-    const articlesController = require('./controller');
+    const articlesController = require('../controllers/articles');
 
     const router = Router();
 
@@ -132,10 +131,10 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
     module.exports = router;
     ```
 
-- Finally, import the routes in `/src/routes/index.js` and declare a new `/articles` route:
+- Finally, import the routes in `/src/api/routes/index.js` and declare a new `/articles` route:
 
   ```javascript
-  // /src/routes/index.js
+  // /src/api/routes/index.js
 
   const articlesRouter = require('./articles');
 
