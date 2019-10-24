@@ -43,7 +43,7 @@
 <% } -%>
   },
   "dependencies": {
-    "@kazaar/express-error-handler": "^2.4.0",
+    "@kazaar/express-error-handler": "^2.4.1",
     "body-parser": "^1.18.3",
     "dotenv": "^8.0.0",
     "express": "^4.16.4",
