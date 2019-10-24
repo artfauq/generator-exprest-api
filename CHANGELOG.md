@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.1 (October 24, 2019)
+
+- Added `eslint-plugin-chai-expect`
+- Removed `/.vscode` folder
+
 ## 3.3.0 (October 22, 2019)
 
 - Moved `/routes` folder into `/api` folder
