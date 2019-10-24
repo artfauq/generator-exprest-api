@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.0 (October 24, 2019)
+
+- Moved `index.js` and `/doc` folder to `/src`
+
 ## 3.3.1 (October 24, 2019)
 
 - Added `eslint-plugin-chai-expect`
