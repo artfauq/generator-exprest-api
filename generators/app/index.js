@@ -129,9 +129,9 @@ module.exports = class extends Generator {
       ...answers,
       description: JSON.stringify(answers.description),
     });
-    copyTpl(src('index'), dest(`${shortname}/index.js`), answers);
     copyTpl(src('env'), dest(`${shortname}/.env`), { ...answers, name: envName });
     copyTpl(src('env.example'), dest(`${shortname}/.env.example`), { ...answers, name: envName });
+    copyTpl(src('src/index'), dest(`${shortname}/src/index.js`), answers);
     copyTpl(src('src/config/index'), dest(`${shortname}/src/config/index.js`), { ...answers, name: envName });
     copyTpl(src('src/api/index'), dest(`${shortname}/src/api/index.js`), answers);
     copyTpl(src('src/api/middlewares/index'), dest(`${shortname}/src/api/middlewares/index.js`), answers);
@@ -195,8 +195,8 @@ module.exports = class extends Generator {
     }
 
     if (answers.openapi) {
-      copyTpl(src('doc/index.html'), dest(`${shortname}/doc/index.html`), answers);
-      copyTpl(src('doc/openapi'), dest(`${shortname}/doc/openapi.yaml`), answers);
+      copyTpl(src('src/doc/index.html'), dest(`${shortname}/src/doc/index.html`), answers);
+      copyTpl(src('src/doc/openapi'), dest(`${shortname}/src/doc/openapi.yaml`), answers);
     }
   }
 

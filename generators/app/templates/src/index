@@ -3,13 +3,13 @@ const express = require('express');
 const expressErrorHandler = require('@kazaar/express-error-handler');
 const helmet = require('helmet');
 
-const api = require('./src/api');
-const { host, port, env } = require('./src/config');
+const api = require('./api');
+const { host, port, env } = require('./config');
 <% if (sequelize) { -%>
-const { sequelize } = require('./src/db');
+const { sequelize } = require('./db');
 <% } -%>
 
-<% if (winston) { %>const logger = require('./src/config/logger');<% } else { %>const logger = console;<% } %>
+<% if (winston) { %>const logger = require('./config/logger');<% } else { %>const logger = console;<% } %>
 
 const {
   httpErrorHandler,

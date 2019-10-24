@@ -10,12 +10,9 @@ COPY package*.json ./
 RUN npm set progress=false && npm install --production
 
 # copy server files
-<% if (openapi) { %>COPY doc doc
-<% } -%>
 COPY src src
 <% if (sequelize) { %>COPY .sequelizerc .
 <% } -%>
-COPY index.js index.js
 
 EXPOSE 8080
 
