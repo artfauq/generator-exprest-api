@@ -186,6 +186,7 @@ module.exports = class extends Generator {
       this.packages.devDependencies.push('mocha');
       this.packages.devDependencies.push('nyc');
       this.packages.devDependencies.push('supertest');
+      this.packages.devDependencies.push('eslint-plugin-chai-expect');
     }
 
     if (answers.docker) {

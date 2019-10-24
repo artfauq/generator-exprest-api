@@ -83,9 +83,13 @@
   "overrides": [
     {
       "files": "test/**",
+      "plugins": ["chai-expect"],
       "rules": {
         "node/no-unpublished-require": 0,
-        "node/no-missing-require": 0
+        "node/no-missing-require": 0,
+        "chai-expect/missing-assertion": 2,
+        "chai-expect/terminating-properties": 1,
+        "chai-expect/no-inner-compare": 1
       }
     }
   ]<% } %>
