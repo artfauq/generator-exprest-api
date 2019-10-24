@@ -4,6 +4,7 @@
 
 - Added `eslint-plugin-chai-expect`
 - Removed `/.vscode` folder
+- Updated `express-error-handler`
 
 ## 3.3.0 (October 22, 2019)
 
