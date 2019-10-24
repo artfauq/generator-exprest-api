@@ -1,7 +1,7 @@
 const supertest = require('supertest');
 const { expect } = require('chai');
 
-const app = require('../index');
+const app = require('../src');
 
 const request = supertest(app);
 
