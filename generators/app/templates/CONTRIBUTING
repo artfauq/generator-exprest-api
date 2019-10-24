@@ -55,8 +55,8 @@ When running the app or performing some commands, additional folders (ignored by
 
 #### How to
 
-- All routes should be defined in `/src/routes`
-  - For each main route endpoint, a folder with the route endpoint as folder name should be added to the `/src/routes` folder and contain at least:
+- All routes should be defined in `/src/api/routes`
+  - For each main route endpoint, a folder with the route endpoint as folder name should be added to the `/src/api/routes` folder and contain at least:
     - An `index.js` file declaring the route endpoints
     - A `controller.js` file defining the request handlers associated to these routes
 - All the business logic (retrieving, creating or updating data, etc) should be defined in the `/services` folder.
@@ -216,7 +216,7 @@ module.exports = {
 };
 ```
 
-In addition, the routes defined in `/src/routes` should use the `Router` from the `express-promise-router` package instead of the `express` package. It provides a convenient way to write async controller methods without `try/catch` blocks and `next()` (see [express-promise-router](https://github.com/express-promise-router/express-promise-router)).
+In addition, the routes defined in `/src/api/routes` should use the `Router` from the `express-promise-router` package instead of the `express` package. It provides a convenient way to write async controller methods without `try/catch` blocks and `next()` (see [express-promise-router](https://github.com/express-promise-router/express-promise-router)).
 <% if (winston) { %>
 ### Logs
 
