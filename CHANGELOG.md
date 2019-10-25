@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.1 (October 25, 2019)
+
+- Fixed npm commands issue
+
 ## 3.4.0 (October 24, 2019)
 
 - Moved `index.js` and `/doc` folder to `/src`
