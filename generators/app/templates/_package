@@ -4,16 +4,22 @@
   "description": <%- description %>,
   "main": "src/index.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development<% if (sequelize) { %> npm run migrate &&<% } %> nodemon src/index.js",
-    "start": "<% if (sequelize) { %>npm run migrate && <% } %>node src/index.js",
 <% if (sequelize) { -%>
-    "migrate": "sequelize db:migrate && sequelize db:seed:all",
+    "predev": "cross-env NODE_ENV=development npm run migrate",
 <% } -%>
-<% if (mocha && !sequelize) { -%>
+    "dev": "cross-env NODE_ENV=development nodemon src/index.js",
+<% if (sequelize) { -%>
+    "prestart": "npm run migrate",
+<% } -%>
+    "start": "node src/index.js",
+<% if (mocha && sequelize) { -%>
+    "pretest": "cross-env NODE_ENV=test npm run migrate",
+<% } -%>
+<% if (mocha) { -%>
     "test": "cross-env NODE_ENV=test nyc mocha --timeout=15000 --reporter spec --exit",
 <% } -%>
-<% if (mocha && sequelize) { -%>
-    "test": "cross-env NODE_ENV=test npm run migrate && nyc mocha --timeout=15000 --reporter spec --exit",
+<% if (sequelize) { -%>
+    "migrate": "sequelize db:migrate && sequelize db:seed:all",
 <% } -%>
 <% if (jwt) { -%>
     "generate-secret": "node -e console.log(require('crypto').randomBytes(256).toString('base64'));",
@@ -43,7 +49,7 @@
 <% } -%>
   },
   "dependencies": {
-    "@kazaar/express-error-handler": "^2.4.1",
+    "@kazaar/express-error-handler": "^2.4.2",
     "body-parser": "^1.18.3",
     "dotenv": "^8.0.0",
     "express": "^4.16.4",
