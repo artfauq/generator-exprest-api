@@ -195,8 +195,8 @@ module.exports = class extends Generator {
     }
 
     if (answers.openapi) {
-      copyTpl(src('src/doc/index.html'), dest(`${shortname}/src/doc/index.html`), answers);
-      copyTpl(src('src/doc/openapi'), dest(`${shortname}/src/doc/openapi.yaml`), answers);
+      copyTpl(src('src/api/doc/index.html'), dest(`${shortname}/src/api/doc/index.html`), answers);
+      copyTpl(src('src/api/doc/openapi'), dest(`${shortname}/src/doc/openapi.yaml`), answers);
     }
   }
 
