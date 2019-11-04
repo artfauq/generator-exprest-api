@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.4.2 (November 4, 2019)
+
+- Moved `/doc` folder to `/src/api`
+- Updated `morgan` config
+- Updated `express-error-handler`
+
 ## 3.4.1 (October 25, 2019)
 
 - Fixed npm commands issue
