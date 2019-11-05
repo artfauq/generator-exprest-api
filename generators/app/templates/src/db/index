@@ -1,18 +1,6 @@
 const Sequelize = require('sequelize');
 
 const sequelize = require('../config/sequelize');
-// const User = require('./models/user');
-
-// Import models
-const models = {
-  // User
-};
-
-// Associate models
-Object.keys(models).forEach(model => {
-  if (models[model].associate && typeof models[model].associate === 'function') {
-    models[model].associate(models);
-  }
-});
+const models = require('./models');
 
 module.exports = { ...models, sequelize, Sequelize };
