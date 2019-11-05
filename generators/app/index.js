@@ -137,7 +137,7 @@ module.exports = class extends Generator {
 
     if (answers.sequelize) {
       copy(src('.sequelizerc'), dest(`${shortname}/.sequelizerc`));
-      copy(src('src/db/models'), dest(`${shortname}/src/db/models`));
+      copy(src('src/db/models/index'), dest(`${shortname}/src/db/models/index.js`));
       copy(src('src/db/migrations'), dest(`${shortname}/src/db/migrations`));
       copy(src('src/db/seeders'), dest(`${shortname}/src/db/seeders`));
       copy(src('src/db/index'), dest(`${shortname}/src/db/index.js`));
