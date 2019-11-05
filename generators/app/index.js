@@ -134,7 +134,6 @@ module.exports = class extends Generator {
     copyTpl(src('src/index'), dest(`${shortname}/src/index.js`), answers);
     copyTpl(src('src/config/index'), dest(`${shortname}/src/config/index.js`), { ...answers, name: envName });
     copyTpl(src('src/api/index'), dest(`${shortname}/src/api/index.js`), answers);
-    copyTpl(src('src/api/middlewares/index'), dest(`${shortname}/src/api/middlewares/index.js`), answers);
 
     if (answers.sequelize) {
       copy(src('.sequelizerc'), dest(`${shortname}/.sequelizerc`));
@@ -159,6 +158,8 @@ module.exports = class extends Generator {
     }
 
     if (answers.celebrate) {
+      copy(src('src/api/middlewares/validation'), dest(`${shortname}/src/api/middlewares/validation.js`));
+
       this.packages.dependencies.push('celebrate');
     }
 

@@ -16,7 +16,7 @@ const { secret } = JWT;
  * // /src/api/routes/users.js
  *
  * const usersController = require('../controllers/users');
- * const { auth } = require('../middlewares');
+ * const auth = require('../middlewares/auth');
  *
  * router.get('/users', auth.required, usersController.getUsers);
  */

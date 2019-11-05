@@ -69,8 +69,6 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
   - In this new file, define and export two new methods `getAllArticles` and `getArticleById`:
 
     ```javascript
-    // /src/services/article.js
-
     module.exports = {
       async getAllArticles() {
         const articles = await Article.findAll();
@@ -92,8 +90,6 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
   - In this new file, define and export the request handlers associated to these routes:
 
     ```javascript
-    // /src/api/controllers/articles.js
-
     const ArticleService = require('../../services/article');
 
     module.exports = {
@@ -119,8 +115,6 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
   - In this new file, initialize a router object, import the controller and the new routes with its associated request handlers:
 
     ```javascript
-    // /src/api/routes/articles.js
-
     const Router = require('express-promise-router').default;
 
     const articlesController = require('../controllers/articles');
@@ -136,8 +130,6 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
 - Finally, import the routes in `/src/api/routes/index.js` and declare a new `/articles` route:
 
   ```javascript
-  // /src/api/routes/index.js
-
   const articlesRouter = require('./articles');
 
   /**
@@ -146,41 +138,49 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
   router.use('/articles', articlesRouter);
   ```
 <% if (celebrate) { %>
-### Object validation
+### Request validation
 
-Object validation (request parameters, request body, etc) should be handled by [celebrate](https://www.npmjs.com/package/celebrate).
+To validate HTTP request parameters and body, use [celebrate](https://www.npmjs.com/package/celebrate).
 
-To do this, add validation schemas in the route definitions by using the `celebrate` middleware.
+Custom validation schemas should be defined in `/src/api/middlewares/validation.js`.
 
-For example, to add validation to the `id` parameter of the `GET /articles/:id` route, add the celebrate middleware in `/src/api/routes/articles.js`:
+For example, to add validation to the `id` parameter of the `GET /articles/:id` route:
 
-```javascript
-const Router = require('express-promise-router').default;
-const { celebrate, Joi } = require('celebrate');
+- Define a new validation schema in `/src/api/middlewares/validation.js`:
 
-const articlesController = require('../controllers/articles');
+  ```javascript
+  const { celebrate, Joi } = require('celebrate');
 
-const router = Router();
+  const id = Joi.number().integer().positive();
 
-/**
- * Get article
- */
-router.get(
-  '/:id',
-  celebrate({
-    params: {
-      id: Joi.number()
-        .integer()
-        .positive()
-        .required()
-        .error(() => 'Article id is required and must be a positive integer.'),
-    },
-  }),
-  articlesController.getArticle
-);
-```
+  module.exports = { celebrate, Joi, id };
+  ```
 
-Validation errors are handled by the `celebrateErrorParser` middleware from [@kazaar/express-error-handler](https://www.npmjs.com/package/@kazaar/express-error-handler).
+- Add the validation schema to the route definition in `/src/api/routes/articles.js`:
+
+  ```javascript
+  const Router = require('express-promise-router').default;
+
+  const articlesController = require('../controllers/articles');
+  const { celebrate, id } = require('../middlewares/validation');
+
+  const router = Router();
+
+  /**
+   * GET /articles/:id
+   */
+  router.get(
+    '/:id',
+    celebrate({
+      params: {
+        id: id.required().error(() => 'Article id is required and must be a positive integer.'),
+      },
+    }),
+    articlesController.getArticle
+  );
+  ```
+
+Validation errors are handled by the `celebrateErrorParser` middleware from [@kazaar/express-error-handler](https://www.npmjs.com/package/@kazaar/express-error-handler) defined in `/src/index.js`:
 
 ```javascript
 app.use(celebrateErrorParser);
