@@ -1,6 +1,26 @@
-# <%- name %>
+# <%- name %> <!-- omit in toc -->
 
 > <%- description %>
+
+- [Getting started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Main commands](#main-commands)
+    - [Development](#development)
+    - [Production](#production)
+<% if (sequelize) { -%>
+    - [Migrate](#migrate)
+    - [Seed](#seed)
+<% } -%>
+<% if (mocha) { -%>
+    - [Test](#test)
+<% } -%>
+    - [Lint](#lint)
+<% if (openapi) { -%>
+- [Documentation](#documentation)
+<% } -%>
+- [Contributing](#contributing)
 
 ## Getting started
 
@@ -16,9 +36,18 @@ Install the required dependencies:
 
 `$ npm install`
 
+### Configuration
+
+The application relies on environment variables to connect to various services.
+
+To configure these variables:
+
+- Copy and rename the `.env.example` to `.env`
+- Open the `.env` file and fill in the required values
+
 ### Main commands
 
-#### Run
+#### Development
 
 Start a local development server with the following command:
 
@@ -26,23 +55,45 @@ Start a local development server with the following command:
 
 This will:
 
-- Fire up the server at [localhost:8080](http://localhost:8080)
+- Fire up a local web server at `localhost` on port 8080 or `PORT` if defined
 - Set the `NODE_ENV` variable to `development`
 - Watch for changes in the source files allowing the server to reload automatically
 
-#### Deploy
+#### Production
 
-For deployment use, start the server with:
+For production use, start the server with:
 
 `$ npm run start`
 
 **NOTE:** the application makes use of the `NODE_ENV` environment variable do determine its running environment.
-<% if (mocha) { %>
+<% if (sequelize) { %>
+#### Migrate
+
+To update the database to latest changes, run migrations with [Sequelize CLI](https://github.com/sequelize/cli) with the following command:
+
+`$ npm run migrate`
+
+Migrations are defined in `/src/db/migrations`.
+
+#### Seed
+
+To fill the database with initial data, run seeders with [Sequelize CLI](https://github.com/sequelize/cli) with the following command:
+
+`$ npm run seed`
+
+Seeders are defined in `/src/db/seeders`.
+<% } %><% if (mocha) { %>
 #### Test
 
 Run tests with [Mocha](https://mochajs.org/) and [Chai](https://www.chaijs.com/) with the following command:
 
 `$ npm run test`
+
+This will:
+
+- Set the `NODE_ENV` variable to `test`
+- Run the `migrate` and `seed` commands
+- Run all tests defined in the `test` folder
 <% } %>
 #### Lint
 
