@@ -55,6 +55,8 @@ app.use('/api', api);
 /**
  * Error handling
  */
+Error.stackTraceLimit = 10;
+
 <% if (celebrate) { %>app.use(celebrateErrorParser);
 <% } -%>
 <% if (sequelize) { %>app.use(sequelizeErrorParser);
