@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.5.0 (November 5, 2019)
+
+- Added `validation` middleware
+- Updated `Error.stackTraceLimit`
+- Updated `models` import
+
 ## 3.4.2 (November 4, 2019)
 
 - Moved `/doc` folder to `/src/api`
