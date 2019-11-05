@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.5.1 (November 5, 2019)
+
+- Fixed `/models/index.js` copy issue
+- Updated `README.md`
+
 ## 3.5.0 (November 5, 2019)
 
 - Added `validation` middleware
