@@ -67,6 +67,12 @@ module.exports = class extends Generator {
       },
       {
         type: 'confirm',
+        name: 'nodemailer',
+        message: `Use ${yellow.bold('nodemailer')} to send emails ?`,
+        default: true,
+      },
+      {
+        type: 'confirm',
         name: 'prettier',
         message: `Use ${yellow.bold('Prettier')} for code formatting ?`,
         default: true,
@@ -170,6 +176,13 @@ module.exports = class extends Generator {
       copy(src('src/api/middlewares/auth'), dest(`${shortname}/src/api/middlewares/auth.js`));
     }
 
+    if (answers.nodemailer) {
+      this.packages.dependencies.push('nodemailer');
+
+      copy(src('src/config/transporter'), dest(`${shortname}/src/config/transporter.js`));
+      copyTpl(src('src/utils/mail'), dest(`${shortname}/src/utils/mail.js`), answers);
+    }
+
     if (answers.prettier) {
       copy(src('prettierrc'), dest(`${shortname}/.prettierrc`));
 
@@ -197,6 +210,15 @@ module.exports = class extends Generator {
     if (answers.openapi) {
       copyTpl(src('src/api/doc/index.html'), dest(`${shortname}/src/api/doc/index.html`), answers);
       copyTpl(src('src/api/doc/openapi'), dest(`${shortname}/src/api/doc/openapi.yaml`), answers);
+    }
+
+    // Check for empty directories not copied
+    if (!(answers.jwt || answers.celebrate)) {
+      copy(src('src/api/middlewares/empty'), dest(`${shortname}/src/api/middlewares/empty`));
+    }
+
+    if (!(answers.jwt || answers.nodemailer)) {
+      copy(src('src/utils/empty'), dest(`${shortname}/src/utils/empty`));
     }
   }
 

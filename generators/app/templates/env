@@ -4,8 +4,14 @@ DB_HOST
 DB_NAME
 DB_USER
 DB_PASSWORD
-<% } %>
-<% if (jwt) { -%>
+
+<% } %><% if (jwt) { -%>
 # JWT
 JWT_SECRET
-<% } -%>
+
+<% } %><% if (nodemailer) { -%>
+# SMTP
+SMTP_HOST
+SMTP_PORT
+SMTP_USERNAME
+SMTP_PASSWORD<% } %>

@@ -15,7 +15,7 @@
 - **API documentation** - Using [Swagger](https://swagger.io/) and [ReDoc](https://github.com/Redocly/redoc)
 - **Object validation** - Using [celebrate/Joi](https://www.npmjs.com/package/celebrate)
 - **Database ORM** - Using [Sequelize](http://docs.sequelizejs.com/)
-- **JWT** - Using [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) and [express-jwt](https://github.com/auth0/express-jwt)
+- **Email sending** - Using [nodemailer](https://nodemailer.com/about/)
 - **Testing** - Using [mocha](https://mochajs.org/), [chai](https://www.chaijs.com/), [supertest](https://github.com/visionmedia/supertest) and coverage with [nyc](https://github.com/istanbuljs/nyc)
 
 ## Installation

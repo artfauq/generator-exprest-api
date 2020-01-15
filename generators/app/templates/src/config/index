@@ -33,15 +33,12 @@ const config = convict({
     env: 'NODE_ENV',
     default: 'development',
   },
-<% if (winston) { -%>
-  logsDir: {
+<% if (winston) { -%>  logsDir: {
     doc: 'Application logs directory',
     format: String,
     default: `${__dirname}/../../logs`,
-  },
-<% } -%>
+  },<% } %><% if (sequelize) { %>
 
-<% if (sequelize) { %>
   /**
    * Database config
    */
@@ -70,9 +67,8 @@ const config = convict({
       env: 'DB_NAME',
       default: null,
     },
-  },
-<% } -%>
-<% if (jwt) { %>
+  },<% } %><% if (jwt) { %>
+
   /**
    * JWT config
    */
@@ -98,9 +94,38 @@ const config = convict({
       format: 'int',
       default: 3600, // 1 h
     },
-  },
-<% } -%>
-<% if (mocha) { %>
+  },<% } %><% if (nodemailer) { %>
+
+  /**
+   * SMTP config
+   */
+  SMTP: {
+    host: {
+      doc: 'SMTP host',
+      format: String,
+      env: 'SMTP_HOST',
+      default: null,
+    },
+    port: {
+      doc: 'SMTP port',
+      format: 'port',
+      env: 'SMTP_PORT',
+      default: null,
+    },
+    user: {
+      doc: 'SMTP username',
+      format: 'email',
+      env: 'SMTP_USERNAME',
+      default: null,
+    },
+    pass: {
+      doc: 'SMTP password',
+      format: String,
+      env: 'SMTP_PASSWORD',
+      default: null,
+    },
+  },<% } %><% if (mocha) { %>
+
   /**
    * Test config
    */
@@ -111,8 +136,7 @@ const config = convict({
       env: 'process.env.DB_TEST_NAME',
       default: '',
     },
-  },
-<% } -%>
+  },<% } %>
 });
 
 // Validate current config

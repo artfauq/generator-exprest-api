@@ -8,6 +8,9 @@ const { host, port, env } = require('./config');
 <% if (sequelize) { -%>
 const { sequelize } = require('./db/models');
 <% } -%>
+<% if (nodemailer) { -%>
+const { verifySMTPConnection } = require('./utils/mail');
+<% } -%>
 
 <% if (winston) { %>const logger = require('./config/logger');<% } else { %>const logger = console;<% } %>
 
@@ -67,10 +70,15 @@ app
   .listen(port, host, () => {
     logger.info(`App is running at ${host}:${port} in ${env} mode`);
 <% if (sequelize) { %>
+    // Verify database connection
     sequelize
       .authenticate()
       .then(() => logger.info(`Successfully connected to ${sequelize.config.database} database`))
       .catch(handleSequelizeConnectionError);
+<% } -%>
+<% if (nodemailer) { %>
+    // Verify SMTP connection
+    verifySMTPConnection();
 <% } -%>
   })
   .on('error', handleServerError);
