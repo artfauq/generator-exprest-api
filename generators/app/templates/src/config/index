@@ -1,66 +1,128 @@
 require('dotenv').config();
 
-const { checkEnvironmentVariables } = require('../utils/env');
+const convict = require('convict');
 
-const envVariables = [
-<% if (sequelize) { -%>
-  '<%= name %>_DB_HOST',
-  '<%= name %>_DB_NAME',
-  '<%= name %>_DB_USER',
-  '<%= name %>_DB_PASSWORD',
-<% } -%>
-<% if (jwt) { -%>
-  '<%= name %>_JWT_SECRET',
-<% } -%>
-];
+const config = convict({
+  /**
+   * Server config
+   */
+  host: {
+    doc: 'Server host name / IP',
+    format: '*',
+    default: '0.0.0.0',
+  },
+  port: {
+    doc: 'Server port',
+    format: 'port',
+    env: 'PORT',
+    default: 8080,
+  },
+  proxy: {
+    doc: 'Server proxy',
+    format: 'url',
+    env: 'HTTP_PROXY',
+    default: undefined,
+  },
 
-checkEnvironmentVariables(envVariables);
-
-const env = process.env.NODE_ENV || 'development';
-const isProduction = env === 'production';
-const isDevelopment = !isProduction;
-<% if (mocha) { -%>
-const isTest = env === 'test';
-<% } -%>
-
-module.exports = {
-  // Server options
-  host: '0.0.0.0',
-  port: parseInt(process.env.PORT, 10) || 8080,
-
-  // Application environment
-  env,
-  isProduction,
-  isDevelopment,
-<% if (mocha) { -%>
-  isTest,
-<% } -%>
-<% if (sequelize && mocha) { %>
-  // Database config
-  db: {
-    host: process.env.<%= name %>_DB_HOST,
-    username: process.env.<%= name %>_DB_USER,
-    password: process.env.<%= name %>_DB_PASSWORD,
-    database: process.env.<%= name %>_DB_NAME,
-    testDatabase: process.env.<%= name %>_DB_TEST_NAME,
+  /**
+   * Application config
+   */
+  env: {
+    doc: 'Application environment',
+    format: ['development', 'test', 'production'],
+    env: 'NODE_ENV',
+    default: 'development',
+  },
+<% if (winston) { -%>
+  logsDir: {
+    doc: 'Application logs directory',
+    format: String,
+    default: `${__dirname}/../../logs`,
   },
 <% } -%>
-<% if (sequelize && !mocha) { %>
-  // Database config
+
+<% if (sequelize) { %>
+  /**
+   * Database config
+   */
   db: {
-    host: process.env.<%= name %>_DB_HOST,
-    username: process.env.<%= name %>_DB_USER,
-    password: process.env.<%= name %>_DB_PASSWORD,
-    database: process.env.<%= name %>_DB_NAME,
+    host: {
+      doc: 'Database host name / IP',
+      format: String,
+      env: 'DB_HOST',
+      default: null,
+    },
+    username: {
+      doc: 'Database username',
+      format: String,
+      env: 'DB_USER',
+      default: null,
+    },
+    password: {
+      doc: 'Database password',
+      format: String,
+      env: 'DB_PASSWORD',
+      default: null,
+    },
+    database: {
+      doc: 'Database name',
+      format: String,
+      env: 'DB_NAME',
+      default: null,
+    },
   },
 <% } -%>
 <% if (jwt) { %>
-  // JWT config
-  JWT: {
-    algorithm: 'HS256',
-    accessTokenExpiryTime: 900, // 15 minutes
-    refreshTokenExpiryTime: 3600, // 1 hour
-    secret: process.env.<%= name %>_JWT_SECRET,
+  /**
+   * JWT config
+   */
+  jwtConfig: {
+    algorithm: {
+      doc: 'JWT algorithm',
+      format: String,
+      default: 'HS256',
+    },
+    secret: {
+      doc: 'JWT secret',
+      format: String,
+      env: 'JWT_SECRET',
+      default: null,
+    },
+    accessTokenExpiryTime: {
+      doc: 'Access token expiry time (in seconds)',
+      format: 'int',
+      default: 900, // 15 min
+    },
+    refreshTokenExpiryTime: {
+      doc: 'Refresh token expiry time (in seconds)',
+      format: 'int',
+      default: 3600, // 1 h
+    },
   },
 <% } -%>
+<% if (mocha) { %>
+  /**
+   * Test config
+   */
+  testConfig: {
+    database: {
+      doc: 'Test database',
+      format: String,
+      env: 'process.env.DB_TEST_NAME',
+      default: '',
+    },
+  },
+<% } -%>
+});
+
+// Validate current config
+config.validate({ allowed: 'strict' });
+
+module.exports = {
+  // Export plain config object
+  ...config.getProperties(),
+
+  // Export config related aliases
+  isTest: config.get('env') === 'test',
+  isProduction: config.get('env') === 'production',
 };

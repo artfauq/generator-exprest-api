@@ -1,13 +1,9 @@
 const { Sequelize } = require('sequelize');
 
-const { env } = require('.');
+const { env } = require('./index');
 const db = require('./database')[env];
 
 // Sequelize instance configuration
-const sequelize = new Sequelize(db.database, db.username, db.password, {
-  host: db.host,
-  dialect: db.dialect,
-  logging: false,
-});
+const sequelize = new Sequelize(db);
 
 module.exports = sequelize;

@@ -6,7 +6,7 @@ const helmet = require('helmet');
 const api = require('./api');
 const { host, port, env } = require('./config');
 <% if (sequelize) { -%>
-const { sequelize } = require('./db');
+const { sequelize } = require('./db/models');
 <% } -%>
 
 <% if (winston) { %>const logger = require('./config/logger');<% } else { %>const logger = console;<% } %>
@@ -27,9 +27,6 @@ const {
  * Express server initialization
  */
 const app = express();
-
-app.set('host', host);
-app.set('port', port);
 
 /**
  * Application configuration

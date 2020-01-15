@@ -1,9 +1,9 @@
-// const User = require('./user');
+const Sequelize = require('sequelize');
+
+const sequelize = require('../../config/sequelize');
 
 // Import models
-const models = {
-  // User
-};
+const models = {};
 
 // Associate models
 Object.keys(models).forEach(model => {
@@ -12,4 +12,4 @@ Object.keys(models).forEach(model => {
   }
 });
 
-module.exports = models;
+module.exports = { ...models, sequelize, Sequelize };

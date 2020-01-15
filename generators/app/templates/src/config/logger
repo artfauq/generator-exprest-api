@@ -2,9 +2,7 @@ const { existsSync, mkdirSync } = require('fs');
 const moment = require('moment');
 const { createLogger, format, transports } = require('winston');
 
-const { isDevelopment, isProduction } = require('.');
-
-const logsDir = `${__dirname}/../../logs`;
+const { isProduction, logsDir } = require('./index');
 
 // Check if logs folder exists
 if (!existsSync(logsDir)) {
@@ -15,7 +13,7 @@ const customFormat = format.printf(({ level, message, timestamp }) => `${timesta
 
 // Configure file logs
 const logger = createLogger({
-  level: isDevelopment ? 'debug' : 'info',
+  level: isProduction ? 'info' : 'debug',
   format: format.combine(
     format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss',

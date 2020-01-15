@@ -10,8 +10,9 @@ The following is a set of guidelines for contributing to the <%- name %> project
 
 The project uses [Sequelize](https://github.com/sequelize/sequelize) as an ORM to connect to a <%= sequelizeDialect %> database.
 
-- Database connection options are defined in `/src/config/index.js` and `/src/config/database.js`.
-- Sequelize options are defined in `/src/config/sequelize.js`.
+- Database connection options are defined in `/src/config/index.js`.
+- Sequelize options are defined in `/src/config/database.js`.
+- Sequelize instance is initialized and exported from `/src/config/sequelize.js`.
 - Sequelize models, migrations and seeders are defined in `/src/db`.
 <% } %>
 ### Environment variables
@@ -53,7 +54,7 @@ When running the app or performing some commands, additional folders (ignored by
 <% } %>
 ### Routing
 
-#### How to
+#### Instructions
 
 - All routes should be defined in `/src/api`
 - For each main route endpoint, two files with the route endpoint as file name should be added to the `/routes` and `/controllers` folders
@@ -137,7 +138,124 @@ To define a new endpoint `/articles` and two routes `GET /articles` and `GET /ar
    */
   router.use('/articles', articlesRouter);
   ```
-<% if (celebrate) { %>
+<% if (sequelize) { %>
+### Sequelize models
+
+Sequelize models should be defined in `/src/db/models`. Each model should be declared in a separate file and imported in `/src/db/models/index.js`.
+
+For example, to declare two new models User and Profile:
+
+- Create a new file `user.js` in `/src/db/models`:
+
+  ```javascript
+  const { Model, DataTypes } = require('sequelize');
+
+  const sequelize = require('../../config/sequelize');
+
+  class User extends Model {}
+
+  // Model attributes
+  User.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      email: {
+        type: DataTypes.STRING(255),
+        unique: true,
+        allowNull: false,
+      },
+      password: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
+      profileId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+    },
+    {
+      sequelize,
+      tableName: 'user',
+    }
+  );
+
+  // Model associations
+  User.associate = models => {
+    User.belongsTo(models.Profile, {
+      as: 'profile',
+      foreignKey: 'profileId',
+    });
+  };
+
+  module.exports = User;
+  ```
+
+- Create a new file `profile.js` in `/src/db/models`:
+
+  ```javascript
+  const { Model, DataTypes } = require('sequelize');
+
+  const sequelize = require('../../config/sequelize');
+
+  class Profile extends Model {}
+
+  // Model attributes
+  Profile.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      name: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
+    },
+    {
+      sequelize,
+      tableName: 'profile',
+    }
+  );
+
+  // Model associations
+  Profile.associate = models => {
+    Profile.hasMany(models.User, {
+      as: 'users',
+      foreignKey: 'profileId',
+    });
+  };
+
+  module.exports = Profile;
+  ```
+
+- Import the model in `/models/index.js`
+
+  ```javascript
+  const Sequelize = require('sequelize');
+
+  const sequelize = require('../../config/sequelize');
+  const Profile = require('./profile');
+  const User = require('./user');
+
+  // Import models
+  const models = {
+    Profile,
+    User,
+  };
+
+  // Associate models
+  Object.keys(models).forEach(model => {
+    if (models[model].associate && typeof models[model].associate === 'function') {
+      models[model].associate(models);
+    }
+  });
+
+  module.exports = { ...models, sequelize, Sequelize };
+  ```
+<% } %><% if (celebrate) { %>
 ### Request validation
 
 To validate HTTP request parameters and body, use [celebrate](https://www.npmjs.com/package/celebrate).

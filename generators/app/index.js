@@ -117,7 +117,6 @@ module.exports = class extends Generator {
     copy(src('src/api/controllers/empty'), dest(`${shortname}/src/api/controllers/empty`));
     copy(src('src/api/routes/empty'), dest(`${shortname}/src/api/routes/empty`));
     copy(src('src/services/empty'), dest(`${shortname}/src/services/empty`));
-    copy(src('src/utils/env'), dest(`${shortname}/src/utils/env.js`));
 
     copyTpl(src('eslintrc'), dest(`${shortname}/.eslintrc.json`), answers);
     copyTpl(src('README'), dest(`${shortname}/README.md`), answers);
@@ -125,7 +124,7 @@ module.exports = class extends Generator {
       ...answers,
       sequelizeDialect: dialect ? dialect.name : '',
     });
-    copyTpl(src('_package'), dest(`${shortname}/package.json`), {
+    copyTpl(src('package'), dest(`${shortname}/package.json`), {
       ...answers,
       description: JSON.stringify(answers.description),
     });
@@ -140,9 +139,9 @@ module.exports = class extends Generator {
       copy(src('src/db/models/index'), dest(`${shortname}/src/db/models/index.js`));
       copy(src('src/db/migrations'), dest(`${shortname}/src/db/migrations`));
       copy(src('src/db/seeders'), dest(`${shortname}/src/db/seeders`));
-      copy(src('src/db/index'), dest(`${shortname}/src/db/index.js`));
       copy(src('src/config/sequelize'), dest(`${shortname}/src/config/sequelize.js`));
       copyTpl(src('src/config/database'), dest(`${shortname}/src/config/database.js`), {
+        ...answers,
         dialect: dialect.value,
       });
 
@@ -197,7 +196,7 @@ module.exports = class extends Generator {
 
     if (answers.openapi) {
       copyTpl(src('src/api/doc/index.html'), dest(`${shortname}/src/api/doc/index.html`), answers);
-      copyTpl(src('src/api/doc/openapi'), dest(`${shortname}/src/doc/openapi.yaml`), answers);
+      copyTpl(src('src/api/doc/openapi'), dest(`${shortname}/src/api/doc/openapi.yaml`), answers);
     }
   }
 
@@ -211,8 +210,6 @@ module.exports = class extends Generator {
     this.installDependencies({ bower: false, npm: true }).then(() => {
       this.spawnCommandSync('npm', ['i', '--save', ...dependencies]);
       this.spawnCommandSync('npm', ['i', '--save-dev', ...devDependencies]);
-      this.spawnCommandSync('npm', ['remove', '-S', 'example']);
-      this.spawnCommandSync('npm', ['remove', '-D', 'example']);
       this.spawnCommandSync('npm', ['update']);
       this.spawnCommandSync('npm', ['run', 'lint:fix']);
     });
