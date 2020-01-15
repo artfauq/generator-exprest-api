@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.6.0 (January 15, 2020)
+
+- Added nodemailer option
+- Fixed openapi.yaml destination issue
+- Modified config handling with convict
+- Modified npm scripts
+- Modified JWT variable names
+- Modified default migrations table name
+- Modified sequelize config handling
+- Renamed env variables
+
 ## 3.5.1 (November 5, 2019)
 
 - Fixed `/models/index.js` copy issue
