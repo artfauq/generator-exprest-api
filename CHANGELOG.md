@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.1 (January 23, 2020)
+
+- Modified tests structure
+
 ## 3.7.0 (January 23, 2020)
 
 - Added `.env.test` file
