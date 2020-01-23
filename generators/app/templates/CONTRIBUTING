@@ -62,81 +62,86 @@ When running the app or performing some commands, additional folders (ignored by
 
 #### Example
 
-To define a new endpoint `/articles` and two routes `GET /articles` and `GET /articles/:id`, follow the steps below.
+To define a new `/users` endpoint and two routes `POST /users` and `GET /users/:id`, follow the steps below.
 
-- Create the service with the business logic to retrieve the articles:
+- Create the service with the business logic to retrieve the users:
 
-  - Create a new file called `article.js` in `/src/services`
-  - In this new file, define and export two new methods `getAllArticles` and `getArticleById`:
+  - Create a new file called `user.js` in `/src/services`
+  - In this new file, define and export two methods:
 
     ```javascript
-    module.exports = {
-      async getAllArticles() {
-        const articles = await Article.findAll();
+    // Import Sequelize model
+    const { User } = require('../db/models');
 
-        return articles;
+    module.exports = {
+      async addUser(userDetails) {
+        const newUser = await User.create(userDetails);
+
+        return newUser;
       },
 
-      async getArticleById(id) {
-        const article = await Article.findByPk(id);
+      async getUserById(userId) {
+        const user = await User.findByPk(userId);
 
-        return article;
+        return user;
       },
     };
     ```
 
-- Create the controller:
+- Create the controller with the request handlers:
 
-  - Create a new file `articles.js` in `/src/api/controllers`
-  - In this new file, define and export the request handlers associated to these routes:
+  - Create a new file `users.js` in `/src/api/controllers`
+  - In this new file, define and export the request handlers associated to the routes:
 
     ```javascript
-    const ArticleService = require('../../services/article');
+    const UserService = require('../../services/user');
 
     module.exports = {
-      async getArticles(req, res, next) {
-        const articles = await ArticleService.getAllArticles();
+      async addUser(req, res, next) {
+        const userDetails = req.body;
 
-        return articles;
+        const user = await UserService.addUser(userDetails);
+
+        return user;
       },
 
-      async getArticle(req, res, next) {
+      async getUser(req, res, next) {
         const { id } = req.params;
 
-        const article = await ArticleService.getArticleById(id);
+        const user = await UserService.getUserById(id);
 
-        return article;
+        return user;
       },
     };
     ```
 
 - Create the route endpoints:
 
-  - Create a new file `articles.js` in `/src/api/routes`
-  - In this new file, initialize a router object, import the controller and the new routes with its associated request handlers:
+  - Create a new file `users.js` in `/src/api/routes`
+  - In this new file, initialize a router object and add the new routes with their associated request handlers:
 
     ```javascript
     const Router = require('express-promise-router').default;
 
-    const articlesController = require('../controllers/articles');
+    const usersController = require('../controllers/users');
 
     const router = Router();
 
-    router.get('/', articlesController.getArticles);
-    router.get('/:id', articlesController.getArticle);
+    router.post('/', usersController.addUser);
+    router.get('/:id', usersController.getUser);
 
     module.exports = router;
     ```
 
-- Finally, import the routes in `/src/api/routes/index.js` and declare a new `/articles` route:
+- Finally, import the routes in `/src/api/routes/index.js` and declare a new `/users` route:
 
   ```javascript
-  const articlesRouter = require('./articles');
+  const usersRouter = require('./users');
 
   /**
    * API routes
    */
-  router.use('/articles', articlesRouter);
+  router.use('/users', usersRouter);
   ```
 <% if (sequelize) { %>
 ### Sequelize models
@@ -256,13 +261,13 @@ For example, to declare two new models User and Profile:
   module.exports = { ...models, sequelize, Sequelize };
   ```
 <% } %><% if (celebrate) { %>
-### Request validation
+### Object validation
 
 To validate HTTP request parameters and body, use [celebrate](https://www.npmjs.com/package/celebrate).
 
 Custom validation schemas should be defined in `/src/api/middlewares/validation.js`.
 
-For example, to add validation to the `id` parameter of the `GET /articles/:id` route:
+For example, to add validation to the `id` parameter of the `GET /users/:id` route:
 
 - Define a new validation schema in `/src/api/middlewares/validation.js`:
 
@@ -274,27 +279,27 @@ For example, to add validation to the `id` parameter of the `GET /articles/:id` 
   module.exports = { celebrate, Joi, id };
   ```
 
-- Add the validation schema to the route definition in `/src/api/routes/articles.js`:
+- Add the validation schema to the route definition in `/src/api/routes/users.js`:
 
   ```javascript
   const Router = require('express-promise-router').default;
 
-  const articlesController = require('../controllers/articles');
+  const usersController = require('../controllers/users');
   const { celebrate, id } = require('../middlewares/validation');
 
   const router = Router();
 
   /**
-   * GET /articles/:id
+   * GET /users/:id
    */
   router.get(
     '/:id',
     celebrate({
       params: {
-        id: id.required().error(() => 'Article id is required and must be a positive integer.'),
+        id: id.required().error(() => 'User ID is required and must be a positive integer.'),
       },
     }),
-    articlesController.getArticle
+    usersController.getUser
   );
   ```
 
@@ -306,9 +311,78 @@ app.use(celebrateErrorParser);
 <% } %><% if (mocha) { %>
 ### Testing
 
-API tests should be defined in the `test/api/` folder with one directory per main route and one file per endpoint.
+All tests should be defined in the `test/` folder.
 
-*Example:* to add tests for the `GET /articles/:id` and `POST /articles` endpoints, create a new directory `test/api/articles` and two files `get.article.js` and `post.articles.js`.
+API tests should be defined in a `test/api/` subfolder. Inside this folder, there should be one directory per main route and inside each directory one file per endpoint.
+
+*Example:* to add tests for the `POST /users` endpoint:
+
+- Create a new `users/` directory inside `test/api/`
+- Inside this directory, add two new files `index.js` and `post.users.js`
+- Inside `post.users.js`, add some tests:
+
+  ```javascript
+  const supertest = require('supertest');
+
+  const app = require('../../../src');
+
+  const api = supertest(app);
+
+  module.exports = () => {
+    it('should return 201 on user creation', async () => {
+      const user = {
+        firstName: 'John',
+        lastName: 'Louis',
+        email: 'john.louis@gmail.com',
+        password: 'p4ssw0rd',
+      };
+
+      await api
+        .post('/api/users')
+        .set('Accept', 'application/json')
+        .set('Content-Type', 'application/json')
+        .send(user)
+        .expect(201);
+    });
+  };
+
+  ```
+
+- Inside `users/index.js`, add a reference to the endpoint tests file:
+
+  ```javascript
+  module.exports = () => {
+    /**
+     * POST /api/users
+     */
+    describe('POST /api/users', require('./post.users'));
+  };
+  ```
+
+- Finally, inside `test/api/index.js` add a reference to the route tests file:
+
+  ```javascript
+  const supertest = require('supertest');
+  const { expect } = require('chai');
+
+  const app = require('../../src');
+
+  const api = supertest(app);
+
+  module.exports = () => {
+    /**
+    * API /
+    */
+    describe('API /', () => {
+      // ...
+    });
+
+    /**
+    * API /users
+    */
+    describe('API /users', require('./users'));
+  };
+  ```
 
 Tests are run with [Mocha](https://github.com/mochajs/mocha), written with [Supertest](https://github.com/visionmedia/supertest) and [Chai](https://github.com/chaijs/chai) and test coverage is generated by [Istanbul](https://istanbul.js.org/) with [nyc](https://github.com/istanbuljs/nyc).
 <% } %>
@@ -328,14 +402,14 @@ To throw custom HTTP errors, use the `http-errors` module:
 const { NotFound } = require('http-errors');
 
 module.exports = {
-  async getArticleById(id) {
-    const article = await Article.findByPk(id);
+  async getUserById(userId) {
+    const user = await User.findByPk(userId);
 
-    if (!article) {
-      throw new NotFound('Article not found.');
+    if (!user) {
+      throw new NotFound('User not found.');
     }
 
-    return article;
+    return user;
   },
 };
 ```

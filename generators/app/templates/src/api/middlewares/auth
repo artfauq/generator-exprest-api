@@ -18,7 +18,7 @@ const { secret } = JWT;
  * const usersController = require('../controllers/users');
  * const auth = require('../middlewares/auth');
  *
- * router.get('/users', auth.required, usersController.getUsers);
+ * router.get('/users/:id', auth.required, usersController.getUser);
  */
 module.exports = {
   required: jwt({

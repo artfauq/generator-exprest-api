@@ -14,12 +14,7 @@ const { celebrate, Joi } = require('celebrate');
  *    '/users/:id',
  *    celebrate({
  *      params: {
- *        id: Joi
- *          .number()
- *          .integer()
- *          .positive()
- *          .required(),
- *        // OR use custom validation schema defined in validation.js
+ *        // Custom validation schema defined and exported from validation.js
  *        id: id.required(),
  *      }
  *    }),
