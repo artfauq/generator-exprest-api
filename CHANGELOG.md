@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.0 (January 23, 2020)
+
+- Added `.env.test` file
+
 ## 3.6.0 (January 15, 2020)
 
 - Added nodemailer option
