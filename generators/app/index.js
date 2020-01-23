@@ -194,6 +194,7 @@ module.exports = class extends Generator {
     if (answers.mocha) {
       copy(src('test/index'), dest(`${shortname}/test/index.js`));
       copy(src('nycrc'), dest(`${shortname}/.nycrc`));
+      copyTpl(src('env.test'), dest(`${shortname}/.env.test`), { ...answers, name: envName });
 
       this.packages.devDependencies.push('chai');
       this.packages.devDependencies.push('mocha');

@@ -1,6 +1,6 @@
-require('dotenv').config();
-
 const convict = require('convict');
+const dotenv = require('dotenv');
+const path = require('path');
 
 const config = convict({
   /**
@@ -124,20 +124,17 @@ const config = convict({
       env: 'SMTP_PASSWORD',
       default: null,
     },
-  },<% } %><% if (mocha) { %>
-
-  /**
-   * Test config
-   */
-  testConfig: {
-    database: {
-      doc: 'Test database',
-      format: String,
-      env: 'process.env.DB_TEST_NAME',
-      default: '',
-    },
   },<% } %>
 });
+
+// Get current environment
+const env = config.get('env');
+const isTest = env === 'test';
+const isProduction = env === 'production';
+
+// Load environment variables
+const envFile = isTest ? '.env.test' : '.env';
+dotenv.config({ path: path.resolve(process.cwd(), envFile) })
 
 // Validate current config
 config.validate({ allowed: 'strict' });
@@ -147,6 +144,6 @@ module.exports = {
   ...config.getProperties(),
 
   // Export config related aliases
-  isTest: config.get('env') === 'test',
-  isProduction: config.get('env') === 'production',
+  isTest,
+  isProduction,
 };

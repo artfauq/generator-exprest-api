@@ -1,4 +1,4 @@
-const { db<% if (mocha) { %>, testConfig<% } %> } = require('./index');
+const { db } = require('./index');
 
 // Sequelize options
 const options = {
@@ -18,15 +18,13 @@ module.exports = {
     password: db.password,
     database: db.database,
   },
-<% if (mocha) { -%>
   test: {
     ...options,
     host: db.host,
     username: db.username,
     password: db.password,
-    database: testConfig.database,
+    database: db.database,
   },
-<% } -%>
   production: {
     ...options,
     host: db.host,
