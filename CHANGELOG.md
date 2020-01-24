@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.7.2 (January 24, 2020)
+
+- Fixed env test file issue
+
 ## 3.7.1 (January 23, 2020)
 
 - Modified tests structure
