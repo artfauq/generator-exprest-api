@@ -2,6 +2,12 @@ const convict = require('convict');
 const dotenv = require('dotenv');
 const path = require('path');
 
+// Load environment variables
+const env = process.env.NODE_ENV;
+const envFile = env === 'test' ? '.env.test' : '.env';
+
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
 const config = convict({
   /**
    * Server config
@@ -127,15 +133,6 @@ const config = convict({
   },<% } %>
 });
 
-// Get current environment
-const env = config.get('env');
-const isTest = env === 'test';
-const isProduction = env === 'production';
-
-// Load environment variables
-const envFile = isTest ? '.env.test' : '.env';
-dotenv.config({ path: path.resolve(process.cwd(), envFile) })
-
 // Validate current config
 config.validate({ allowed: 'strict' });
 
@@ -144,6 +141,6 @@ module.exports = {
   ...config.getProperties(),
 
   // Export config related aliases
-  isTest,
-  isProduction,
+  isTest: env === 'test',
+  isProduction: env === 'production',
 };
