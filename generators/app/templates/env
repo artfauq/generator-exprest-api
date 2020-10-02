@@ -1,6 +1,16 @@
+# Environment config
+NODE_ENV
+
+# Server config
+PORT
+
+# Application config
+PUBLIC_HOST
+
 <% if (sequelize) { -%>
 # Database
 DB_HOST
+DB_PORT
 DB_NAME
 DB_USER
 DB_PASSWORD

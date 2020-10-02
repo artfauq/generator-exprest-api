@@ -14,6 +14,7 @@
   "plugins": ["promise"],
   "rules": {
     "linebreak-style": ["error", "windows"],
+    "new-cap": "off",
     "no-console": "error",
     "no-unused-vars": [
       "error",

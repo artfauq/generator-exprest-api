@@ -1,35 +1,20 @@
-const { db } = require('./index');
+const config = require('./index');
+
+const { db } = config;
 
 // Sequelize options
 const options = {
   dialect: '<%= dialect %>',
-  define: {
-    charset: 'utf-8',
-  },
-  logging: false,
+  host: db.host,
+  port: db.port,
+  username: db.username,
+  password: db.password,
+  database: db.database,
   migrationStorageTableName: 'sequelize_migrations',
 };
 
 module.exports = {
-  development: {
-    ...options,
-    host: db.host,
-    username: db.username,
-    password: db.password,
-    database: db.database,
-  },
-  test: {
-    ...options,
-    host: db.host,
-    username: db.username,
-    password: db.password,
-    database: db.database,
-  },
-  production: {
-    ...options,
-    host: db.host,
-    username: db.username,
-    password: db.password,
-    database: db.database,
-  },
+  development: options,
+  test: options,
+  production: options,
 };
