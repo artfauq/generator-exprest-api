@@ -1,6 +1,6 @@
 # Contributing to <%- name %>
 
-The following is a set of guidelines for contributing to the <%- name %> project.
+The following is a set of guidelines for contributing to <%- name %>.
 
 ## About
 <% if (sequelize) { %>
@@ -19,7 +19,7 @@ The project uses [Sequelize](https://github.com/sequelize/sequelize) as an ORM t
 
 The `.env.example` should list all the environment variables that the application needs to run.
 
-A `.env` file with the environement variable key/value pairs can be added at the root of the project. The `dotenv` package imported in `/src/config/index.js` will make those variables available to the app.
+A `.env` file with the environment variable key/value pairs can be added at the root of the project. The `dotenv` package imported in `/src/config/index.js` will make those variables available to the app.
 
 ### Project structure
 
@@ -133,7 +133,7 @@ To define a new `/users` endpoint and two routes `POST /users` and `GET /users/:
     module.exports = router;
     ```
 
-- Finally, import the routes in `/src/api/routes/index.js` and declare a new `/users` route:
+- Finally, import the routes in `/src/api/index.js` and declare a new `/users` route:
 
   ```javascript
   const usersRouter = require('./users');
