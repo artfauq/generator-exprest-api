@@ -62,7 +62,7 @@ When running the app or performing some commands, additional folders (ignored by
 
 #### Example
 
-To define a new `/users` endpoint and two routes `POST /users` and `GET /users/:id`, follow the steps below.
+To define a new `/users` endpoint and two routes `POST /users` and `GET /users/:id`, follow these steps:
 
 - Create the service with the business logic to retrieve the users:
 
@@ -118,7 +118,7 @@ To define a new `/users` endpoint and two routes `POST /users` and `GET /users/:
 - Create the route endpoints:
 
   - Create a new file `users.js` in `/src/api/routes`
-  - In this new file, initialize a router object and add the new routes with their associated request handlers:
+  - In this new file, initialize a router object and configure the endpoints with their associated request handlers:
 
     ```javascript
     const Router = require('express-promise-router').default;
@@ -133,7 +133,7 @@ To define a new `/users` endpoint and two routes `POST /users` and `GET /users/:
     module.exports = router;
     ```
 
-- Finally, import the routes in `/src/api/index.js` and declare a new `/users` route:
+- Finally, import the router in `/src/api/index.js` and declare a new `/users` route:
 
   ```javascript
   const usersRouter = require('./users');
