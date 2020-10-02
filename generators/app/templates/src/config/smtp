@@ -4,10 +4,12 @@
 
 const { createTransport } = require('nodemailer');
 
-const { SMTP, proxy } = require('./index');
+const config = require('./index');
+
+const { SMTP, proxy } = config;
 
 // Initialize SMTP transport
-const transporter = createTransport({
+const smtpTransport = createTransport({
   host: SMTP.host,
   port: SMTP.port,
   auth: {
@@ -17,4 +19,4 @@ const transporter = createTransport({
   proxy,
 });
 
-module.exports = transporter;
+module.exports = smtpTransport;

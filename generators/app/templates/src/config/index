@@ -2,13 +2,29 @@ const convict = require('convict');
 const dotenv = require('dotenv');
 const path = require('path');
 
+const NODE_ENV = {
+  development: 'development',
+  test: 'test',
+  production: 'production',
+}
+
 // Load environment variables
 const env = process.env.NODE_ENV;
-const envFile = env === 'test' ? '.env.test' : '.env';
+const envFile = env === NODE_ENV.development ? '.env' : `.env.${env}`;
 
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
 const config = convict({
+  /**
+   * Environment config
+   */
+  env: {
+    doc: 'Application environment',
+    format: Object.values(NODE_ENV),
+    env: 'NODE_ENV',
+    default: NODE_ENV.development,
+  },
+
   /**
    * Server config
    */
@@ -33,13 +49,13 @@ const config = convict({
   /**
    * Application config
    */
-  env: {
-    doc: 'Application environment',
-    format: ['development', 'test', 'production'],
-    env: 'NODE_ENV',
-    default: 'development',
-  },
-<% if (winston) { -%>  logsDir: {
+  publicHost: {
+    doc: 'Public host of the API',
+    format: 'url',
+    env: 'PUBLIC_HOST',
+    default: '',
+  }<% if (winston) { %>,
+  logsDir: {
     doc: 'Application logs directory',
     format: String,
     default: `${__dirname}/../../logs`,
@@ -54,6 +70,12 @@ const config = convict({
       format: String,
       env: 'DB_HOST',
       default: null,
+    },
+    port: {
+      doc: 'Database port',
+      format: 'port',
+      env: 'DB_PORT',
+      default: 3306,
     },
     username: {
       doc: 'Database username',
@@ -78,7 +100,7 @@ const config = convict({
   /**
    * JWT config
    */
-  jwtConfig: {
+  JWT: {
     algorithm: {
       doc: 'JWT algorithm',
       format: String,
@@ -136,11 +158,14 @@ const config = convict({
 // Validate current config
 config.validate({ allowed: 'strict' });
 
+const isTest = env === NODE_ENV.test;
+const isProduction = env === NODE_ENV.production;
+
 module.exports = {
   // Export plain config object
   ...config.getProperties(),
 
   // Export config related aliases
-  isTest: env === 'test',
-  isProduction: env === 'production',
+  isTest,
+  isProduction,
 };

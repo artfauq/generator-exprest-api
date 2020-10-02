@@ -2,17 +2,17 @@ module.exports = {
   MYSQL: {
     name: 'MySQL',
     value: 'mysql',
-    packages: ['mysql2'],
+    packages: ['mysql2@2'],
   },
   POSTGRESQL: {
     name: 'PostgreSQL',
     value: 'postgres',
-    packages: ['pg', 'pg-hstore'],
+    packages: ['pg@7', 'pg-hstore'],
   },
   SQLITE: {
     name: 'SQLite',
     value: 'sqlite',
-    packages: ['sqlite3'],
+    packages: ['sqlite3@4'],
   },
   MARIA: {
     name: 'MariaDB',
@@ -22,6 +22,6 @@ module.exports = {
   MSSQL: {
     name: 'Microsoft SQL Server',
     value: 'mssql',
-    packages: ['tedious'],
+    packages: ['tedious@6'],
   },
 };

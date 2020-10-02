@@ -1,31 +1,32 @@
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
 
-const { jwtConfig } = require('../config');
+const config = require('../config');
 
-const { algorithm, secret, accessTokenExpiryTime, refreshTokenExpiryTime } = jwtConfig;
+const { JWT, publicHost } = config;
+const { algorithm, secret } = JWT;
 
 module.exports = {
   /**
    * Generates and returns a new JWT token.
    *
-   * @param {string | Object | Buffer} accessTokenPayload
-   * @param {string | Object | Buffer} refreshTokenPayload
-   * @returns {{ accessToken: string, expiresIn: number, refreshToken: string }}
+   * @param {string} userId
+   * @param {string} passwordHash
+   * @param {string} expiresIn
+   * @param {Object} payload
+   * @returns {string}
    */
-  generateToken(accessTokenPayload, refreshTokenPayload) {
+  generateToken(userId, passwordHash, expiresIn, payload) {
+    const jwtSecret = `${secret}-${passwordHash}`;
+
     // Generate access token
-    const accessToken = jwt.sign(accessTokenPayload, secret, {
+    return jwt.sign(payload, jwtSecret, {
       algorithm,
-      expiresIn: accessTokenExpiryTime
+      expiresIn,
+      issuer: publicHost,
+      jwtid: uuidv4(),
+      subject: userId.toString(),
     });
-
-    // Generate refresh token
-    const refreshToken = jwt.sign(refreshTokenPayload, secret, {
-      algorithm,
-      expiresIn: refreshTokenExpiryTime
-    });
-
-    return { accessToken, expiresIn: accessTokenExpiryTime, refreshToken };
   },
 
   /**

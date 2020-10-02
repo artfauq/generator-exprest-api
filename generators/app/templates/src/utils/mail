@@ -4,7 +4,7 @@
 
 const { InternalServerError } = require('http-errors');
 
-const transporter = require('../config/transporter');
+const smtpTransport = require('../config/smtp');
 <% if (winston) { %>const logger = require('../config/logger');<% } else { %>const logger = console;<% } %>
 
 module.exports = {
@@ -15,7 +15,7 @@ module.exports = {
    */
   async verifySMTPConnection() {
     try {
-      await transporter.verify();
+      await smtpTransport.verify();
 
       logger.info('SMTP server ready.');
     } catch (error) {
@@ -31,7 +31,7 @@ module.exports = {
    */
   async sendMail(options) {
     try {
-      await transporter.sendMail(options);
+      await smtpTransport.sendMail(options);
     } catch (error) {
       throw new InternalServerError(`Failed to send mail: ${error.message}. Options: ${options}`);
     }

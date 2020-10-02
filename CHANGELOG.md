@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.8.0 (October 2, 2020)
+
+- Added `.huskyrc.json`
+- Added `.mocharc.json`
+- Added `migrate:undo` command
+- Added `PUBLIC_HOST` env variable
+- Added `DB_PORT` env variable
+- Renamed `transporter.js` to `smtp.js`
+- Fixed packages version issue
+- Fixed `CONTRIBUTING.md` typo errors
+
 ## 3.7.2 (January 24, 2020)
 
 - Fixed env test file issue

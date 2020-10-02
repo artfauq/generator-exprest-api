@@ -1,6 +1,6 @@
 {
   "name": "generator-exprest-api",
-  "version": "3.7.2",
+  "version": "3.8.0",
   "description": "REST API generator with Express",
   "repository": "arthurfauq/generator-exprest-api",
   "homepage": "https://github.com/arthurfauq/generator-exprest-api",
