@@ -1,0 +1,132 @@
+import 'reflect-metadata';
+import { <% if (celebrate) { %>celebrateErrorParser, <% } %>httpErrorHandler, parseServerError<% if (sequelize) { %>, sequelizeErrorParser<% } %> } from '@kazaar/express-error-handler';<% if (sentry) { %>
+import * as Sentry from '@sentry/node';
+import * as Tracing from '@sentry/tracing';<% } %>
+import bodyParser from 'body-parser';
+import compression from 'compression';
+import cors from 'cors';
+import express, { Application } from 'express';
+import rateLimit from 'express-rate-limit';
+import statusMonitor from 'express-status-monitor';
+import helmet from 'helmet';
+import { Server } from 'http';
+import { <% if (sentry) { %>InternalServerError, <% } %>TooManyRequests } from 'http-errors';<% if (i18n) { %>
+import { i18n as I18n } from 'i18next';
+import i18nHttpMiddleware from 'i18next-http-middleware';<% } %>
+import path from 'path';
+import favicon from 'serve-favicon';<% if (socketIo) { %>
+import SocketIO from 'socket.io';<% } %>
+import { Container } from 'typedi';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
+import config from './config';
+import { errorLogger<% if (jwt) { %>, jwtErrorParser<% } %> } from './middlewares';
+import router from './routes';<% if (sentry) { %>
+import './config/sentry';<% } %>
+
+export default (app: Application, server: Server): void => {
+  const logger = Container.get<<%= loggerType %>>('logger');<% if (sentry) { %>
+
+  /**
+   * Sentry middlewares configuration
+   */
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());<% } %><% if (i18n) { %>
+
+  /**
+   * I18n HTTP middleware configuration
+   */
+  const i18n = Container.get<I18n>('i18n');
+
+  app.use(i18nHttpMiddleware.handle(i18n));
+  app.use((req, res, next) => {
+    if (req.i18n) {
+      Container.set('i18n', req.i18n);
+    }
+
+    next();
+  });<% } %>
+
+  /**
+   * App configuration
+   */
+  app.enable('trust proxy');
+  app.use(
+    statusMonitor({
+      path: '/status',
+      title: '<%= name %> | Monitoring',<% if (socketIo) { %>
+      websocket: Container.get<SocketIO.Server>('socket'),<% } %>
+    }),
+  );
+  app.use(bodyParser.json());
+  app.use(compression());
+  app.use(cors({ origin: true, credentials: true }));
+  app.use(helmet());
+  app.use(
+    rateLimit({
+      windowMs: 10 * 60 * 1000, // 10 minutes
+      max: 100, // limit each IP to 100 requests per windowMs
+      message: <% if (i18n) { %>i18n.t('errors:tooManyRequests')<% } else { %>'Too many requests, please try again later.'<% } %>,
+      statusCode: new TooManyRequests().statusCode,
+      skip: () => !config.isProduction,
+    }),
+  );
+  app.use(favicon(path.resolve(`${__dirname}/public/favicon.ico`)));
+
+  /**
+   * Public assets
+   */
+  app.use('/public', express.static(path.resolve(`${__dirname}/public`)));<% if (sentry) { %>
+
+  /**
+   * Sentry debug route
+   */
+  app.get('/sentry-debug', () => {
+    throw new InternalServerError('Sentry error!');
+  });<% } %>
+
+  /**
+    * Health route
+    */
+  app.get('/health', (req, res) => res.sendStatus(204));
+
+  /**
+   * Routing configuration
+   */
+  app.use(router);
+
+  /**
+   * Error handling
+   */<% if (jwt) { %>
+  app.use(jwtErrorParser());<% } %><% if (celebrate) { %>
+  app.use(celebrateErrorParser());<% } %><% if (sequelize) { %>
+  app.use(sequelizeErrorParser());<% } %>
+  app.use(errorLogger(logger));<% if (sentry) { %>
+  app.use(Sentry.Handlers.errorHandler());<% } %>
+  app.use(httpErrorHandler());
+
+  /**
+   * Start listing on port defined
+   */
+  server
+    .listen(config.port, () => {
+      logger.info(`App is running on port ${config.port} in ${config.env} mode`);
+    })
+    .on('error', err => {
+      logger.error('%o', parseServerError(err));
+
+      process.exit(1);
+    });
+
+  /**
+   * Catch uncaught exceptions and promise rejections
+   */
+  process.on('uncaughtException', err => {
+    logger.error('Uncaught Exception - %o', err);
+
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', err => {
+    logger.error('Unhandled Rejection - %o', err);
+  });
+};

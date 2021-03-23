@@ -1,5 +1,22 @@
 # Changelog
 
+## 4.0.0 (March 26, 2021)
+
+- Added `TypeScript` support
+- Added `Docker Compose` support
+- Added `dependency injection`
+- Added `API status monitoring`
+- Added `i18n` option
+- Added `Socket.IO` option
+- Added `cron jobs` option
+- Added `Sentry` option
+- Added `Redis` option
+- Added `auth` service with `sequelize` and `jwt` options enabled
+- Added `base tests`
+- Added `test stubs` support
+- Replaced `CONTRIBUTING.md` with `ABOUT.md`
+- Refactored project structure
+
 ## 3.8.0 (October 2, 2020)
 
 - Added `.huskyrc.json`

@@ -1,0 +1,78 @@
+const convict = require('convict');
+const dotenv = require('dotenv');
+const path = require('path');
+
+/**
+ * Load environment variables
+ */
+const env = process.env.NODE_ENV;
+const envFile = env === 'test' ? '.env.test' : '.env';
+
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
+const config = convict({
+  dialect: {
+    doc: 'Database dialect',
+    format: String,
+    default: '<%= dialect.value %>',
+  },
+  host: {
+    doc: 'Database host name / IP',
+    format: String,
+    env: 'DB_HOST',
+    default: '',
+  },
+  port: {
+    doc: 'Database port',
+    format: 'port',
+    env: 'DB_PORT',
+    default: <%= dialect.port %>,
+  },
+  username: {
+    doc: 'Database username',
+    format: String,
+    env: 'DB_USER',
+    default: '',
+  },
+  password: {
+    doc: 'Database password',
+    format: String,
+    env: 'DB_PASSWORD',
+    default: '',
+  },
+  database: {
+    doc: 'Database name',
+    format: String,
+    env: 'DB_NAME',
+    default: '',
+  },
+  dialectOptions: {
+    doc: 'Dialect options',
+    format: Object,
+    default: {},
+  },
+  logging: {
+    doc: 'Query logging',
+    format: Boolean,
+    env: 'DEBUG',
+    default: false,
+  },
+  migrationStorageTableName: {
+    doc: 'Migration storage table name',
+    format: String,
+    default: 'sequelize_migrations',
+  },
+});
+
+/**
+ * Validate options
+ */
+config.validate({ allowed: 'strict' });
+
+const options = config.get();
+
+module.exports = {
+  development: options,
+  production: options,
+  test: options,
+};

@@ -1,0 +1,11 @@
+import { Server as HttpServer } from 'http';
+import SocketIO from 'socket.io';
+
+/**
+ * Socket.IO server initializer
+ */
+export default ({ server }: { server: HttpServer }): SocketIO.Server => {
+  const io = SocketIO(server, { path: '/socket.io' });
+
+  return io;
+};

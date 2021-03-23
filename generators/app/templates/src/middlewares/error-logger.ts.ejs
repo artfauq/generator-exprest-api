@@ -1,0 +1,14 @@
+import { ErrorRequestHandler } from 'express';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
+
+export const errorLogger = (logger: <%= loggerType %>): ErrorRequestHandler => (err, req, res, next) => {
+  if (typeof err === 'object' && 'status' in err && err.status < 500) {
+    logger.warn(err.stack);
+  } else if (err instanceof Error) {
+    logger.error(err.stack || err.message<% if (auth && winston && sentry) { %>, { user: req.user }<% } %>);
+  } else {
+    logger.error(err<% if (auth && winston && sentry) { %>, { user: req.user }<% } %>);
+  }
+
+  next(err);
+};

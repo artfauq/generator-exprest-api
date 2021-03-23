@@ -1,0 +1,31 @@
+import Router from 'express-promise-router';
+import { Container } from 'typedi';<% if (celebrate) { %>
+import { validation } from '../middlewares';<% } %>
+import { AuthService } from '../services';
+import { LoginDTO } from '../types';
+
+const router = Router();
+
+/**
+ * POST /auth/login
+ *
+ * Authenticate user
+ */
+router.post<{}, { token: string }, LoginDTO>(
+  '/login',<% if (celebrate) { %>
+  validation.celebrate({
+    body: {
+      email: validation.Joi.string().email().required(),
+      password: validation.Joi.string().required(),
+    },
+  }),<% } %>
+  async (req, res) => {
+    const { email, password } = req.body;
+
+    const token = await Container.get(AuthService).login(email, password);
+
+    res.status(200).json({ token });
+  },
+);
+
+export default router;

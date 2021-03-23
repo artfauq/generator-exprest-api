@@ -1,0 +1,16 @@
+import supertest from 'supertest';
+import app from '../../src';
+import { expectInternalServerError } from '../helpers';
+
+const api = supertest(app);
+
+/**
+ * GET /sentry-debug
+ */
+describe('GET /sentry-debug', () => {
+  it('should return 500 on sentry debug route', async () => {
+    const res = await api.get('/sentry-debug').set('Accept', 'application/json');
+
+    expectInternalServerError(res);
+  });
+});

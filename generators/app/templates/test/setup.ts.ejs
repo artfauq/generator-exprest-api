@@ -1,0 +1,15 @@
+<% if (nodemailer || redis) { -%>import './helpers/stubs';<% } %><% if (sequelize) { %>
+import { cleanDatabase } from './helpers';<% } %>
+import app from '../src';
+
+before(async () => {
+  await new Promise<void>(resolve => {
+    if (app.listening) {
+      resolve();
+    } else {
+      app.on('listening', resolve);
+    }
+  });<% if (sequelize) { %>
+
+  await cleanDatabase();<% } %>
+});

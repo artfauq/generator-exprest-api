@@ -1,0 +1,43 @@
+import { parseSequelizeConnectionError } from '@kazaar/express-error-handler';
+import { Sequelize, SequelizeOptions } from 'sequelize-typescript';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
+import config from '../config';
+import * as models from '../models';
+
+export type Models = typeof models;
+
+/**
+ * Sequelize instance initializer
+ */
+export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Sequelize> => {
+  try {
+    const options: SequelizeOptions = {
+      host: config.db.host,
+      port: config.db.port,
+      database: config.db.database,
+      username: config.db.username,
+      password: config.db.password,
+      dialect: config.db.dialect,
+      dialectOptions: config.db.dialectOptions,
+      define: {
+        charset: 'utf8',
+        collate: 'utf8_general_ci',
+        createdAt: false,
+        updatedAt: false,
+        underscored: true,
+      },
+      logging: config.debug ? msg => logger.debug(msg) : false,
+      models: Object.values(models),
+    };
+
+    // Initialize Sequelize instance
+    const sequelize = new Sequelize(options);
+
+    // Test database connection
+    await sequelize.authenticate();
+
+    return sequelize;
+  } catch (err) {
+    throw new Error(`failed to connect to database. ${parseSequelizeConnectionError(err)}`);
+  }
+};

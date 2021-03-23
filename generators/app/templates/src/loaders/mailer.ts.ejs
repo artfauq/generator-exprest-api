@@ -1,0 +1,30 @@
+import { createTransport } from 'nodemailer';
+import Mail from 'nodemailer/lib/mailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import config from '../config';
+
+/**
+ * Mail transport initializer
+ */
+export default async (): Promise<Mail> => {
+  try {
+    const options: SMTPTransport.Options = {
+      host: config.smtp.host,
+      port: config.smtp.port,
+      auth: {
+        user: config.smtp.user,
+        pass: config.smtp.pass,
+      },
+    };
+
+    // Initialize SMTP transport
+    const smtpTransport = createTransport(options);
+
+    // Test SMTP connection
+    await smtpTransport.verify();
+
+    return smtpTransport;
+  } catch (err) {
+    throw new Error(`failed to connect to SMTP server. ${err}`);
+  }
+};

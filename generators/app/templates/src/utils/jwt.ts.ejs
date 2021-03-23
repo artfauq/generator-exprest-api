@@ -1,0 +1,41 @@
+import jwt, { Algorithm } from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
+import config from '../config';
+import { JWTPayload } from '../types';<% if (auth) { %>
+
+/**
+ * Returns the secret used to sign a JWT token.
+ */
+export const getJwtSecret = (passwordHash: string): string => config.jwt.secret + passwordHash;
+
+/**
+ * Generates and returns a signed JWT.
+ */
+export const generateSignedJWT = (
+  userId: string,
+  passwordHash: string,
+  payload: JWTPayload,
+): string => {
+  const secret = getJwtSecret(passwordHash);
+
+  return jwt.sign(payload, secret, {
+    algorithm: config.jwt.algorithm as Algorithm,
+    issuer: config.publicHost,
+    subject: userId,
+    jwtid: uuidv4(),
+  });
+};
+<% } else { %>
+/**
+ * Generates and returns a signed JWT.
+ */
+export const generateSignedJWT = (
+  userId: string,
+  payload: JWTPayload,
+): string => jwt.sign(payload, config.jwt.secret, {
+  algorithm: config.jwt.algorithm as Algorithm,
+  issuer: config.publicHost,
+  subject: userId,
+  jwtid: uuidv4(),
+});
+<% } %>

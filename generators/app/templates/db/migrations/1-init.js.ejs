@@ -1,0 +1,61 @@
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.sequelize.transaction(async transaction => {
+      await queryInterface.createTable(
+        'user',
+        {
+          id: {
+            type: Sequelize.UUID,
+            primaryKey: true,
+            allowNull: false,
+            defaultValue: Sequelize.UUIDV4,
+            field: 'id',
+            comment: 'ID of the user',
+          },
+          firstName: {
+            type: Sequelize.STRING(50),
+            allowNull: false,
+            field: 'first_name',
+            comment: 'First name of the user',
+          },
+          lastName: {
+            type: Sequelize.STRING(50),
+            allowNull: false,
+            field: 'last_name',
+            comment: 'Last name of the user',
+          },
+          email: {
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            unique: true,
+            field: 'email',
+            comment: 'Email of the user',
+          },
+          password: {
+            type: Sequelize.STRING(64),
+            allowNull: false,
+            field: 'password',
+            comment: 'Password of the user',
+          },
+          createdAt: {
+            type: Sequelize.DATE,
+            allowNull: false,
+            field: 'created_at',
+            comment: "Date and time of the user's profile creation date",
+          },
+        },
+        {
+          charset: 'utf8',
+          collate: 'utf8_general_ci',
+          transaction,
+        },
+      );
+    });
+  },
+
+  down: async queryInterface => {
+    await queryInterface.sequelize.transaction(async transaction => {
+      await queryInterface.dropTable('user', { transaction });
+    });
+  },
+};

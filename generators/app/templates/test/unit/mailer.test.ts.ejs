@@ -1,0 +1,17 @@
+import { expect } from 'chai';
+import { Container } from 'typedi';
+import { EmailService } from '../../src/services';
+import { mailerStub } from '../helpers/stubs';
+
+/**
+ * Mailer tests
+ */
+describe('Mailer tests', () => {
+  it('should send an email', async () => {
+    const emailService = Container.get(EmailService);
+
+    await emailService.sendMail({});
+
+    expect(mailerStub.sendMail.callCount).to.equal(1);
+  });
+});

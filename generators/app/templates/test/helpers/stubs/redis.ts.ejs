@@ -1,0 +1,5 @@
+import redis from 'redis';
+import redisMock from 'redis-mock';
+import sinon from 'sinon';
+
+export const redisStub = sinon.stub(redis, 'createClient').callsFake(redisMock.createClient);

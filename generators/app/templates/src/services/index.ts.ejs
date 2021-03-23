@@ -1,0 +1,4 @@
+// Export services from here
+<% if (auth) { %>
+export { default as AuthService } from './auth';<% } %><% if (nodemailer) { %>
+export { default as EmailService } from './email';<% } %>

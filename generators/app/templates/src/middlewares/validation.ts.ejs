@@ -1,0 +1,33 @@
+import { celebrate } from 'celebrate';
+import Joi from '@hapi/joi';
+
+interface ExtendedJoi extends Joi.Root {
+  stringArray(): Joi.ArraySchema;
+}
+
+//
+// ─── CUSTOM JOI EXTENSIONS ──────────────────────────────────────────────────────
+//
+
+const stringArray = (joi: typeof Joi): Joi.Extension => ({
+  name: 'stringArray',
+  base: joi.array(),
+  // eslint-disable-next-line
+  coerce: (value, state, options) => (value?.split ? value.split(',') : value),
+});
+
+const customJoi: ExtendedJoi = Joi.extend(stringArray) as ExtendedJoi;
+
+//
+// ─── GENERIC VALIDATION SCHEMAS ─────────────────────────────────────────────────
+//
+
+const id = Joi.number().integer().positive();
+const uuid = Joi.string().guid();
+
+const schemas = {
+  id,
+  uuid,
+};
+
+export { celebrate, customJoi as Joi, schemas };

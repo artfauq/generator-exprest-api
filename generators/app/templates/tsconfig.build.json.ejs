@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "inlineSources": true,
+    "rootDir": "./src",
+    "sourceRoot": "/"
+  },
+  "files": ["./src/types/index.d.ts"],
+  "exclude": ["./node_modules", <% if (sequelize) { %>"./db", <% } %>"./src/public"<% if (mocha) { %>, "./test"<% } %>]
+}

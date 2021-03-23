@@ -1,0 +1,41 @@
+{
+  "name": "<%= shortname %>",
+  "version": "0.0.0",
+  "description": <%- description %>,
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsc-watch -p ./tsconfig.build.json --onSuccess \"run-s copy-assets start\"",
+    "start": "node ./dist/index.js",
+    "build": "run-s clean tsc:build copy-assets",
+    "tsc:build": "tsc -p ./tsconfig.build.json",
+    "clean": "rimraf ./dist",
+    "copy-assets": "cpx 'src/**/*.!(ts)' 'dist'",<% if (mocha) { %>
+    "test": "cross-env NODE_ENV=test nyc mocha",<% if (sequelize) { %>
+    "pretest": "run-s build \"migrations:migrate --env=test\"",<% } %><% } %><% if (sequelize) { %>
+    "db:create": "sequelize db:create --env",
+    "db:seed": "sequelize db:seed:all",
+    "migrations:migrate": "sequelize db:migrate",
+    "migrations:undo": "sequelize db:migrate:undo",
+    "migrations:create": "sequelize migration:generate --name",<% } %>
+    "lint": "tsc -p ./tsconfig.json --noEmit<% if (eslint) { %> && eslint \"**/*.{js,ts}\"<% } %><% if (prettier) { %> && prettier --check .<% } %>"<% if (eslint || prettier) { %>,
+    "lint:fix": "tsc -p ./tsconfig.json --noEmit<% if (eslint) { %> && eslint \"**/*.{js,ts}\" --fix<% } %><% if (prettier) { %> && prettier --write --ignore-unknown .<% } %>"<% } %><% if (jwt) { %>,
+    "generate-secret": "node -e console.log(require('crypto').randomBytes(256).toString('base64'));"<% } %>
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "bash -c tsc",<% if (eslint) { %>
+      "eslint --fix",<% } %><% if (prettier) { %>
+      "prettier --write",<% } %>
+      "git add"
+    ]<% if (prettier) { %>,
+    "*.{json,md,html,yml,yaml,css}": [
+      "prettier --write",
+      "git add"
+    ]<% } %>
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=12"
+  }
+}

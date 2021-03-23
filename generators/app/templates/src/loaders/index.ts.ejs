@@ -1,0 +1,49 @@
+<% if (socketIo) { -%>import { Server } from 'http';<% } %>
+import { Container } from 'typedi';
+import logger from '../config/logger';<% if (i18n) { %>
+import i18nLoader from './i18n';<% } %><% if (cron) { %>
+import jobScheduler from './job-scheduler';<% } %><% if (nodemailer) { %>
+import mailerLoader from './mailer';<% } %><% if (redis) { %>
+import redisLoader from './redis';<% } %><% if (sequelize) { %>
+import sequelizeLoader from './sequelize';<% } %><% if (socketIo) { %>
+import socketIoLoader from './socket-io';<% } %>
+
+export default async (<% if (socketIo) { %>server: Server<% } %>): Promise<void> => {
+  try {<% if (sequelize) { %>
+    // Initialize Sequelize instance
+    const sequelize = await sequelizeLoader({ logger });
+    const { database, host, port } = sequelize.config;
+    logger.info(`Successfully connected to database '${database}' at '${host}:${port}'`);
+<% } %><% if (nodemailer) { %>
+    // Initialize mailer instance
+    const mailer = await mailerLoader();
+    logger.info('Successfully connected to SMTP server');
+<% } %><% if (redis) { %>
+    // Initialize Redis client
+    const redis = await redisLoader();
+    logger.info('Successfully connected to Redis server');
+<% } %><% if (i18n) { %>
+    // Initialize i18n
+    const i18n = await i18nLoader();
+    logger.info('Successfully initialized i18n resources');
+<% } %><% if (socketIo) { %>
+    // Initialize Socket.IO server
+    const socket = socketIoLoader({ server });
+    logger.info('Successfully initialized Socket.IO server');
+<% } %>
+    // Inject dependencies
+    Container.set('logger', logger);<% if (sequelize) { %>
+    Container.set('sequelize', sequelize);<% } %><% if (nodemailer) { %>
+    Container.set('mailer', mailer);<% } %><% if (redis) { %>
+    Container.set('redis', redis);<% } %><% if (i18n) { %>
+    Container.set('i18n', i18n);<% } %><% if (socketIo) { %>
+    Container.set('socket', socket);<% } %><% if (cron) { %>
+
+    // Initialize job scheduler
+    jobScheduler();<% } %>
+  } catch (err) {
+    logger.error('Application initialization failed. %o', err);
+
+    process.exit(1);
+  }
+};

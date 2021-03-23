@@ -1,0 +1,13 @@
+// Declare here type override declarations and global types
+
+<% if (auth) { %>import { AuthUser } from './jwt';
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUser;
+    }
+  }
+}
+<% } else { %>export = {};
+<% } %>

@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  app:
+    build:
+      target: development
+    container_name: <%= shortname %>-app-test
+    entrypoint: dockerize<% if (sequelize) { %> -wait tcp://db:3306<% } %> -timeout 30s npm run test
+    environment:
+      - NODE_ENV=test<% if (sequelize) { %>
+
+  db:
+    container_name: <%= shortname %>-db-test
+
+  migrate:
+    entrypoint: ['echo', 'Migrate service disabled']<% } %>

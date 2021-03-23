@@ -1,0 +1,22 @@
+import supertest from 'supertest';
+import app from '../../src';
+import { expectNotFoundError } from '../helpers';
+
+const api = supertest(app);
+
+/**
+ * 404 not found
+ */
+describe('404 not found', () => {
+  it('should return 404 on unknown API route', async () => {
+    const res = await api.get('/fake').set('Accept', 'application/json');
+
+    expectNotFoundError(res);
+  });
+
+  it('should return 404 on unknown API route method', async () => {
+    const res = await api.post('/health').set('Accept', 'application/json');
+
+    expectNotFoundError(res);
+  });
+});

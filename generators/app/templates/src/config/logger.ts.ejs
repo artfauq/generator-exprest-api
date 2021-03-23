@@ -1,0 +1,61 @@
+<% if (winston) { -%>
+import { existsSync, mkdirSync } from 'fs';
+import moment from 'moment';
+import { createLogger, format, transports } from 'winston';<% if (sentry) { %>
+import SentryTransport from 'winston-transport-sentry-node';<% } %>
+import config from '.';
+
+// Check if logs folder exists
+if (!existsSync(config.logsDir)) {
+  mkdirSync(config.logsDir);
+}
+
+const customFormat = format.printf(
+  ({ level, message, timestamp }) => `${timestamp} ${level}: ${message}`,
+);
+
+// Configure logger
+const logger = createLogger({
+  level: config.debug ? 'debug' : 'info',
+  transports: [
+    new transports.Console({
+      format: format.combine(
+        format.colorize(),
+        format.errors({ stack: true }),
+        format.metadata(),
+        format.splat(),
+        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        customFormat,
+      ),
+    }),
+    new transports.File({
+      level: 'error',
+      dirname: config.logsDir,
+      filename: `${moment().format('YYYY-MM-DD')}-errors.log`,
+    }),
+  ],
+  exitOnError: false,
+});
+
+<% if (sentry) { -%>
+// If app is in in production mode, log errors to Sentry
+if (config.isProduction) {
+  logger.add(
+    new SentryTransport({
+      level: 'error',
+      format: format.combine(
+        format.errors({ stack: true }),
+        format.json(),
+        format.metadata(),
+        format.splat(),
+        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+      ),
+    }),
+  );
+}
+<% } -%>
+<% } else { -%>
+const logger = console;
+<% } -%>
+
+export default logger;

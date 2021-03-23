@@ -1,0 +1,16 @@
+import supertest from 'supertest';
+import app from '../../src';
+import { expectNoContent } from '../helpers';
+
+const api = supertest(app);
+
+/**
+ * GET /health
+ */
+describe('GET /health', () => {
+  it('should return 204 on health route', async () => {
+    const res = await api.get('/health');
+
+    expectNoContent(res);
+  });
+});

@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+ENV=$1
+
+if [ -z "$ENV" ] || [[ "$ENV" != "dev"<% if (mocha) { %> && "$ENV" != "test"<% } %> && "$ENV" != "prod"  ]]; then
+  echo "usage: ./start.sh <dev<% if (mocha) { %>|test<% } %>|prod>"
+  exit
+fi
+
+if [ "$ENV" = "dev" ]; then
+  # Start development server
+  docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build --abort-on-container-exit --renew-anon-volumes
+elif [ "$ENV" = "test" ]; then
+  # Start test server
+  docker-compose --env-file .env.test -f docker-compose.yml -f docker-compose.test.yml up --build -V
+elif [ "$ENV" = "prod" ]; then
+  # Start production server
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --renew-anon-volumes
+fi

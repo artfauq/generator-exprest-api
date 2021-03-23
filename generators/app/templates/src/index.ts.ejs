@@ -1,0 +1,18 @@
+import express from 'express';
+import { createServer } from 'http';
+import loadModules from './loaders';
+import startServer from './server';
+
+// Create Express application and HTTP server
+const app = express();
+const server = createServer(app);
+
+(async () => {
+  // Load application modules
+  await loadModules(<% if (socketIo) { %>server<% } %>);
+
+  // Start server
+  startServer(app, server);
+})();
+
+export = server;

@@ -1,0 +1,36 @@
+import i18next, { i18n as I18n } from 'i18next';
+import i18nHttpMiddleware from 'i18next-http-middleware';
+import * as resources from '../locale';
+
+/**
+ * I18n instance initializer
+ */
+export default async (): Promise<I18n> => {
+  // Configure i18n language detector middleware
+  i18next.use(i18nHttpMiddleware.LanguageDetector);
+
+  // Initialize i18n instance
+  const i18n = await new Promise<I18n>((resolve, reject) =>
+    i18next.init(
+      {
+        detection: {
+          order: ['cookie', 'header'],
+          lookupCookie: 'i18next',
+          lookupHeader: 'accept-language',
+          caches: ['cookie'],
+        },
+        fallbackLng: 'en',
+        interpolation: { escapeValue: false },
+        ns: [],
+        resources,
+        supportedLngs: ['en', 'fr'],
+      },
+      err => {
+        if (err) reject(new Error(`failed to initialize i18n instance. ${err}`));
+        else resolve(i18next);
+      },
+    ),
+  );
+
+  return i18n;
+};

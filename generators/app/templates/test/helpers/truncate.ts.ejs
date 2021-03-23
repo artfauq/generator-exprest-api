@@ -1,0 +1,26 @@
+import { Container } from 'typedi';
+import { ModelType, Sequelize, Transaction } from 'sequelize';
+
+/**
+ * Truncates the table associated to `model`.
+ */
+export const truncateModel = async (model: ModelType, transaction?: Transaction): Promise<void> => {
+  await model.destroy({ where: {}, force: true, transaction });
+};
+
+/**
+ * Truncates all the tables from the database.
+ */
+export const cleanDatabase = async (): Promise<void> => {
+  const sequelize = Container.get<Sequelize>('sequelize');
+
+  return sequelize.transaction(async transaction => {
+    await sequelize.query('SET FOREIGN_KEY_CHECKS = 0', { transaction });
+
+    await Promise.all(
+      Object.entries(sequelize.models).map(([, model]) => truncateModel(model, transaction)),
+    );
+
+    await sequelize.query('SET FOREIGN_KEY_CHECKS = 1', { transaction });
+  });
+};

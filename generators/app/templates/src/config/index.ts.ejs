@@ -1,0 +1,204 @@
+import convict from 'convict';
+import dotenv from 'dotenv';
+import moment from 'moment-timezone';
+import path from 'path';<% if (sequelize) { %>
+import { Dialect } from 'sequelize';<% } %>
+
+export enum NodeEnv {
+  development = 'development',
+  test = 'test',
+  production = 'production',
+}
+
+const env = process.env.NODE_ENV;
+const isTest = env === NodeEnv.test;
+const isProduction = env === NodeEnv.production;
+
+/**
+ * Load environment variables
+ */
+const envFile = isTest ? '.env.test' : '.env';
+
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
+/**
+ * Configure moment
+ */
+moment.locale('fr');
+moment.tz.setDefault('Europe/Paris');
+
+const config = convict({
+  /**
+   * Server config
+   */
+  port: {
+    doc: 'Server port',
+    format: 'port',
+    env: 'PORT',
+    default: 8080,
+  },
+
+  /**
+   * Environment config
+   */
+  env: {
+    doc: 'Application environment',
+    format: Object.values(NodeEnv),
+    env: 'NODE_ENV',
+    default: NodeEnv.development,
+  },
+  debug: {
+    doc: 'Debug mode',
+    format: Boolean,
+    env: 'DEBUG',
+    default: false,
+  },
+  publicHost: {
+    doc: 'Public host of the server',
+    format: 'url',
+    env: 'PUBLIC_HOST',
+    default: '',
+  },<% if (winston) { %>
+  logsDir: {
+    doc: 'Application logs directory',
+    format: String,
+    default: `${__dirname}/../../logs`,
+  },<% } %><% if (sequelize) { %>
+
+  /**
+   * Database config
+   */
+  db: {
+    dialect: {
+      doc: 'Database dialect',
+      format: String,
+      default: '<%= dialect.value %>' as Dialect,
+    },
+    host: {
+      doc: 'Database host name / IP',
+      format: String,
+      env: 'DB_HOST',
+      default: '',
+    },
+    port: {
+      doc: 'Database port',
+      format: 'port',
+      env: 'DB_PORT',
+      default: <%= dialect.port %>,
+    },
+    username: {
+      doc: 'Database username',
+      format: String,
+      env: 'DB_USER',
+      default: '',
+    },
+    password: {
+      doc: 'Database password',
+      format: String,
+      env: 'DB_PASSWORD',
+      default: '',
+    },
+    database: {
+      doc: 'Database name',
+      format: String,
+      env: 'DB_NAME',
+      default: '',
+    },
+    dialectOptions: {
+      doc: 'Dialect options',
+      format: Object,
+      default: {},
+    },
+  },<% } %><% if (redis) { %>
+
+  /**
+   * Redis config
+   */
+  redis: {
+    host: {
+      doc: 'Redis host',
+      format: String,
+      env: 'REDIS_HOST',
+      default: '',
+    },
+    port: {
+      doc: 'Redis port',
+      format: 'port',
+      env: 'REDIS_PORT',
+      default: 6379,
+    },
+  },<% } %><% if (jwt) { %>
+
+  /**
+   * JWT config
+   */
+  jwt: {
+    secret: {
+      doc: 'JWT secret',
+      format: String,
+      env: 'JWT_SECRET',
+      default: '',
+    },
+    algorithm: {
+      doc: 'JWT algorithm',
+      format: [
+        'HS256',
+        'HS384',
+        'HS512',
+        'RS256',
+        'RS384',
+        'RS512',
+        'ES256',
+        'ES384',
+        'ES512',
+        'PS256',
+        'PS384',
+        'PS512',
+        'none',
+      ],
+      default: 'HS256',
+    },
+  },<% } %><% if (nodemailer) { %>
+
+  /**
+   * SMTP config
+   */
+  smtp: {
+    host: {
+      doc: 'SMTP host',
+      format: String,
+      env: 'SMTP_HOST',
+      default: '',
+    },
+    port: {
+      doc: 'SMTP port',
+      format: 'port',
+      env: 'SMTP_PORT',
+      default: 465,
+    },
+    user: {
+      doc: 'SMTP user',
+      format: String,
+      env: 'SMTP_USER',
+      default: '',
+    },
+    pass: {
+      doc: 'SMTP password',
+      format: String,
+      env: 'SMTP_PASSWORD',
+      default: '',
+    },
+  },<% } %>
+});
+
+// Validate current config
+config.validate({ allowed: 'strict' });
+
+export default {
+  // Export plain config object
+  ...config.getProperties(),
+
+  // Export config related aliases
+  isTest,
+  isProduction,
+};

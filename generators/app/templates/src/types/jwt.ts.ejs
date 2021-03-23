@@ -1,0 +1,29 @@
+/**
+ * Decoded JWT token
+ */
+export type DecodedJWT = StandardJWTClaims & JWTPayload;
+
+/**
+ * Standard JWT claims
+ */
+export type StandardJWTClaims = {
+  iat: number;
+  iss: string;
+  sub: string;
+  jti: string;
+};
+
+/**
+ * Custom JWT claims
+ */
+export type JWTPayload = {<% if (auth) { %>
+  name: string;
+  email: string;
+};
+
+export type AuthUser = {
+  id: string;
+  email: string;
+};
+<% } else { %>};
+<% } %>

@@ -1,0 +1,136 @@
+openapi: 3.0.0
+info:
+  title: <%- name %>
+  version: 0.0.0
+  description: |
+    # Introduction
+    This is the API documentation of **<%- name %>**. It is documented in *OpenAPI* format.
+<% if (jwt) { %>
+    # Authentication
+    <%- name %> uses **JWT** Bearer authentication to authenticate requests.
+
+    Protected endpoints require an HTTP Bearer Authorization header in the form of:
+
+    ```
+    Authorization: Bearer <token>
+    ```
+
+    <SecurityDefinitions />
+<% } %>
+    # Errors
+
+    This API uses conventional HTTP response codes to indicate the success or failure of an API request.
+
+    All errors are in the following format:
+
+    | Attribute   | Type     | Description                                                 |
+    |-------------|----------|-------------------------------------------------------------|
+    | **status**  | *number* | HTTP response code (`2xx`, `4xx`, `500`)                    |
+    | **name**    | *string* | Name of the error (`ValidationError`, `NotFoundError`, etc) |
+    | **message** | *string* | A readable error message
+servers:
+  - url: http://localhost:8080/api
+    description: Local development server<% if (auth) { %>
+tags:
+  - name: auth-login
+    x-displayName: Login
+x-tagGroups:
+  - name: Auth
+    tags:
+      - auth-login<% } %>
+paths:
+  /health:
+    get:
+      summary: Health route
+      responses:
+        200:
+          description: OK<% if (auth) { %>
+  /auth/login:
+    post:
+      summary: Authenticate user
+      description: Authenticates a user and returns a JWT token.
+      tags:
+        - auth-login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  token:
+                    type: string
+                    description: JWT token
+        401:
+          $ref: '#/components/responses/401'<% } %>
+components:<% if (jwt) { %>
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT<% } %>
+  responses:
+    201:
+      description: Created
+    204:
+      description: No Content
+    400:
+      description: Bad Request - Invalid or missing request parameters / body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HttpError'
+    401:
+      description: Unauthorized - Invalid or missing authorization token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HttpError'
+    403:
+      description: Forbidden - Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HttpError'
+    404:
+      description: Not Found - Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HttpError'
+  schemas:
+    HttpError:
+      properties:
+        status:
+          type: number
+          description: HTTP error status
+          example: 400
+        name:
+          type: string
+          description: Error name
+          example: BadRequestError
+        message:
+          type: string
+          description: Readable error message
+          example: Missing parameter 'email'<% if (auth) { %>
+    LoginDTO:
+      description: User's credentials
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: false
+          description: Email of the user
+        password:
+          type: string
+          format: password
+          nullable: false
+          description: Password of the user<% } %>

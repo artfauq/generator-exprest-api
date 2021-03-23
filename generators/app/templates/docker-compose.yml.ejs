@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile
+    image: <%= shortname %>-app
+    container_name: <%= shortname %>-app<% if (sequelize || redis) { %>
+    environment:<% if (sequelize) { %>
+      - DB_HOST=db<% } %><% if (redis) { %>
+      - REDIS_HOST=redis<% } %>
+    depends_on:<% if (sequelize) { %>
+      - db<% } %><% if (redis) { %>
+      - redis<% } %><% } %>
+    expose:
+      - 8080
+    ports:
+      - '8080:8080'
+    tty: true
+    volumes:
+      - /home/node/node_modules<% if (sequelize) { %>
+
+  db:
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile
+    container_name: <%= shortname %>-db
+    environment:
+      - MYSQL_DATABASE=$DB_NAME
+      - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
+    expose:
+      - 3306
+    ports:
+      - '3306:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/db/my.cnf:/etc/mysql/my.cnf
+
+  migrate:
+    image: <%= shortname %>-app
+    container_name: <%= shortname %>-migrate
+    entrypoint: dockerize -wait tcp://db:3306 -wait tcp://app:8080 -timeout 120s npm run migrations:migrate
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - db
+      - app<% } %><% if (redis) { %>
+
+  redis:
+    image: redis:alpine
+    container_name: <%= shortname %>-redis
+    expose:
+      - 6379<% } %><% if (sequelize) { %>
+
+volumes:
+  db_data:<% } %>

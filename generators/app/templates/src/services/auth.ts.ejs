@@ -1,0 +1,26 @@
+import { Unauthorized } from 'http-errors';<% if (i18n) { %>
+import { i18n as I18n } from 'i18next';<% } %>
+import { <% if (i18n) { %>Inject, <% } %>Service } from 'typedi';
+import { UserModel } from '../models';
+
+@Service()
+export default class AuthService {<% if (i18n) { %>
+  constructor(@Inject('i18n') private i18n: I18n) {}
+<% } %>
+  /**
+   * Authenticates a user and returns a JWT token.
+   */
+  async login(email: string, password: string): Promise<string> {
+    // Check if a user with this email exists
+    const user = await UserModel.findOne({ where: { email } });
+
+    if (!user || !user.comparePassword(password)) {
+      throw new Unauthorized(<% if (i18n) { %>this.i18n.t('errors:invalidCredentials')<% } else { -%>'Invalid credentials.'<% } %>);
+    }
+
+    // Generate JWT
+    const token = await user.generateJWT();
+
+    return token;
+  }
+}

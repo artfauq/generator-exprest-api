@@ -1,0 +1,15 @@
+import redis, { RedisClient } from 'redis';
+import config from '../config';
+
+/**
+ * Redis client initializer
+ */
+export default (): Promise<RedisClient> => {
+  // Create Redis client
+  const redisClient = redis.createClient(config.redis.port, config.redis.host);
+
+  return new Promise((resolve, reject) => {
+    redisClient.on('connect', () => resolve(redisClient));
+    redisClient.on('error', err => reject(new Error(`failed to initialize redis client. ${err}`)));
+  });
+};

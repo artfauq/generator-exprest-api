@@ -1,0 +1,119 @@
+import { expect } from 'chai';
+import jwt from 'jsonwebtoken';
+import supertest from 'supertest';
+import app from '../../../../src';
+import config from '../../../../src/config';
+import { UserModel } from '../../../../src/models';
+import {
+  cleanDatabase,
+  expectOk,
+  expectUnauthorizedError,<% if (celebrate) { %>
+  expectValidationError,<% } %>
+} from '../../../helpers/';
+
+const api = supertest(app);
+
+/**
+ * POST /auth/login
+ */
+describe('POST /auth/login', () => {
+  let user: UserModel;
+
+  before(async () => {
+    await cleanDatabase();
+
+    user = await UserModel.create({
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@gmail.com',
+      password: 'p4ssW0rd',
+    });
+  });
+
+  it('should return 200 on user login', async () => {
+    const requestData = {
+      email: 'john.doe@gmail.com',
+      password: 'p4ssW0rd',
+    };
+
+    const res = await api
+      .post('/auth/login')
+      .set('Accept', 'application/json')
+      .set('Content-Type', 'application/json')
+      .send(requestData);
+
+    expectOk(res);
+
+    expect(res.body).to.be.an('object').that.has.all.keys('token');
+
+    expect(res.body.token).to.be.a('string');
+
+    const decodedToken = jwt.decode(res.body.token, { json: true }) as { [key: string]: any };
+
+    expect(decodedToken)
+      .to.be.an('object')
+      .that.has.all.keys('email', 'iat', 'iss', 'jti', 'name', 'sub');
+    expect(decodedToken).to.include({
+      email: user.email,
+      iss: config.publicHost,
+      name: user.fullName,
+      sub: user.id,
+    });
+    expect(decodedToken.iat).to.be.a('number');
+    expect(decodedToken.jti).to.be.a('string');
+  });<% if (celebrate) { %>
+
+  it('should return 400 on missing email field', async () => {
+    const requestData = { password: 'p4ssW0rd' };
+
+    const res = await api
+      .post('/auth/login')
+      .set('Accept', 'application/json')
+      .set('Content-Type', 'application/json')
+      .send(requestData);
+
+    expectValidationError(res);
+  });
+
+  it('should return 400 on missing password field', async () => {
+    const requestData = { email: 'john.doe@gmail.com' };
+
+    const res = await api
+      .post('/auth/login')
+      .set('Accept', 'application/json')
+      .set('Content-Type', 'application/json')
+      .send(requestData);
+
+    expectValidationError(res);
+  });<% } %>
+
+  it('should return 401 on incorrect email', async () => {
+    const requestData = {
+      email: 'wrong.email@gmail.com',
+      password: 'p4ssW0rd',
+    };
+
+    const res = await api
+      .post('/auth/login')
+      .set('Accept', 'application/json')
+      .set('Content-Type', 'application/json')
+      .send(requestData);
+
+    expectUnauthorizedError(res);
+  });
+
+  it('should return 401 on incorrect password', async () => {
+    const requestData = {
+      email: 'john.doe@gmail.com',
+      password: 'wrong_password',
+    };
+
+    const res = await api
+      .post('/auth/login')
+      .set('Accept', 'application/json')
+      .set('Content-Type', 'application/json')
+      .send(requestData);
+
+    expectUnauthorizedError(res);
+  });
+});

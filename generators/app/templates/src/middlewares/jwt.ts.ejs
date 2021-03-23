@@ -1,0 +1,112 @@
+import { ErrorRequestHandler } from 'express';
+import jwt, { UnauthorizedError } from 'express-jwt';
+import { Unauthorized } from 'http-errors';<% if (i18n) { %>
+import { i18n as I18n } from 'i18next';
+import { Container } from 'typedi';<% } %>
+import config from '../config';<% if (auth) { %>
+import { UserModel } from '../models';
+import { AuthUser, DecodedJWT } from '../types';
+import { getJwtSecret } from '../utils/jwt';
+
+/**
+ * Callback used to dynamically retrieve the secret used to sign a JWT.
+ */
+const secretCallback = (
+  req: Express.Request,
+  payload: DecodedJWT,
+  done: (err: any, secret: string) => void,
+) => {<% if (i18n) { %>
+  const i18n = Container.get<I18n>('i18n');
+  const message = i18n.t('errors:invalidAuthentication');<% } else { %>
+  const message = 'Invalid authentication.';<% } %>
+
+  if (!payload || !payload.sub) {
+    return done(new UnauthorizedError('invalid_token', { message }), '');
+  }
+
+  const { sub: userId } = payload;
+
+  return UserModel.findByPk(userId, { attributes: ['id', 'email', 'password'] })
+    .then(user => {
+      if (!user) {
+        return done(new UnauthorizedError('invalid_token', { message }), '');
+      }
+
+      const { password, ...userDetails } = user.get({ plain: true }) as AuthUser & {
+        password: string;
+      };
+
+      // Add user details to request object
+      req.user = userDetails as AuthUser;
+
+      // Retrieve secret used to sign token
+      const secret = getJwtSecret(user.password);
+
+      return done(null, secret);
+    })
+    .catch((err: any) => done(err, ''));
+};<% } %>
+
+/**
+ * Express request handler that verifies if a valid token is passed as an `Authorization` header
+ * exists in request.
+ *
+ * Decoded payload will then be available in `req.user`.
+ *
+ * @example
+ * router.get('/users', auth.required, usersController.getUsers);
+ */
+export const auth = {
+  required: jwt({
+    algorithms: [config.jwt.algorithm],
+    secret: <% if (auth) { %>secretCallback<% } else { %>config.jwt.secret<% } %>,
+  }),
+  optional: jwt({
+    algorithms: [config.jwt.algorithm],
+    secret: <% if (auth) { %>secretCallback<% } else { %>config.jwt.secret<% } %>,
+    credentialsRequired: false,
+  }),
+};
+
+/**
+ * Parses a JWT error into a readable error message;
+ */
+const parseJwtErrorMessage = (err: UnauthorizedError): string => {
+  <% if (i18n) { %>const i18n = Container.get<I18n>('i18n');
+  const defaultMessage = i18n.t('errors:invalidAuthentication');<% } else { %>
+  const defaultMessage = 'Invalid authentication.';<% } %>
+
+  if (config.isProduction) {
+    return defaultMessage;
+  }
+
+  switch (err.code) {
+    case 'credentials_bad_scheme':
+    case 'credentials_bad_format':
+    case 'credentials_required':
+    case 'revoked_token':
+      return err.message;
+
+    case 'invalid_token':
+      return <% if (i18n) { %>i18n.t('errors:invalidToken')<% } else { %>'Invalid token.'<% } -%>;
+
+    default:
+      return defaultMessage;
+  }
+};
+
+/**
+ * Middleware used to parse `JWT` authentication errors.
+ */
+export const jwtErrorParser = (): ErrorRequestHandler => {
+  return (err, req, res, next) => {
+    if (err instanceof UnauthorizedError) {
+      const message = parseJwtErrorMessage(err);
+      const error = Object.assign(new Unauthorized(), err, { message });
+
+      return next(error);
+    }
+
+    return next(err);
+  };
+};

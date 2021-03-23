@@ -1,0 +1,9 @@
+{
+  "errors": {<% if (jwt) { %>
+    "invalidAuthentication": "Authentification invalide.",<% } %><% if (auth) { %>
+    "invalidCredentials": "Identifiants invalides.",<% } %><% if (jwt) { %>
+    "invalidToken": "Token invalide.",<% } %>
+    "routeNotFound": "La route '{{method}} {{baseUrl}}{{url}}' n'existe pas.",
+    "tooManyRequests": "Trop de requêtes, veuillez réessayer plus tard."
+  }
+}

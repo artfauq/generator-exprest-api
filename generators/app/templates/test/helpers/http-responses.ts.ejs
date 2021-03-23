@@ -1,0 +1,49 @@
+import { expect } from 'chai';
+import { Response } from 'supertest';
+
+const expectError = (res: Response, status: number, name: string) => {
+  expect(res.type).to.match(/json/);
+  expect(res.status).to.equal(status);
+
+  expect(res.body).to.be.an('object').that.has.all.keys('status', 'name', 'message');
+  expect(res.body).to.include({ status, name });
+};
+
+export const expectOk = (res: Response): void => {
+  expect(res.type).to.match(/json/);
+  expect(res.status).to.equal(200);
+};
+
+export const expectCreated = (res: Response): void => {
+  expect(res.type).to.match(/json/);
+  expect(res.status).to.equal(201);
+};
+
+export const expectNoContent = (res: Response): void => {
+  expect(res.body).to.be.empty;
+  expect(res.status).to.equal(204);
+};
+
+export const expectBadRequestError = (res: Response): void => {
+  expectError(res, 400, 'BadRequestError');
+};<% if (celebrate) { %>
+
+export const expectValidationError = (res: Response): void => {
+  expectError(res, 400, 'ValidationError');
+};<% } %>
+
+export const expectUnauthorizedError = (res: Response): void => {
+  expectError(res, 401, 'UnauthorizedError');
+};
+
+export const expectForbiddenError = (res: Response): void => {
+  expectError(res, 403, 'ForbiddenError');
+};
+
+export const expectNotFoundError = (res: Response): void => {
+  expectError(res, 404, 'NotFoundError');
+};
+
+export const expectInternalServerError = (res: Response): void => {
+  expectError(res, 500, 'InternalServerError');
+};

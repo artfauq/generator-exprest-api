@@ -1,0 +1,106 @@
+import bcrypt from 'bcryptjs';
+import {
+  AllowNull,
+  Column,
+  Comment,
+  CreatedAt,
+  DataType,
+  Default,
+  Model,
+  PrimaryKey,
+  Table,
+  Unique,
+} from 'sequelize-typescript';
+<% if (jwt) { %>import { generateSignedJWT } from '../utils/jwt';<% } %>
+
+@Table({
+  tableName: 'user',
+  charset: 'utf8',
+  collate: 'utf8_general_ci',
+})
+export default class UserModel extends Model<UserModel> {
+  //
+  // ─── MODEL ATTRIBUTES ───────────────────────────────────────────────────────────
+  //
+
+  @PrimaryKey
+  @AllowNull(false)
+  @Comment('ID of the user')
+  @Default(DataType.UUIDV4)
+  @Column(DataType.UUID)
+  id!: string;
+
+  @AllowNull(false)
+  @Comment('First name of the user')
+  @Column(DataType.STRING(50))
+  firstName!: string;
+
+  @AllowNull(false)
+  @Comment('Last name of the user')
+  @Column(DataType.STRING(50))
+  lastName!: string;
+
+  @Unique
+  @AllowNull(false)
+  @Comment('Email of the user')
+  @Column(DataType.STRING(255))
+  email!: string;
+
+  @AllowNull(false)
+  @Comment('Password of the user')
+  @Column(DataType.STRING(64))
+  set password(value: string) {
+    this.setDataValue('password', UserModel.generateHash(value));
+  }
+
+  @CreatedAt
+  @AllowNull(false)
+  @Comment("Date and time of the user's profile creation date")
+  @Column(DataType.DATE)
+  createdAt!: string;
+
+  //
+  // ─── VIRTUAL ATTRIBUTES ─────────────────────────────────────────────────────────
+  //
+
+  @Column(DataType.VIRTUAL)
+  get fullName(): string {
+    return `${this.getDataValue('firstName')} ${this.getDataValue('lastName')}`;
+  }
+
+  //
+  // ─── MODEL ASSOCIATIONS ─────────────────────────────────────────────────────────
+  //
+
+  //
+  // ─── MODEL HOOKS ────────────────────────────────────────────────────────────────
+  //
+
+  //
+  // ─── CUSTOM METHODS ─────────────────────────────────────────────────────────────
+  //
+
+  /**
+   * Returns a hashed version of the given `password`.
+   */
+  static generateHash(password: string): string {
+    return bcrypt.hashSync(password, 10);
+  }
+
+  /**
+   * Returns `true` if `password` matches the user's password, `false` otherwise.
+   */
+  comparePassword(password: string): boolean {
+    return bcrypt.compareSync(password, this.password);
+  }<% if (jwt) { %>
+
+  /**
+   * Returns a new JWT for this user.
+   */
+  async generateJWT(): Promise<string> {
+    return generateSignedJWT(this.id, this.password, {
+      name: this.fullName,
+      email: this.email,
+    });
+  }<% } %>
+}
