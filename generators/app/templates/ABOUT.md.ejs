@@ -19,7 +19,8 @@
   - [Object validation](#object-validation)<% } %><% if (mocha) { %>
   - [Testing](#testing)
   - [i18n](#i18n)<% } %><% if (cron) { %>
-  - [Job scheduler](#job-scheduler)<% } %><% if (sentry) { %>
+  - [Job scheduler](#job-scheduler)<% } %><% if (monitoring) { %>
+  - [API status monitoring](#api-status-monitoring)<% } %><% if (sentry) { %>
   - [Sentry](#sentry)<% } %><% if (socketIo) { %>
   - [Socket IO](#socket-io)<% } %><% if (nodemailer) { %>
   - [Nodemailer](#nodemailer)<% } %><% if (openapi) { %>
@@ -990,6 +991,12 @@ export default (): void => {
   scheduler.scheduleJob('0 0 3 * * *', jobs.cleanLogs());
 };
 ```
+<% } %><% if (monitoring) { %>
+### API status monitoring
+
+This project uses [express-status-monitor](https://github.com/RafalWilinski/express-status-monitor) to easily monitor the status of the web server.
+
+Monitoring is available at [http://localhost:8080/status] configured in `/src/server.ts`.
 <% } %><% if (sentry) { %>
 ### Sentry
 

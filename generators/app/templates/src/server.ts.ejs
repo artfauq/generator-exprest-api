@@ -6,15 +6,15 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 import cors from 'cors';
 import express, { Application } from 'express';
-import rateLimit from 'express-rate-limit';
-import statusMonitor from 'express-status-monitor';
+import rateLimit from 'express-rate-limit';<% if (monitoring) { %>
+import statusMonitor from 'express-status-monitor';<% } %>
 import helmet from 'helmet';
 import { Server } from 'http';
 import { <% if (sentry) { %>InternalServerError, <% } %>TooManyRequests } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';
 import i18nHttpMiddleware from 'i18next-http-middleware';<% } %>
 import path from 'path';
-import favicon from 'serve-favicon';<% if (socketIo) { %>
+import favicon from 'serve-favicon';<% if (monitoring && socketIo) { %>
 import SocketIO from 'socket.io';<% } %>
 import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
@@ -49,14 +49,14 @@ export default (app: Application, server: Server): void => {
   /**
    * App configuration
    */
-  app.enable('trust proxy');
+  app.enable('trust proxy');<% if (monitoring) { %>
   app.use(
     statusMonitor({
       path: '/status',
       title: '<%= name %> | Monitoring',<% if (socketIo) { %>
       websocket: Container.get<SocketIO.Server>('socket'),<% } %>
     }),
-  );
+  );<% } %>
   app.use(bodyParser.json());
   app.use(compression());
   app.use(cors({ origin: true, credentials: true }));

@@ -10,12 +10,12 @@
 - **RESTful API** - Using [Express](https://github.com/expressjs/express/)
 - **Dependency injection** - Using [typedi](https://github.com/typestack/typedi)
 - **Standard error responses** - Using [http-errors](https://www.npmjs.com/package/http-errors)
-- **API status monitoring** - Using [express-status-monitor](https://www.npmjs.com/package/express-status-monitor)
 - **Pre-commit linting hook** - Using [husky](https://github.com/typicode/husky) and [lint-staged](https://github.com/okonet/lint-staged)
 
 ## Features / options
 
 - **API documentation** - Using [Swagger](https://swagger.io/) and [ReDoc](https://github.com/Redocly/redoc)
+- **API status monitoring** - Using [express-status-monitor](https://www.npmjs.com/package/express-status-monitor)
 - **Caching** - Using [Redis](https://github.com/NodeRedis/node-redis)
 - **Code formatting** - Using [Prettier](https://prettier.io/)
 - **Containerization** - Using [Docker Compose](https://docs.docker.com/compose/)

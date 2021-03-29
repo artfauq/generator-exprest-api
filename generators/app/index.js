@@ -135,6 +135,16 @@ module.exports = class extends Generator {
         default: true,
       },
       //
+      // ─── MONITORING ──────────────────────────────────────────────────
+      //
+      {
+        store: true,
+        type: 'confirm',
+        name: 'monitoring',
+        message: `Configure a ${yellow.bold('status monitoring')} route ?`,
+        default: true,
+      },
+      //
       // ─── ESLINT ──────────────────────────────────────────────────────
       //
       {
@@ -216,7 +226,7 @@ module.exports = class extends Generator {
         'express@4',
         'express-promise-router@3',
         'express-rate-limit@5',
-        'express-status-monitor@1',
+
         'helmet@4',
         'http-errors@1',
         'moment@2',
@@ -232,7 +242,7 @@ module.exports = class extends Generator {
         '@types/cors@2',
         '@types/express@4',
         '@types/express-rate-limit@5',
-        '@types/express-status-monitor@1',
+
         '@types/http-errors@1',
         '@types/morgan@1',
         '@types/node@12',
@@ -404,6 +414,15 @@ module.exports = class extends Generator {
 
       copy('src/jobs/index.ts.ejs');
       copy('src/loaders/job-scheduler.ts.ejs');
+    }
+
+    //
+    // ─── MONITORING ──────────────────────────────────────────────────
+    //
+
+    if (answers.monitoring) {
+      this.packages.dependencies.push('express-status-monitor@1');
+      this.packages.devDependencies.push('@types/express-status-monitor@1');
     }
 
     //
