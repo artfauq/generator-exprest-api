@@ -23,7 +23,7 @@ export default async (): Promise<I18n> => {
         interpolation: { escapeValue: false },
         ns: [],
         resources,
-        supportedLngs: ['en', 'fr'],
+        supportedLngs: ['en'],
       },
       err => {
         if (err) reject(new Error(`failed to initialize i18n instance. ${err}`));
