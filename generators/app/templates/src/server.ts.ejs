@@ -1,7 +1,7 @@
-import 'reflect-metadata';
-import { <% if (celebrate) { %>celebrateErrorParser, <% } %>httpErrorHandler, parseServerError<% if (sequelize) { %>, sequelizeErrorParser<% } %> } from '@kazaar/express-error-handler';<% if (sentry) { %>
-import * as Sentry from '@sentry/node';
-import * as Tracing from '@sentry/tracing';<% } %>
+<% if (admin) { %>import AdminBroExpress from '@admin-bro/express';
+<% } %>import { <% if (celebrate) { %>celebrateErrorParser, <% } %>httpErrorHandler, parseServerError<% if (sequelize) { %>, sequelizeErrorParser<% } %> } from '@kazaar/express-error-handler';<% if (sentry) { %>
+import * as Sentry from '@sentry/node';<% } %><% if (admin) { %>
+import AdminBro from 'admin-bro';<% } %>
 import bodyParser from 'body-parser';
 import compression from 'compression';
 import cors from 'cors';
@@ -14,24 +14,30 @@ import { <% if (sentry) { %>InternalServerError, <% } %>TooManyRequests } from '
 import { i18n as I18n } from 'i18next';
 import i18nHttpMiddleware from 'i18next-http-middleware';<% } %>
 import path from 'path';
+import 'reflect-metadata';
 import favicon from 'serve-favicon';<% if (monitoring && socketIo) { %>
 import SocketIO from 'socket.io';<% } %>
 import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-import config from './config';
-import { errorLogger<% if (jwt) { %>, jwtErrorParser<% } %> } from './middlewares';
-import router from './routes';<% if (sentry) { %>
+import config from './config';<% if (sentry) { %>
 import './config/sentry';<% } %>
+import { errorLogger<% if (jwt) { %>, jwtErrorParser<% } %> } from './middlewares';
+import router from './routes';
 
-export default (app: Application, server: Server): void => {
-  const logger = Container.get<<%= loggerType %>>('logger');<% if (sentry) { %>
+export default (app: Application, server: Server): void => {<% if (admin) { %>
+  /**
+   * AdminBro panel configuration
+   */
+  const adminBro = Container.get<AdminBro>('adminBro');
 
+  app.use(config.admin.path, AdminBroExpress.buildRouter(adminBro));
+<% } %><% if (sentry) { %>
   /**
    * Sentry middlewares configuration
    */
   app.use(Sentry.Handlers.requestHandler());
-  app.use(Sentry.Handlers.tracingHandler());<% } %><% if (i18n) { %>
-
+  app.use(Sentry.Handlers.tracingHandler());
+<% } %><% if (i18n) { %>
   /**
    * I18n HTTP middleware configuration
    */
@@ -44,8 +50,8 @@ export default (app: Application, server: Server): void => {
     }
 
     next();
-  });<% } %>
-
+  });
+<% } %>
   /**
    * App configuration
    */
@@ -85,8 +91,8 @@ export default (app: Application, server: Server): void => {
   });<% } %>
 
   /**
-    * Health route
-    */
+   * Health route
+   */
   app.get('/health', (req, res) => res.sendStatus(204));
 
   /**
@@ -96,7 +102,9 @@ export default (app: Application, server: Server): void => {
 
   /**
    * Error handling
-   */<% if (jwt) { %>
+   */
+  const logger = Container.get<<%= loggerType %>>('logger');
+<% if (jwt) { %>
   app.use(jwtErrorParser());<% } %><% if (celebrate) { %>
   app.use(celebrateErrorParser());<% } %><% if (sequelize) { %>
   app.use(sequelizeErrorParser());<% } %>

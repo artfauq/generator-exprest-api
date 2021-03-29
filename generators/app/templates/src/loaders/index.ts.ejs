@@ -1,6 +1,7 @@
-<% if (socketIo) { -%>import { Server } from 'http';<% } %>
-import { Container } from 'typedi';
-import logger from '../config/logger';<% if (i18n) { %>
+<% if (socketIo) { %>import { Server } from 'http';
+<% } %>import { Container } from 'typedi';
+import logger from '../config/logger';<% if (admin) { %>
+import adminBroLoader from './admin-bro';<% } %><% if (i18n) { %>
 import i18nLoader from './i18n';<% } %><% if (cron) { %>
 import jobScheduler from './job-scheduler';<% } %><% if (nodemailer) { %>
 import mailerLoader from './mailer';<% } %><% if (redis) { %>
@@ -30,6 +31,9 @@ export default async (<% if (socketIo) { %>server: Server<% } %>): Promise<void>
     // Initialize Socket.IO server
     const socket = socketIoLoader({ server });
     logger.info('Successfully initialized Socket.IO server');
+<% } %><% if (admin) { %>
+    // Initialize admin panel
+    const adminBro = adminBroLoader();
 <% } %>
     // Inject dependencies
     Container.set('logger', logger);<% if (sequelize) { %>
@@ -37,7 +41,8 @@ export default async (<% if (socketIo) { %>server: Server<% } %>): Promise<void>
     Container.set('mailer', mailer);<% } %><% if (redis) { %>
     Container.set('redis', redis);<% } %><% if (i18n) { %>
     Container.set('i18n', i18n);<% } %><% if (socketIo) { %>
-    Container.set('socket', socket);<% } %><% if (cron) { %>
+    Container.set('socket', socket);<% } %><% if (admin) { %>
+    Container.set('adminBro', adminBro);<% } %><% if (cron) { %>
 
     // Initialize job scheduler
     jobScheduler();<% } %>

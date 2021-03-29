@@ -1,0 +1,26 @@
+import AdminBroSequelize from '@admin-bro/sequelize';
+import AdminBro from 'admin-bro';
+import { resources, translations } from '../admin';
+import config from '../config';
+
+// Register Sequelize adapter
+AdminBro.registerAdapter(AdminBroSequelize);
+
+/**
+ * AdminBro instance initializer
+ */
+export default (): AdminBro => {
+  const adminBro = new AdminBro({
+    branding: {
+      companyName: '<%= name %> | Admin',
+    },
+    locale: {
+      language: 'en',
+      translations: translations.en,
+    },
+    resources: Object.values(resources),
+    rootPath: config.admin.path,
+  });
+
+  return adminBro;
+};

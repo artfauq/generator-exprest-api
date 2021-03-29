@@ -3,31 +3,18 @@
 > <%- description %>
 
 - [Getting started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
   - [Configuration](#configuration)
+  - [Installation](#installation)
 - [Main commands](#main-commands)
 - [About](#about)
 
 ## Getting started
 
-### Prerequisites
-
-**Node.js** is required to run the application.
-
-Visit [this page](https://nodejs.org/en/download/) for download instructions.
-
-### Installation
-
-Install the required dependencies:
-
-`$ npm install`
-
 ### Configuration
 
 The application relies on environment variables for various tasks.
 
-To configure these variables, copy and rename the `.env.example` to `.env`:
+To configure these variables, copy and rename `.env.example` to `.env`:
 
 ```sh
 cp .env.example .env
@@ -35,27 +22,53 @@ cp .env.example .env
 
 Then, fill the `.env` file according to the following table.
 
-| Variable             | Type      | Description                                       | Default | Note                                                                                                                     |   |
-|----------------------|-----------|---------------------------------------------------|---------|--------------------------------------------------------------------------------------------------------------------------|---|
-| `PORT`               | _Number_  | Port on which the server is listening             | `8080`  |                                                                                                                          |   |
-| `NODE_ENV`           | _String_  | Application running environment                   |         | One of: `development`, `test`, `production`                                                                              |   |
-| `DEBUG`              | _Boolean_ | Boolean indicating if debug mode is activated     | `false` | Primarily used by Sequelize to print SQL queries                                                                         |   |<% if (sequelize) { %>
-| `DB_HOST`            | _String_  | Database host                                     |         | Not required when using `docker-compose` as it gets overriden with the `db` container                                    |   |
-| `DB_PORT`            | _Number_  | Database port                                     | `<%= dialect.port %>`  |                                                                                                           |   |
-| `DB_NAME`            | _String_  | Database name                                     |         |                                                                                                                          |   |
-| `DB_USER`            | _String_  | Database user                                     |         |                                                                                                                          |   |
-| `DB_PASSWORD`        | _String_  | Database password                                 |         |                                                                                                                          |   |<% } %><% if (redis) { %>
-| `REDIS_HOST`         | _String_  | Redis host                                        |         | Not required when using `docker-compose` as it gets overriden with the `redis` container                                 |   |
-| `REDIS_PORT`         | _Number_  | Redis port                                        | `6379`  |                                                                                                                          |   |<% } %><% if (jwt) { %>
-| `JWT_SECRET`         | _String_  | Secret used to sign JWT                           |         | Run `npm run generate-secret` to generate a random secret                                                                |   |<% } %><% if (nodemailer) { %>
-| `SMTP_HOST`          | _String_  | SMTP host                                         |         |                                                                                                                          |   |
-| `SMTP_PORT`          | _Number_  | SMTP port                                         | `465`   |                                                                                                                          |   |
-| `SMTP_USER`          | _String_  | SMTP user                                         |         |                                                                                                                          |   |
-| `SMTP_PASSWORD`      | _String_  | SMTP password                                     |         |                                                                                                                          |   |<% } %><% if (sentry) { %>
-| `SENTRY_DSN`         | _String_  | Sentry DSN                                        |         |                                                                                                                          |   |
-| `SENTRY_ENVIRONMENT` | _String_  | Sentry environment                                |         |                                                                                                                          |   |<% } %><% if (docker) { %>
-| `LETSENCRYPT_HOST`   | _String_  | Let's Encrypt host                                |         | More info: [letsencrypt-nginx-proxy-companion ](https://github.com/nginx-proxy/docker-letsencrypt-nginx-proxy-companion) |   |
-| `LETSENCRYPT_EMAIL`  | _String_  | Let's Encrypt email                               |         |                                                                                                                          |   |<% } %>
+| Variable             | Type      | Description                                       | Default | Note                                                                                                                     |
+|----------------------|-----------|---------------------------------------------------|---------|--------------------------------------------------------------------------------------------------------------------------|
+| `PORT`               | _Number_  | Port on which the server should listen            | `8080`  |                                                                                                                          |
+| `NODE_ENV`           | _String_  | Application running environment                   |         | One of: `development`, `test`, `production`                                                                              |
+| `DEBUG`              | _Boolean_ | Boolean indicating if debug mode is activated     | `false` | <% if (sequelize) { %>Primarily used by Sequelize to print SQL queries<% } else { %>                                                <% } %>                                                                         |<% if (sequelize) { %>
+| `DB_HOST`            | _String_  | Database host                                     |         | <% if (docker) { %>Not required when using `docker-compose` as it gets overriden with the `db` container<% } else { %>                                                                                     <% } %>                                    |
+| `DB_PORT`            | _Number_  | Database port                                     | `<%= dialect.port %>`  |                                                                                                           |
+| `DB_NAME`            | _String_  | Database name                                     |         |                                                                                                                          |
+| `DB_USER`            | _String_  | Database user                                     |         |                                                                                                                          |
+| `DB_PASSWORD`        | _String_  | Database password                                 |         |                                                                                                                          |<% } %><% if (redis) { %>
+| `REDIS_HOST`         | _String_  | Redis host                                        |         | <% if (docker) { %>Not required when using `docker-compose` as it gets overriden with the `redis` container<% } else { %>                                                                                        <% } %>                                 |
+| `REDIS_PORT`         | _Number_  | Redis port                                        | `6379`  |                                                                                                                          |<% } %><% if (jwt) { %>
+| `JWT_SECRET`         | _String_  | Secret used to sign JWTs                          |         | Run `npm run generate-secret` to generate a random secret                                                                |<% } %><% if (nodemailer) { %>
+| `SMTP_HOST`          | _String_  | SMTP host                                         |         |                                                                                                                          |
+| `SMTP_PORT`          | _Number_  | SMTP port                                         | `465`   |                                                                                                                          |
+| `SMTP_USER`          | _String_  | SMTP user                                         |         |                                                                                                                          |
+| `SMTP_PASSWORD`      | _String_  | SMTP password                                     |         |                                                                                                                          |<% } %><% if (sentry) { %>
+| `SENTRY_DSN`         | _String_  | Sentry DSN                                        |         | See [Sentry Configuration](https://docs.sentry.io/platforms/node/configuration/options/)                                 |
+| `SENTRY_ENVIRONMENT` | _String_  | Sentry environment                                |         | See [Sentry Configuration](https://docs.sentry.io/platforms/node/configuration/options/)                                 |<% } %><% if (docker) { %>
+| `LETSENCRYPT_HOST`   | _String_  | Let's Encrypt host                                |         | See [letsencrypt-nginx-proxy-companion](https://github.com/nginx-proxy/docker-letsencrypt-nginx-proxy-companion)         |
+| `LETSENCRYPT_EMAIL`  | _String_  | Let's Encrypt email                               |         | See [letsencrypt-nginx-proxy-companion](https://github.com/nginx-proxy/docker-letsencrypt-nginx-proxy-companion)         |<% } %>
+
+### Installation<% if (docker) { %>
+
+#### With docker-compose <!-- omit in toc -->
+
+Start a development server by running:
+
+```sh
+./docker/start.sh dev
+```
+
+#### Without docker-compose <!-- omit in toc -->
+<% } %>
+If **Node.js** is not installed on your machine, visit [this page](https://nodejs.org/en/download/) for download instructions.
+
+Install required dependencies:
+
+```sh
+npm install
+```
+
+Start a development server by running:
+
+```sh
+npm run dev
+```
 
 ## Main commands
 
@@ -63,15 +76,15 @@ Then, fill the `.env` file according to the following table.
 |----------------------|-----------------------------------------|---------------------------------------------------------------------------------------------|
 | `dev`                |                                         | Start a development server with source files change detection                               |
 | `start`              |                                         | Start a server from compiled files                                                          |
-| `build`              |                                         | Transpile TypeScript code into JavaScript in a `/dist` folder                               |
-| `test`               |                                         | Run all tests defined in the `/test` folder                                                 |
+| `build`              |                                         | Transpile TypeScript files into JavaScript in a `/dist` folder                              |<% if (mocha) { %>
+| `test`               |                                         | Run all tests defined in the `/test` folder                                                 |<% } %><% if (sequelize) { %>
 | `db:create`          | `development` \| `test` \| `production` | Create the database for the specified enviromnent based on the `.env` or `.env.test` config |
 | `db:seed`            |                                         | Run seeders                                                                                 |
 | `migrations:migrate` |                                         | Run migrations                                                                              |
 | `migrations:undo`    |                                         | Undo most recent migration                                                                  |
-| `migrations:create`  | Migration name                          | Create a new migration file (ex: `npm run migrations:create add-user-table`)                |
-| `lint`               |                                         | Perform a lint check                                                                        |
-| `lint:fix`           |                                         | Perform a lint check and try to automatically fix errors                                    |
+| `migrations:create`  | Migration name                          | Create a new migration file (ex: `npm run migrations:create add-user-table`)                |<% } %>
+| `lint`               |                                         | Perform a lint check                                                                        |<% if (eslint || prettier) { %>
+| `lint:fix`           |                                         | Perform a lint check and try to automatically fix errors                                    |<% } %>
 | `generate-secret`    |                                         | Generate a random secret (useful for `JWT`)                                                 |
 
 ## About

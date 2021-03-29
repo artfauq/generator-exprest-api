@@ -1,4 +1,4 @@
-import { createTransport } from 'nodemailer';
+import { createTestAccount, createTransport } from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import config from '../config';
@@ -11,11 +11,21 @@ export default async (): Promise<Mail> => {
     const options: SMTPTransport.Options = {
       host: config.smtp.host,
       port: config.smtp.port,
-      auth: {
+    };
+
+    if (config.smtp.user) {
+      options.auth = {
         user: config.smtp.user,
         pass: config.smtp.pass,
-      },
-    };
+      };
+    } else {
+      const testAccount = await createTestAccount();
+
+      options.auth = {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      };
+    }
 
     // Initialize SMTP transport
     const smtpTransport = createTransport(options);

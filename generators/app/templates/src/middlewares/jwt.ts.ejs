@@ -71,8 +71,8 @@ export const auth = {
 /**
  * Parses a JWT error into a readable error message;
  */
-const parseJwtErrorMessage = (err: UnauthorizedError): string => {
-  <% if (i18n) { %>const i18n = Container.get<I18n>('i18n');
+const parseJwtErrorMessage = (err: UnauthorizedError): string => {<% if (i18n) { %>
+  const i18n = Container.get<I18n>('i18n');
   const defaultMessage = i18n.t('errors:invalidAuthentication');<% } else { %>
   const defaultMessage = 'Invalid authentication.';<% } %>
 
@@ -88,7 +88,7 @@ const parseJwtErrorMessage = (err: UnauthorizedError): string => {
       return err.message;
 
     case 'invalid_token':
-      return <% if (i18n) { %>i18n.t('errors:invalidToken')<% } else { %>'Invalid token.'<% } -%>;
+      return <% if (i18n) { %>i18n.t('errors:invalidToken')<% } else { %>'Invalid token.'<% } %>;
 
     default:
       return defaultMessage;

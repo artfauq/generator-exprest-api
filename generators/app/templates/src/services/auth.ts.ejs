@@ -15,7 +15,7 @@ export default class AuthService {<% if (i18n) { %>
     const user = await UserModel.findOne({ where: { email } });
 
     if (!user || !user.comparePassword(password)) {
-      throw new Unauthorized(<% if (i18n) { %>this.i18n.t('errors:invalidCredentials')<% } else { -%>'Invalid credentials.'<% } %>);
+      throw new Unauthorized(<% if (i18n) { %>this.i18n.t('errors:invalidCredentials')<% } else { %>'Invalid credentials.'<% } %>);
     }
 
     // Generate JWT

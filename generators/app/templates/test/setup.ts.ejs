@@ -1,6 +1,6 @@
-<% if (nodemailer || redis) { -%>import './helpers/stubs';<% } %><% if (sequelize) { %>
-import { cleanDatabase } from './helpers';<% } %>
-import app from '../src';
+<% if (nodemailer || redis) { %>import './helpers/stubs';
+<% } %><% if (sequelize) { %>import { cleanDatabase } from './helpers';
+<% } %>import app from '../src';
 
 before(async () => {
   await new Promise<void>(resolve => {

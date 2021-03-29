@@ -63,6 +63,17 @@ const config = convict({
     doc: 'Application logs directory',
     format: String,
     default: `${__dirname}/../../logs`,
+  },<% } %><% if (admin) { %>
+
+  /**
+   * Admin config
+   */
+  admin: {
+    path: {
+      doc: 'Admin root path',
+      format: String,
+      default: '/admin',
+    },
   },<% } %><% if (sequelize) { %>
 
   /**

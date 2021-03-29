@@ -3,8 +3,9 @@
 - [Environment variables](#environment-variables)
 - [Project structure](#project-structure)<% if (docker) { %>
 - [Docker](#docker)
-  - [Development](#development)
-  - [Production](#production)<% } %><% if (sequelize || redis) { %>
+  - [Development mode](#development-mode)<% if (mocha) { %>
+  - [Test mode](#test-mode)<% } %>
+  - [Production mode](#production-mode)<% } %><% if (sequelize || redis) { %>
 - [Services](#services)<% if (sequelize) { %>
   - [Sequelize](#sequelize)
     - [Models](#models)
@@ -24,13 +25,14 @@
   - [Sentry](#sentry)<% } %><% if (socketIo) { %>
   - [Socket IO](#socket-io)<% } %><% if (nodemailer) { %>
   - [Nodemailer](#nodemailer)<% } %><% if (openapi) { %>
-  - [API documentation](#api-documentation)<% } %>
+  - [API documentation](#api-documentation)<% } %><% if (admin) { %>
+  - [Admin panel](#admin-panel)<% } %>
 - [Style Guide](#style-guide)
   - [Filenames](#filenames)
   - [Formatting](#formatting)
-  - [Linting](#linting)
-  - [Pre-commit hook](#pre-commit-hook)
-- [Version update](#version-update)<% if (winston) { %>
+  - [Linting](#linting)<% if (hook) { %>
+  - [Pre-commit hook](#pre-commit-hook)<% } %><% if (openapi) { %>
+- [Version update](#version-update)<% } %><% if (winston) { %>
 - [Logs](#logs)<% } %>
 
 ## Environment variables
@@ -47,7 +49,11 @@ The project is structured as follows:
   - `/migrations`: database migrations
   - `/seeders`: database seeders<% } %><% if (docker) { %>
 - `/docker`: Docker configuration files<% } %>
-- `/src`: application source files
+- `/src`: application source files<% if (admin) { %>
+  - `/admin`: admin related files
+    - `/components`: custom React components used in the admin panel
+    - `/locale`: admin translation files
+    - `/resources`: admin resources definitions<% } %>
   - `/config`: configuration files
   - `/dto`: Data Transfer Object definitions<% if (cron) { %>
   - `/jobs`: cron jobs definitions<% } %>
@@ -70,14 +76,14 @@ When running the app or performing some commands, additional folders (ignored by
 <% } %><% if (docker) { %>
 ## Docker
 
-Docker Compose is the recommended method to run this project. This way, the project can easily run either in a development, test or production environment.
+Docker Compose is the recommended method to run this project. This way, the project can easily run either in a development<% if (mocha) { %>, test<% } %> or production environment.
 
-These three configurations are defined respectively in `docker-compose.dev.yml`, `docker-compose.test.yml` and `docker-compose.prod.yml`. They all inherit from the base configuration defined in `docker-compose.yml`.
+These configurations are defined respectively in `docker-compose.dev.yml`<% if (mocha) { %>, `docker-compose.test.yml`<% } %> and `docker-compose.prod.yml`. They all inherit from the base configuration defined in `docker-compose.yml`.
 
 The `start.sh` script located in the `/docker` folder allows to start docker-compose in one of these modes as follows:
 
 ```sh
-./docker/start.sh <dev|test|prod>
+./docker/start.sh <dev<% if (mocha) { %>|test<% } %>|prod>
 ```
 
 Running this command will start various containers such as:
@@ -100,7 +106,7 @@ This will:
 - Target the `development` stage of the multi-stage [Dockerfile](/docker/node/Dockerfile)
 - Run the `npm run dev` command in the `<%= shortname %>-app` container<% if (sequelize) { %>
 - Run database migrations from the `<%= shortname %>-migrate`<% } %>
-- Allow the web server to restart automatically on source files changes detected
+- Allow the web server to restart automatically on source files changes detected<% if (mocha) { %>
 
 ### Test mode
 
@@ -113,7 +119,7 @@ To start all containers in `test` mode, run:
 This will:
 
 - Target the `development` stage of the multi-stage [Dockerfile](/docker/node/Dockerfile)
-- Run the `npm run test` command in the `<%= shortname %>-app` container
+- Run the `npm run test` command in the `<%= shortname %>-app` container<% } %>
 
 ### Production mode
 
@@ -638,7 +644,7 @@ export default class UserService {<% if (i18n) { %>
     const user = await UserModel.findByPk(userId);
 
     if (!user) {
-      throw new NotFound(<% if (i18n) { %>this.i18n.t('errors:userNotFound')<% } else { -%>'User not found.'<% } %>);
+      throw new NotFound(<% if (i18n) { %>this.i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
     }
 
     return userDTO(user);
@@ -651,7 +657,7 @@ export default class UserService {<% if (i18n) { %>
     const existingUser = await UserModel.findOne({ where: { email: userDetails.email } });
 
     if (existingUser) {
-      throw new BadRequest(<% if (i18n) { %>this.i18n.t('errors:duplicateEmail')<% } else { -%>'This email address is already in use.'<% } %>);
+      throw new BadRequest(<% if (i18n) { %>this.i18n.t('errors:duplicateEmail')<% } else { %>'This email address is already in use.'<% } %>);
     }
 
     const user = await UserModel.create(userDetails);
@@ -750,7 +756,7 @@ router.use(
     stream: {
       write: message => logger.info(message.trim()),
     },
-  })
+  }),
 );
 
 /**
@@ -764,8 +770,7 @@ router.use('/users', usersRouter);
 router.use((req, res, next) => {
   const { baseUrl, url, method } = req;
 
-  <% if (i18n) { %>next(new NotFound(req.i18n.t('errors:routeNotFound', { method, baseUrl, url })));<% } else { %>
-  next(new NotFound(`The route '${method} ${baseUrl}${url}' doesn't exist.`));<% } %>
+  next(new NotFound(<% if (i18n) { %>req.i18n.t('errors:routeNotFound', { method, baseUrl, url })<% } else { %>`The route '${method} ${baseUrl}${url}' doesn't exist.`<% } %>));
 });
 
 export default router;
@@ -795,7 +800,7 @@ export default class UserService {<% if (i18n) { %>
     const user = await UserModel.findByPk(userId);
 
     if (!user) {
-      throw new NotFound(<% if (i18n) { %>this.i18n.t('errors:userNotFound')<% } else { -%>'User not found.'<% } %>);
+      throw new NotFound(<% if (i18n) { %>this.i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
     }
 
     return user;
@@ -803,7 +808,7 @@ export default class UserService {<% if (i18n) { %>
 }
 ```
 
-In addition, the routes defined in `/src/routes` should use the `Router` from the [express-promise-router](https://github.com/express-promise-router/express-promise-router) package instead of the `Router from `express`. It provides a convenient way to write async controller methods without `try/catch` blocks or `next()`.
+In addition, the routes defined in `/src/routes` should use the `Router` from the [express-promise-router](https://github.com/express-promise-router/express-promise-router) package instead of the `Router` from `express`. It provides a convenient way to write async request controllers.
 <% if (celebrate) { %>
 ### Object validation
 
@@ -1030,6 +1035,12 @@ To configure the SMTP connection options, change the `SMTP_` environment variabl
 The API documentation is written based on the [OpenAPI](https://swagger.io/specification/) specification and located in the `/src/public/doc` folder.
 
 The interface is generated by [ReDoc](https://github.com/Rebilly/ReDoc) and is available at `http://localhost:{PORT}/doc` when the server is running.
+<% } %><% if (admin) { %>
+### Admin panel
+
+The admin panel is generated with [AdminBro](https://adminbro.com/docs) and configured in `/src/config/admin-bro.ts`.
+
+All admin-related files should reside in `/src/admin`.
 <% } %>
 ## Style Guide
 

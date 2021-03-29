@@ -2,10 +2,12 @@
 
 ## 4.1.0
 
+- Added `AdminBro` option
 - Changed `API status monitoring` as option
 - Changed `pre-commit hook` as option
 - Removed `fr.json` translations
 - Changed `moment` initialization
+- Fixed minor `issues`
 
 ## 4.0.0 (March 26, 2021)
 

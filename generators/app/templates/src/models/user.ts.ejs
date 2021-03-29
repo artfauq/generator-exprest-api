@@ -10,8 +10,8 @@ import {
   PrimaryKey,
   Table,
   Unique,
-} from 'sequelize-typescript';
-<% if (jwt) { %>import { generateSignedJWT } from '../utils/jwt';<% } %>
+} from 'sequelize-typescript';<% if (jwt) { %>
+import { generateSignedJWT } from '../utils/jwt';<% } %>
 
 @Table({
   tableName: 'user',

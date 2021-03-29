@@ -23,8 +23,7 @@ router.use('/auth', authRouter);<% } %>
 router.use((req, res, next) => {
   const { baseUrl, url, method } = req;
 
-  <% if (i18n) { %>next(new NotFound(req.i18n.t('errors:routeNotFound', { method, baseUrl, url })));<% } else { %>
-  next(new NotFound(`The route '${method} ${baseUrl}${url}' doesn't exist.`));<% } %>
+  next(new NotFound(<% if (i18n) { %>req.i18n.t('errors:routeNotFound', { method, baseUrl, url })<% } else { %>`The route '${method} ${baseUrl}${url}' doesn't exist.`<% } %>));
 });
 
 export default router;

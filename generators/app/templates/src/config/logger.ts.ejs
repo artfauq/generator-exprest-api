@@ -35,9 +35,8 @@ const logger = createLogger({
     }),
   ],
   exitOnError: false,
-});
+});<% if (sentry) { %>
 
-<% if (sentry) { -%>
 // If app is in in production mode, log errors to Sentry
 if (config.isProduction) {
   logger.add(
@@ -52,10 +51,6 @@ if (config.isProduction) {
       ),
     }),
   );
-}
-<% } -%>
-<% } else { -%>
-const logger = console;
-<% } -%>
+}<% } %><% } else { %>const logger = console;<% } %>
 
 export default logger;

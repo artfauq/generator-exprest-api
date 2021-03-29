@@ -135,16 +135,6 @@ module.exports = class extends Generator {
         default: true,
       },
       //
-      // ─── MONITORING ──────────────────────────────────────────────────
-      //
-      {
-        store: true,
-        type: 'confirm',
-        name: 'monitoring',
-        message: `Configure a ${yellow.bold('status monitoring')} route ?`,
-        default: true,
-      },
-      //
       // ─── ESLINT ──────────────────────────────────────────────────────
       //
       {
@@ -171,7 +161,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'hook',
-        message: `Use a ${yellow.bold('pre-commit linting hook')} ?`,
+        message: `Configure a ${yellow.bold('pre-commit linting hook')} ?`,
         default: true,
       },
       //
@@ -195,6 +185,17 @@ module.exports = class extends Generator {
         default: true,
       },
       //
+      // ─── ADMIN-BRO ───────────────────────────────────────────────────
+      //
+      {
+        store: true,
+        type: 'confirm',
+        name: 'admin',
+        message: `Use ${yellow.bold('AdminBro')} to generate an admin panel ?`,
+        default: true,
+        when: ({ sequelize }) => !!sequelize,
+      },
+      //
       // ─── DOCKER ──────────────────────────────────────────────────────
       //
       {
@@ -212,6 +213,16 @@ module.exports = class extends Generator {
         type: 'confirm',
         name: 'openapi',
         message: `Generate an ${yellow.bold('OpenAPI')} documentation file ?`,
+        default: true,
+      },
+      //
+      // ─── MONITORING ──────────────────────────────────────────────────
+      //
+      {
+        store: true,
+        type: 'confirm',
+        name: 'monitoring',
+        message: `Generate a ${yellow.bold('status monitoring')} route ?`,
         default: true,
       },
     ]);
@@ -269,6 +280,7 @@ module.exports = class extends Generator {
       d => d.value === answers.sequelizeDialect
     );
 
+    answers.admin = !!answers.admin;
     answers.auth = !!answers.sequelize && !!answers.jwt;
     answers.description = JSON.stringify(answers.description);
     answers.dialect = dialect;
@@ -355,7 +367,6 @@ module.exports = class extends Generator {
       this.packages.dependencies.push('i18next@19', 'i18next-http-middleware@3');
 
       copy('src/locale/en.json.ejs');
-      copy('src/locale/fr.json.ejs');
       copy('src/locale/index.ts.ejs');
       copy('src/loaders/i18n.ts.ejs');
     }
@@ -419,15 +430,6 @@ module.exports = class extends Generator {
 
       copy('src/jobs/index.ts.ejs');
       copy('src/loaders/job-scheduler.ts.ejs');
-    }
-
-    //
-    // ─── MONITORING ──────────────────────────────────────────────────
-    //
-
-    if (answers.monitoring) {
-      this.packages.dependencies.push('express-status-monitor@1');
-      this.packages.devDependencies.push('@types/express-status-monitor@1');
     }
 
     //
@@ -546,6 +548,36 @@ module.exports = class extends Generator {
     }
 
     //
+    // ─── ADMIN-BRO ───────────────────────────────────────────────────
+    //
+
+    if (answers.admin) {
+      this.packages.dependencies.push(
+        '@admin-bro/design-system@1',
+        '@admin-bro/express@3',
+        '@admin-bro/sequelize@1',
+        'admin-bro@3',
+        'express-formidable@1',
+        'express-session@1',
+        'tslib'
+      );
+
+      this.packages.devDependencies.push(
+        '@types/express-session@1',
+        '@types/react-router-dom@5',
+        '@types/styled-components@5'
+      );
+
+      copy('src/admin/components/empty');
+      copy('src/admin/locale/en.ts.ejs');
+      copy('src/admin/locale/index.ts.ejs');
+      copy('src/admin/resources/index.ts.ejs');
+      copy('src/admin/resources/user.ts.ejs');
+      copy('src/admin/index.ts.ejs');
+      copy('src/loaders/admin-bro.ts.ejs');
+    }
+
+    //
     // ─── DOCKER ──────────────────────────────────────────────────────
     //
 
@@ -571,6 +603,15 @@ module.exports = class extends Generator {
     if (answers.openapi) {
       copy('src/public/doc/index.html.ejs');
       copy('src/public/doc/openapi.yml.ejs');
+    }
+
+    //
+    // ─── MONITORING ──────────────────────────────────────────────────
+    //
+
+    if (answers.monitoring) {
+      this.packages.dependencies.push('express-status-monitor@1');
+      this.packages.devDependencies.push('@types/express-status-monitor@1');
     }
 
     //
