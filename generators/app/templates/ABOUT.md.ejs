@@ -1069,7 +1069,7 @@ More info:
 - [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) for Typescript compiling errors (configuration file: [`tsconfig.json`](tsconfig.json))<% if (eslint) { %>
 - [ESlint](https://eslint.org/) for TypeScript/JavaScript linting errors (configuration file: [`.eslintrc.json`](.eslintrc.json))<% } %><% if (prettier) { %>
 - [Prettier](https://prettier.io/) for formatting errors (configuration file: [`.prettierrc`](.prettierrc))<% } %>
-
+<% if (hook) { %>
 ### Pre-commit hook
 
 In addition, a git pre-commit hook is configured to run before each commit to ensure that linting and formatting are ok.
@@ -1081,7 +1081,7 @@ More info:
 - [Git hooks](https://git-scm.com/book/uz/v2/Customizing-Git-Git-Hooks)
 - [husky](https://github.com/typicode/husky)
 - [lint-staged](https://github.com/okonet/lint-staged)
-<% if (openapi) { %>
+<% } %><% if (openapi) { %>
 ## Version update
 
 When updating the project's version number, do not forget to update:

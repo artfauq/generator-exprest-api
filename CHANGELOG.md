@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.1.0
+
+- Changed `API status monitoring` as option
+- Changed `pre-commit hook` as option
+
 ## 4.0.0 (March 26, 2021)
 
 - Added `TypeScript` support

@@ -10,7 +10,6 @@
 - **RESTful API** - Using [Express](https://github.com/expressjs/express/)
 - **Dependency injection** - Using [typedi](https://github.com/typestack/typedi)
 - **Standard error responses** - Using [http-errors](https://www.npmjs.com/package/http-errors)
-- **Pre-commit linting hook** - Using [husky](https://github.com/typicode/husky) and [lint-staged](https://github.com/okonet/lint-staged)
 
 ## Features / options
 
@@ -27,6 +26,7 @@
 - **Internationalization** - Using [i18next](https://www.i18next.com/)
 - **Logging** - Using [Winston](https://github.com/winstonjs/winston) and [morgan](https://github.com/expressjs/morgan#readme)
 - **Object validation** - Using [celebrate](https://www.npmjs.com/package/celebrate) and [Joi](https://github.com/sideway/joi)
+- **Pre-commit linting hook** - Using [husky](https://github.com/typicode/husky) and [lint-staged](https://github.com/okonet/lint-staged)
 - **Real-time events** - Using [Socket.IO](https://socket.io/)
 - **Testing** - Using [Mocha](https://mochajs.org/), [Chai](https://www.chaijs.com/), [Sinon](https://sinonjs.org/), [Supertest](https://github.com/visionmedia/supertest) and coverage with [nyc](https://github.com/istanbuljs/nyc)
 

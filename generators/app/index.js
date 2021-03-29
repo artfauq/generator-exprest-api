@@ -165,6 +165,16 @@ module.exports = class extends Generator {
         default: true,
       },
       //
+      // ─── PRE-COMMIT HOOK ─────────────────────────────────────────────
+      //
+      {
+        store: true,
+        type: 'confirm',
+        name: 'hook',
+        message: `Use a ${yellow.bold('pre-commit linting hook')} ?`,
+        default: true,
+      },
+      //
       // ─── MOCHA ───────────────────────────────────────────────────────
       //
       {
@@ -226,7 +236,6 @@ module.exports = class extends Generator {
         'express@4',
         'express-promise-router@3',
         'express-rate-limit@5',
-
         'helmet@4',
         'http-errors@1',
         'moment@2',
@@ -242,15 +251,12 @@ module.exports = class extends Generator {
         '@types/cors@2',
         '@types/express@4',
         '@types/express-rate-limit@5',
-
         '@types/http-errors@1',
         '@types/morgan@1',
         '@types/node@12',
         '@types/serve-favicon@2',
         'cpx@1',
         'cross-env@7',
-        'husky@4',
-        'lint-staged@10',
         'npm-run-all@4',
         'rimraf@3',
         'ts-node@8',
@@ -286,7 +292,6 @@ module.exports = class extends Generator {
     copy('.env.ejs');
     copy('.env.example.ejs');
     copy('.gitignore.ejs');
-    copy('.huskyrc.json.ejs');
     copy('ABOUT.md.ejs');
     copy('README.md.ejs');
     copy('package.json.ejs');
@@ -458,6 +463,16 @@ module.exports = class extends Generator {
 
       copy('.prettierrc.ejs');
       copy('.prettierignore.ejs');
+    }
+
+    //
+    // ─── PRE-COMMIT HOOK ─────────────────────────────────────────────
+    //
+
+    if (answers.hook) {
+      this.packages.devDependencies.push('husky@4', 'lint-staged@10');
+
+      copy('.huskyrc.json.ejs');
     }
 
     //
