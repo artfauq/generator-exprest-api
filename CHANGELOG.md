@@ -1,13 +1,15 @@
 # Changelog
 
-## 4.1.0
+## 4.1.0 (May 25, 2021)
 
 - Added `AdminBro` option
 - Changed `API status monitoring` as option
 - Changed `pre-commit hook` as option
+- Improved `lint` config
 - Removed `fr.json` translations
 - Changed `moment` initialization
-- Fixed minor `issues`
+- Removed `@kazaar/express-error-handler`
+- Fixed various issues
 
 ## 4.0.0 (March 26, 2021)
 

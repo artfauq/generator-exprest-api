@@ -1,6 +1,6 @@
 import supertest from 'supertest';
-import app from '../../src';
 import { expectInternalServerError } from '../helpers';
+import { app } from '../setup';
 
 const api = supertest(app);
 

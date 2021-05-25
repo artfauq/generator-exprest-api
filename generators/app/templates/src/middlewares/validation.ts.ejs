@@ -1,13 +1,7 @@
-import { celebrate } from 'celebrate';
 import Joi from '@hapi/joi';
+import { celebrate } from 'celebrate';
 
-interface ExtendedJoi extends Joi.Root {
-  stringArray(): Joi.ArraySchema;
-}
-
-//
-// ─── CUSTOM JOI EXTENSIONS ──────────────────────────────────────────────────────
-//
+// Declare here custom Joi extensions
 
 const stringArray = (joi: typeof Joi): Joi.Extension => ({
   name: 'stringArray',
@@ -16,18 +10,17 @@ const stringArray = (joi: typeof Joi): Joi.Extension => ({
   coerce: (value, state, options) => (value?.split ? value.split(',') : value),
 });
 
+interface ExtendedJoi extends Joi.Root {
+  stringArray(): Joi.ArraySchema;
+}
+
 const customJoi: ExtendedJoi = Joi.extend(stringArray) as ExtendedJoi;
 
-//
-// ─── GENERIC VALIDATION SCHEMAS ─────────────────────────────────────────────────
-//
-
-const id = Joi.number().integer().positive();
-const uuid = Joi.string().guid();
+// Declare here custom validation schemas
 
 const schemas = {
-  id,
-  uuid,
+  id: Joi.number().integer().positive(),
+  uuid: Joi.string().guid(),
 };
 
 export { celebrate, customJoi as Joi, schemas };

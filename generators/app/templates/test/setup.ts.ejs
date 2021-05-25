@@ -1,15 +1,77 @@
-<% if (nodemailer || redis) { %>import './helpers/stubs';
-<% } %><% if (sequelize) { %>import { cleanDatabase } from './helpers';
-<% } %>import app from '../src';
+<% if (sequelize) { %>import { exec } from 'child_process';
+<% } %>import express from 'express';
+import { createServer } from 'http';
+import { Container } from 'typedi';
+import logger from '../src/config/logger';<% if (sequelize || i18n || socketIo || admin) { %>
+import * as loaders from '../src/loaders';<% } %>
+import startServer from '../src/server';<% if (stubs) { %>
+import { <% if (nodemailer) { %>mailerStub, <% } %><% if (redis) { %>redisStub<% } %> } from './helpers';<% } %>
+
+// Create Express application and HTTP server
+export const app = express();
+export const server = createServer(app);
 
 before(async () => {
-  await new Promise<void>(resolve => {
-    if (app.listening) {
-      resolve();
-    } else {
-      app.on('listening', resolve);
-    }
-  });<% if (sequelize) { %>
+  try {<% if (sequelize) { %>
+    // Initialize Sequelize instance
+    const sequelize = await loaders.sequelize({ logger });
+    const { database, host, port } = sequelize.config;
+    logger.info(`Successfully connected to database '${database}' at '${host}:${port}'`);
+<% } %><% if (i18n) { %>
+    // Initialize i18n
+    const i18n = await loaders.i18n();
+<% } %><% if (socketIo) { %>
+    // Initialize Socket.IO server
+    const socket = loaders.socketIo({ server });
+<% } %><% if (admin) { %>
+    // Initialize admin panel
+    const adminBro = loaders.adminBro({ sequelize });
+<% } %>
+    // Inject dependencies
+    Container.set('logger', logger);<% if (sequelize) { %>
+    Container.set('sequelize', sequelize);<% } %><% if (nodemailer) { %>
+    Container.set('mailer', mailerStub);<% } %><% if (redis) { %>
+    Container.set('redis', redisStub);<% } %><% if (i18n) { %>
+    Container.set('i18n', i18n);<% } %><% if (socketIo) { %>
+    Container.set('socket', socket);<% } %><% if (admin) { %>
+    Container.set('adminBro', adminBro);<% } %><% if (sequelize) { %>
 
-  await cleanDatabase();<% } %>
+    // Recreate database
+    await sequelize.query(`DROP DATABASE IF EXISTS ${database};`);
+    await sequelize.query(`CREATE DATABASE IF NOT EXISTS ${database};`);
+
+    // Run database migrations
+    await new Promise<void>((resolve, reject) => {
+      const migrate = exec('sequelize db:migrate', err => (err ? reject(err) : resolve()));
+
+      // Forward stdout+stderr to this process
+      migrate.stdout?.pipe(process.stdout);
+      migrate.stderr?.pipe(process.stderr);
+    });
+
+    // Run database seeders
+    await new Promise<void>((resolve, reject) => {
+      const seed = exec('sequelize db:seed:all', err => (err ? reject(err) : resolve()));
+
+      // Forward stdout+stderr to this process
+      seed.stdout?.pipe(process.stdout);
+      seed.stderr?.pipe(process.stderr);
+    });<% } %>
+
+    // Start server
+    startServer(app, server);
+
+    // Wait for server to listen
+    await new Promise<void>(resolve => {
+      if (server.listening) {
+        resolve();
+      } else {
+        server.on('listening', resolve);
+      }
+    });
+  } catch (err) {
+    logger.error('Tests setup failed. %o', err);
+
+    process.exit(1);
+  }
 });

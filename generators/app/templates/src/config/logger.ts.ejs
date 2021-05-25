@@ -1,17 +1,21 @@
 <% if (winston) { -%>
 import { existsSync, mkdirSync } from 'fs';
 import moment from 'moment';
-import { createLogger, format, transports } from 'winston';<% if (sentry) { %>
+import { createLogger, format, Logform, transports } from 'winston';<% if (sentry) { %>
 import SentryTransport from 'winston-transport-sentry-node';<% } %>
-import config from '.';
+import config from './index';
 
 // Check if logs folder exists
 if (!existsSync(config.logsDir)) {
   mkdirSync(config.logsDir);
 }
 
-const customFormat = format.printf(
-  ({ level, message, timestamp }) => `${timestamp} ${level}: ${message}`,
+const customFormat: Logform.Format = format.combine(
+  format.errors({ stack: true }),
+  format.metadata(),
+  format.json(),
+  format.splat(),
+  format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
 );
 
 // Configure logger
@@ -19,13 +23,11 @@ const logger = createLogger({
   level: config.debug ? 'debug' : 'info',
   transports: [
     new transports.Console({
+      level: config.isProduction ? 'error' : undefined,
       format: format.combine(
         format.colorize(),
-        format.errors({ stack: true }),
-        format.metadata(),
-        format.splat(),
-        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
         customFormat,
+        format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`),
       ),
     }),
     new transports.File({
@@ -42,13 +44,8 @@ if (config.isProduction) {
   logger.add(
     new SentryTransport({
       level: 'error',
-      format: format.combine(
-        format.errors({ stack: true }),
-        format.json(),
-        format.metadata(),
-        format.splat(),
-        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      ),
+      format: customFormat,
+      sentry: config.sentry,
     }),
   );
 }<% } %><% } else { %>const logger = console;<% } %>

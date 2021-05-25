@@ -1,6 +1,6 @@
 import convict from 'convict';
 import dotenv from 'dotenv';
-import moment from 'moment-timezone';
+import moment from 'moment';
 import path from 'path';<% if (sequelize) { %>
 import { Dialect } from 'sequelize';<% } %>
 
@@ -19,13 +19,12 @@ const isProduction = env === NodeEnv.production;
  */
 const envFile = isTest ? '.env.test' : '.env';
 
-dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
 
 /**
  * Configure moment
  */
 moment.locale('en');
-// moment.tz.setDefault('Europe/Paris');
 
 const config = convict({
   /**
@@ -198,6 +197,20 @@ const config = convict({
       format: String,
       env: 'SMTP_PASSWORD',
       default: '',
+    },
+  },<% } %><% if (sentry) { %>
+
+  /**
+   * Sentry config
+   */
+  sentry: {
+    doc: 'Sentry configuration options',
+    format: Object,
+    default: {
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.SENTRY_ENVIRONMENT,
+      enabled: isProduction,
+      tracesSampleRate: 1.0,
     },
   },<% } %>
 });

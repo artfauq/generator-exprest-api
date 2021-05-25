@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import jwt from 'jsonwebtoken';
 import supertest from 'supertest';
-import app from '../../../../src';
 import config from '../../../../src/config';
 import { UserModel } from '../../../../src/models';
 import {
@@ -10,6 +9,7 @@ import {
   expectUnauthorizedError,<% if (celebrate) { %>
   expectValidationError,<% } %>
 } from '../../../helpers';
+import { app } from '../../../setup';
 
 const api = supertest(app);
 

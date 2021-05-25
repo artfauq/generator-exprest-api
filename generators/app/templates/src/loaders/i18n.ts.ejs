@@ -10,27 +10,31 @@ export default async (): Promise<I18n> => {
   i18next.use(i18nHttpMiddleware.LanguageDetector);
 
   // Initialize i18n instance
-  const i18n = await new Promise<I18n>((resolve, reject) =>
-    i18next.init(
-      {
-        detection: {
-          order: ['cookie', 'header'],
-          lookupCookie: 'i18next',
-          lookupHeader: 'accept-language',
-          caches: ['cookie'],
+  const i18n = await new Promise<I18n>((resolve, reject) => {
+    i18next
+      .init(
+        {
+          detection: {
+            order: ['cookie', 'header'],
+            lookupCookie: 'i18next',
+            lookupHeader: 'accept-language',
+            caches: ['cookie'],
+          },
+          fallbackLng: 'en',
+          interpolation: { escapeValue: false },
+          ns: [],
+          resources,
+          supportedLngs: ['en'],
         },
-        fallbackLng: 'en',
-        interpolation: { escapeValue: false },
-        ns: [],
-        resources,
-        supportedLngs: ['en'],
-      },
-      err => {
-        if (err) reject(new Error(`failed to initialize i18n instance. ${err}`));
-        else resolve(i18next);
-      },
-    ),
-  );
+        err => {
+          if (err) throw err;
+          else resolve(i18next);
+        },
+      )
+      .catch(err => {
+        reject(new Error(`failed to initialize i18n instance. ${err}`));
+      });
+  });
 
   return i18n;
 };

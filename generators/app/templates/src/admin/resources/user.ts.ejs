@@ -1,32 +1,34 @@
 import { ResourceWithOptions } from 'admin-bro';
-import { UserModel } from '../../models';
+import { Models } from '../../loaders/sequelize';
 
-const resource: ResourceWithOptions = {
-  resource: UserModel,
-  options: {
-    actions: {
-      bulkDelete: { isAccessible: false },
-      delete: { isAccessible: false },
-      edit: { isAccessible: false },
-      list: { isAccessible: true },
-      new: { isAccessible: false },
-      search: { isAccessible: true },
-      show: { isAccessible: true },
-    },
-    listProperties: ['lastName', 'firstName', 'email', 'createdAt'],
-    showProperties: ['id', 'email', 'firstName', 'lastName', 'createdAt'],
-    editProperties: ['email', 'password', 'firstName', 'lastName'],
-    filterProperties: ['email', 'firstName', 'lastName', 'createdAt'],
-    properties: {
-      password: {
-        type: 'password',
+export default ({ models }: { models: Models }): ResourceWithOptions => {
+  const resource: ResourceWithOptions = {
+    resource: models.UserModel,
+    options: {
+      actions: {
+        bulkDelete: { isAccessible: false },
+        delete: { isAccessible: false },
+        edit: { isAccessible: false },
+        list: { isAccessible: true },
+        new: { isAccessible: false },
+        search: { isAccessible: true },
+        show: { isAccessible: true },
+      },
+      listProperties: ['lastName', 'firstName', 'email', 'createdAt'],
+      showProperties: ['id', 'email', 'firstName', 'lastName', 'createdAt'],
+      editProperties: ['email', 'password', 'firstName', 'lastName'],
+      filterProperties: ['email', 'firstName', 'lastName', 'createdAt'],
+      properties: {
+        password: {
+          type: 'password',
+        },
+      },
+      sort: {
+        direction: 'asc',
+        sortBy: 'lastName',
       },
     },
-    sort: {
-      direction: 'asc',
-      sortBy: 'lastName',
-    },
-  },
-};
+  };
 
-export default resource;
+  return resource;
+};

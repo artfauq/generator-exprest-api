@@ -26,7 +26,8 @@ Then, fill the `.env` file according to the following table.
 |----------------------|-----------|---------------------------------------------------|---------|--------------------------------------------------------------------------------------------------------------------------|
 | `PORT`               | _Number_  | Port on which the server should listen            | `8080`  |                                                                                                                          |
 | `NODE_ENV`           | _String_  | Application running environment                   |         | One of: `development`, `test`, `production`                                                                              |
-| `DEBUG`              | _Boolean_ | Boolean indicating if debug mode is activated     | `false` | <% if (sequelize) { %>Primarily used by Sequelize to print SQL queries<% } else { %>                                                <% } %>                                                                         |<% if (sequelize) { %>
+| `DEBUG`              | _Boolean_ | Boolean indicating if debug mode is activated     | `false` | <% if (sequelize) { %>Primarily used by Sequelize to print SQL queries<% } else { %>                                                <% } %>                                                                         |
+| `PUBLIC_HOST`        | _String_  | Public URL of the web server                      |         |                                                                                                                          |<% if (sequelize) { %>
 | `DB_HOST`            | _String_  | Database host                                     |         | <% if (docker) { %>Not required when using `docker-compose` as it gets overriden with the `db` container<% } else { %>                                                                                     <% } %>                                    |
 | `DB_PORT`            | _Number_  | Database port                                     | `<%= dialect.port %>`  |                                                                                                           |
 | `DB_NAME`            | _String_  | Database name                                     |         |                                                                                                                          |
@@ -78,14 +79,15 @@ npm run dev
 | `start`              |                                         | Start a server from compiled files                                                          |
 | `build`              |                                         | Transpile TypeScript files into JavaScript in a `/dist` folder                              |<% if (mocha) { %>
 | `test`               |                                         | Run all tests defined in the `/test` folder                                                 |<% } %><% if (sequelize) { %>
-| `db:create`          | `development` \| `test` \| `production` | Create the database for the specified enviromnent based on the `.env` or `.env.test` config |
+| `db:create`          | `development` \| `test` \| `production` | Create database for the specified environment                                               |
+| `db:drop`            | `development` \| `test` \| `production` | Drop database for the specified environment                                                 |
 | `db:seed`            |                                         | Run seeders                                                                                 |
-| `migrations:migrate` |                                         | Run migrations                                                                              |
-| `migrations:undo`    |                                         | Undo most recent migration                                                                  |
-| `migrations:create`  | Migration name                          | Create a new migration file (ex: `npm run migrations:create add-user-table`)                |<% } %>
+| `db:migrate`         |                                         | Run migrations                                                                              |
+| `db:migrate:undo`    |                                         | Undo most recent migration                                                                  |
+| `migrations:create`  | Migration name                          | Create a new migration file (ex: `npm run migrations:create add-user-table`)                |
+| `seeders:create`     | Seeder name                             | Create a new seeder file (ex: `npm run migrations:create base-users`)                       |<% } %>
 | `lint`               |                                         | Perform a lint check                                                                        |<% if (eslint || prettier) { %>
 | `lint:fix`           |                                         | Perform a lint check and try to automatically fix errors                                    |<% } %>
-| `generate-secret`    |                                         | Generate a random secret (useful for `JWT`)                                                 |
 
 ## About
 

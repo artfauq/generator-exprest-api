@@ -26,16 +26,15 @@ export const generateSignedJWT = (
   });
 };
 <% } else { %>
+
 /**
  * Generates and returns a signed JWT.
  */
-export const generateSignedJWT = (
-  userId: string,
-  payload: JWTPayload,
-): string => jwt.sign(payload, config.jwt.secret, {
-  algorithm: config.jwt.algorithm as Algorithm,
-  issuer: config.publicHost,
-  subject: userId,
-  jwtid: uuidv4(),
-});
-<% } %>
+export const generateSignedJWT = (userId: string, payload: JWTPayload): string => {
+  return jwt.sign(payload, config.jwt.secret, {
+    algorithm: config.jwt.algorithm as Algorithm,
+    issuer: config.publicHost,
+    subject: userId,
+    jwtid: uuidv4(),
+  });
+};<% } %>

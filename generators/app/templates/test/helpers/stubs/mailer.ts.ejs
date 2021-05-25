@@ -1,7 +1,5 @@
 import sinon from 'sinon';
-import * as mailer from '../../../src/loaders/mailer';
 
-export const mailerStub = { sendMail: sinon.stub().callsFake(() => Promise.resolve()) };
-
-// @ts-ignore
-export default sinon.stub(mailer, 'default').callsFake(() => Promise.resolve(mailerStub));
+export const mailerStub = {
+  sendMail: sinon.stub().callsFake(() => Promise.resolve()),
+};

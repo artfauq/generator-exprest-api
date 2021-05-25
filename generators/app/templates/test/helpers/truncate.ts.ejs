@@ -1,5 +1,5 @@
-import { Container } from 'typedi';
 import { ModelType, Sequelize, Transaction } from 'sequelize';
+import { Container } from 'typedi';
 
 /**
  * Truncates the table associated to `model`.
@@ -15,6 +15,7 @@ export const cleanDatabase = async (): Promise<void> => {
   const sequelize = Container.get<Sequelize>('sequelize');
 
   return sequelize.transaction(async transaction => {
+    await sequelize.query(`USE ${sequelize.config.database}`, { transaction });
     await sequelize.query('SET FOREIGN_KEY_CHECKS = 0', { transaction });
 
     await Promise.all(

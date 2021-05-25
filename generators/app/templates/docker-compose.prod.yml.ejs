@@ -4,12 +4,11 @@ services:
   app:
     build:
       target: final<% if (sequelize || redis) { %>
-    entrypoint: dockerize<% if (sequelize) { %> -wait tcp://db:3306<% } %><% if (redis) { %> -wait tcp://redis:6379<% } %> -timeout 30s node ./dist/index.js<% } %>
+    entrypoint: dockerize<% if (sequelize) { %> -wait tcp://db:${DB_PORT}<% } %><% if (redis) { %> -wait tcp://redis:${REDIS_PORT}<% } %> -timeout 30s node ./dist/index.js<% } %>
     environment:
-      - NODE_ENV=production
-      - VIRTUAL_HOST=$LETSENCRYPT_HOST
-      - LETSENCRYPT_HOST=$LETSENCRYPT_HOST
-      - LETSENCRYPT_EMAIL=$LETSENCRYPT_EMAIL
+      VIRTUAL_HOST: $LETSENCRYPT_HOST
+      LETSENCRYPT_HOST: $LETSENCRYPT_HOST
+      LETSENCRYPT_EMAIL: $LETSENCRYPT_EMAIL
     restart: unless-stopped<% if (sequelize) { %>
 
   db:
@@ -23,13 +22,14 @@ services:
     volumes:
       - ./backup:/backup
     environment:
-      - MYSQL_HOST=db
-      - MYSQL_USER=$DB_USER
-      - MYSQL_PASS=$DB_PASSWORD
-      - MYSQL_DB=$DB_NAME
-      - MAX_BACKUPS=10
-      - INIT_BACKUP=0
-      - CRON_TIME=0 3 * * *
+      MYSQL_HOST: db
+      MYSQL_PORT: $DB_PORT
+      MYSQL_USER: $DB_USER
+      MYSQL_PASS: $DB_PASSWORD
+      MYSQL_DB: $DB_NAME
+      MAX_BACKUPS: 10
+      INIT_BACKUP: 0
+      CRON_TIME: 0 3 * * *
     restart: unless-stopped<% } %>
 
   nginx-proxy:

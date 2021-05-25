@@ -1,2 +1,3 @@
-export * from './http-responses';<% if (sequelize) { %>
+export * from './http-responses';<% if (stubs) { %>
+export * from './stubs';<% } %><% if (sequelize) { %>
 export * from './truncate';<% } %>

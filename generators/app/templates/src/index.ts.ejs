@@ -1,18 +1,72 @@
-import express from 'express';
+<% if (sentry) { %>import * as Sentry from '@sentry/node';
+import * as Tracing from '@sentry/tracing';
+<% } %>import express from 'express';
 import { createServer } from 'http';
-import loadModules from './loaders';
+import { Container } from 'typedi';<% if (sentry) { %>
+import config from './config';<% } %>
+import logger from './config/logger';<% if (sequelize || nodemailer || redis || i18n || socketIo || admin || cron) { %>
+import * as loaders from './loaders';<% } %><% if (sentry) { %>
+import router from './routes';<% } %>
 import startServer from './server';
 
 // Create Express application and HTTP server
 const app = express();
-const server = createServer(app);
+const server = createServer(app);<% if (sentry) { %>
 
-(async () => {
-  // Load application modules
-  await loadModules(<% if (socketIo) { %>server<% } %>);
+// Initialize Sentry
+Sentry.init({
+  ...config.sentry,
+  integrations: [
+    // Enable HTTP calls tracing
+    new Sentry.Integrations.Http({ tracing: true }),
+    // Enable Express.js middleware tracing
+    new Tracing.Integrations.Express({ router }),
+  ],
+});<% } %>
+
+(async () => {<% if (sequelize) { %>
+  // Initialize Sequelize instance
+  const sequelize = await loaders.sequelize({ logger });
+  const { database, host, port } = sequelize.config;
+  logger.info(`Successfully connected to database '${database}' at '${host}:${port}'`);
+<% } %><% if (nodemailer) { %>
+  // Initialize mailer instance
+  const mailer = await loaders.mailer();
+  logger.info('Successfully connected to SMTP server');
+<% } %><% if (redis) { %>
+  // Initialize Redis client
+  const redis = await loaders.redis();
+  logger.info('Successfully connected to Redis server');
+<% } %><% if (i18n) { %>
+  // Initialize i18n
+  const i18n = await loaders.i18n();
+  logger.info('Successfully initialized i18n resources');
+<% } %><% if (socketIo) { %>
+  // Initialize Socket.IO server
+  const socket = loaders.socketIo({ server });
+  logger.info('Successfully initialized Socket.IO server');
+<% } %><% if (admin) { %>
+  // Initialize admin panel
+  const adminBro = loaders.adminBro({ sequelize });
+<% } %>
+  // Inject dependencies
+  Container.set('logger', logger);<% if (sequelize) { %>
+  Container.set('sequelize', sequelize);<% } %><% if (nodemailer) { %>
+  Container.set('mailer', mailer);<% } %><% if (redis) { %>
+  Container.set('redis', redis);<% } %><% if (i18n) { %>
+  Container.set('i18n', i18n);<% } %><% if (socketIo) { %>
+  Container.set('socket', socket);<% } %><% if (admin) { %>
+  Container.set('adminBro', adminBro);<% } %><% if (cron) { %>
+
+  // Initialize job scheduler
+  loaders.jobScheduler();<% } %>
 
   // Start server
   startServer(app, server);
-})();
+})().catch(err => {
+  logger.error('Application initialization failed. %o', err);
+
+  process.exit(1);
+});
 
 export = server;

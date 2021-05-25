@@ -238,7 +238,6 @@ module.exports = class extends Generator {
 
     this.packages = {
       dependencies: [
-        '@kazaar/express-error-handler@3',
         'body-parser@1',
         'compression@1',
         'convict@5',
@@ -250,7 +249,6 @@ module.exports = class extends Generator {
         'helmet@4',
         'http-errors@1',
         'moment@2',
-        'moment-timezone@0.5',
         'morgan@1',
         'reflect-metadata@0',
         'serve-favicon@2',
@@ -282,8 +280,8 @@ module.exports = class extends Generator {
 
     answers.admin = !!answers.admin;
     answers.auth = !!answers.sequelize && !!answers.jwt;
-    answers.description = JSON.stringify(answers.description);
     answers.dialect = dialect;
+    answers.stubs = answers.nodemailer || answers.redis;
 
     copy('.editorconfig.ejs');
     copy('.gitattributes.ejs');
@@ -291,7 +289,7 @@ module.exports = class extends Generator {
     copy('src/config/index.ts.ejs');
     copy('src/config/logger.ts.ejs');
     copy('src/loaders/index.ts.ejs');
-    copy('src/middlewares/error-logger.ts.ejs');
+    copy('src/middlewares/error-handler.ts.ejs');
     copy('src/middlewares/index.ts.ejs');
     copy('src/public/favicon.ico');
     copy('src/routes/index.ts.ejs');
@@ -306,7 +304,7 @@ module.exports = class extends Generator {
     copy('.gitignore.ejs');
     copy('ABOUT.md.ejs');
     copy('README.md.ejs');
-    copy('package.json.ejs');
+    copy('package.json.ejs', { ...answers, description: answers.description.replace('"', '\\"') });
     copy('tsconfig.json.ejs');
     copy('tsconfig.build.json.ejs');
 
@@ -426,7 +424,8 @@ module.exports = class extends Generator {
     //
 
     if (answers.cron) {
-      this.packages.dependencies.push('node-schedule@1', '@types/node-schedule@1');
+      this.packages.dependencies.push('node-schedule@1');
+      this.packages.devDependencies.push('@types/node-schedule@1');
 
       copy('src/jobs/index.ts.ejs');
       copy('src/loaders/job-scheduler.ts.ejs');
@@ -441,15 +440,28 @@ module.exports = class extends Generator {
         '@typescript-eslint/eslint-plugin@4',
         '@typescript-eslint/parser@4',
         'eslint@7',
-        'eslint-config-airbnb-typescript@11',
+        'eslint-config-airbnb-typescript@12',
         'eslint-import-resolver-typescript@2',
-        'eslint-plugin-import@2',
-        'eslint-plugin-node@8',
-        'eslint-plugin-promise@4'
+        'eslint-plugin-import@2.22',
+        'eslint-plugin-node@11',
+        'eslint-plugin-promise@4',
+        'eslint-plugin-unused-imports@1'
       );
 
       copy('.eslintrc.json.ejs');
       copy('.eslintignore.ejs');
+
+      if (answers.prettier) {
+        this.packages.devDependencies.push('eslint-config-prettier@8', 'eslint-plugin-prettier@3');
+      }
+
+      if (answers.admin) {
+        this.packages.devDependencies.push('eslint-plugin-react@7');
+      }
+
+      if (answers.mocha) {
+        this.packages.devDependencies.push('eslint-plugin-chai-expect@2');
+      }
     }
 
     //
@@ -457,11 +469,7 @@ module.exports = class extends Generator {
     //
 
     if (answers.prettier) {
-      this.packages.devDependencies.push(
-        'eslint-config-prettier@6',
-        'eslint-plugin-prettier@3',
-        'prettier@2'
-      );
+      this.packages.devDependencies.push('prettier@2');
 
       copy('.prettierrc.ejs');
       copy('.prettierignore.ejs');
@@ -491,12 +499,11 @@ module.exports = class extends Generator {
         'mocha@7',
         'nyc@15',
         'sinon@9',
-        'supertest@4',
-        'eslint-plugin-chai-expect@2'
+        'supertest@4'
       );
 
       copy('.mocharc.json.ejs');
-      copy('.nycrc.ejs');
+      copy('.nycrc.json.ejs');
       copy('.env.test.ejs');
       copy('test/helpers/stubs/index.ts.ejs');
       copy('test/helpers/http-responses.ts.ejs');
@@ -539,8 +546,6 @@ module.exports = class extends Generator {
 
     if (answers.sentry) {
       this.packages.dependencies.push('@sentry/node@5', '@sentry/tracing@5');
-
-      copy('src/config/sentry.ts.ejs');
 
       if (answers.winston) {
         this.packages.dependencies.push('winston-transport-sentry-node@0.7');

@@ -1,17 +1,26 @@
 import { expect } from 'chai';
+import Mail from 'nodemailer/lib/mailer';
+import { SinonStubbedInstance } from 'sinon';
 import { Container } from 'typedi';
 import { EmailService } from '../../src/services';
-import { mailerStub } from '../helpers/stubs';
 
 /**
  * Mailer tests
  */
 describe('Mailer tests', () => {
+  let mailer: SinonStubbedInstance<Mail>;
+
+  before(() => {
+    mailer = Container.get('mailer');
+
+    mailer.sendMail.resetHistory();
+  });
+
   it('should send an email', async () => {
     const emailService = Container.get(EmailService);
 
     await emailService.sendMail({});
 
-    expect(mailerStub.sendMail.callCount).to.equal(1);
+    expect(mailer.sendMail.callCount).to.equal(1);
   });
 });

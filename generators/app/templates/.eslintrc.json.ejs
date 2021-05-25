@@ -5,72 +5,97 @@
   },
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 2018,
+    "ecmaVersion": 2020,
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
   "settings": {
+    "node": {
+      "tryExtensions": [".js", ".ts"<% if (admin) { %>, ".tsx"<% } %>, ".json"]
+    },
     "import/resolver": {
       "typescript": {}
-    }
+    }<% if (admin) { %>,
+    "react": {
+      "version": "detect"
+    }<% } %>
   },
   "extends": [
     "airbnb-typescript/base",
     "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:node/recommended"<% if (prettier) { %>,
-    "plugin:prettier/recommended",
-    "prettier/@typescript-eslint"<% } %>
+    "plugin:prettier/recommended"<% } %>
   ],
+  "plugins": ["unused-imports"],
   "rules": {
+    // Common rules
     "arrow-body-style": "off",
     "arrow-parens": ["error", "as-needed"],
     "implicit-arrow-linebreak": "off",
     "linebreak-style": ["error", "unix"],
-    "lines-between-class-members": [
-      "error",
-      "always",
-      {
-        "exceptAfterSingleLine": true
-      }
-    ],
+    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+    "newline-before-return": "error",
     "no-process-exit": "off",
-    "node/no-unsupported-features/es-syntax": [
-      "error",
-      {
-        "ignores": ["modules"]
-      }
-    ],
     "object-curly-newline": "off",
-    "spaced-comment": [
+    "operator-linebreak": "off",
+    "padding-line-between-statements": [
       "error",
-      "always",
+      { "blankLine": "always", "prev": "*", "next": "if" },
+      { "blankLine": "always", "prev": "*", "next": "for" },
+      { "blankLine": "always", "prev": "*", "next": "export" },
+      { "blankLine": "any", "prev": "export", "next": "export" },
+      { "blankLine": "always", "prev": "*", "next": "cjs-export" }
+    ],
+    "sort-imports": [
+      "error",
       {
-        "line": {
-          "markers": ["/"]
-        }
+        "ignoreCase": true,
+        "ignoreDeclarationSort": true
       }
     ],
+    "spaced-comment": ["error", "always", { "line": { "markers": ["/"] } }],
+    // eslint-plugin-node
+    "node/no-unsupported-features/es-syntax": ["error", { "ignores": ["modules"] }],
+    // eslint-plugin-import rules
+    "import/no-cycle": "off",
     "import/order": [
       "error",
       {
-        "groups": [
-          ["builtin", "external"],
-          ["internal", "parent", "sibling", "index"]
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        },
+        "groups": [["builtin", "external"], "internal", "parent", "sibling", "index"],
+        "newlines-between": "never",
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "external",
+            "position": "before"
+          }
         ],
-        "newlines-between": "never"
+        "pathGroupsExcludedImportTypes": ["react"]
       }
     ],
     "import/prefer-default-export": "off",
+    // @typescript-eslint/eslint-plugin rules
+    "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/ban-types": "off",
-    "@typescript-eslint/no-explicit-any": "off"
-  }<% if (mocha) { %>,
-  "overrides": [
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "next" }],
+    "@typescript-eslint/restrict-template-expressions": "off",
+    // eslint-plugin-unused-imports
+    "unused-imports/no-unused-imports": "error"
+  },
+  "overrides": [<% if (sequelize) { %>
     {
       "files": ["**/*.js"],
       "rules": {
-        "@typescript-eslint/no-var-requires": "off"
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-unused-vars": "off"
       }
-    },
+    }<% if (mocha) { %>,<% } %><% } %><% if (mocha) { %>
     {
       "files": ["./test/**/*.ts"],
       "extends": ["plugin:chai-expect/recommended"],
@@ -78,12 +103,20 @@
         "mocha": true
       },
       "rules": {
-        "no-underscore-dangle": "off",
-        "@typescript-eslint/ban-ts-comment": "off",
-        "@typescript-eslint/no-unsafe-assignment": "off",
-        "@typescript-eslint/no-unused-expressions": "off",
-        "@typescript-eslint/no-unsafe-member-access": "off"
+        "no-underscore-dangle": 0,
+        "node/no-unpublished-import": 0,
+        "@typescript-eslint/ban-ts-comment": 0,
+        "@typescript-eslint/no-unused-expressions": 0,
+        "@typescript-eslint/no-unsafe-member-access": 0
       }
-    }
-  ]<% } %>
+    }<% if (admin) { %>,<% } %><% } %><% if (admin) { %>
+    {
+      "files": ["**/*.tsx"],
+      "extends": ["plugin:react/recommended"],
+      "rules": {
+        "node/no-extraneous-import": 0,
+        "import/no-extraneous-dependencies": 0
+      }
+    }<% } %>
+  ]
 }

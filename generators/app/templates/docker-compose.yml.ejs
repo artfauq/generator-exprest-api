@@ -6,17 +6,16 @@ services:
       context: .
       dockerfile: docker/node/Dockerfile
     image: <%= shortname %>-app
+    env_file: .env
     container_name: <%= shortname %>-app<% if (sequelize || redis) { %>
-    environment:<% if (sequelize) { %>
-      - DB_HOST=db<% } %><% if (redis) { %>
-      - REDIS_HOST=redis<% } %>
     depends_on:<% if (sequelize) { %>
       - db<% } %><% if (redis) { %>
-      - redis<% } %><% } %>
+      - redis<% } %>
+    environment:<% if (sequelize) { %>
+      DB_HOST: db<% } %><% if (redis) { %>
+      REDIS_HOST: redis<% } %><% } %>
     expose:
-      - 8080
-    ports:
-      - '8080:8080'
+      - ${PORT}
     tty: true
     volumes:
       - /home/node/node_modules<% if (sequelize) { %>
@@ -27,12 +26,11 @@ services:
       dockerfile: docker/db/Dockerfile
     container_name: <%= shortname %>-db
     environment:
-      - MYSQL_DATABASE=$DB_NAME
-      - MYSQL_ROOT_PASSWORD=$DB_PASSWORD
-    expose:
-      - 3306
+      MYSQL_DATABASE: $DB_NAME
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
+      MYSQL_TCP_PORT: $DB_PORT
     ports:
-      - '3306:3306'
+      - ${DB_PORT}:${DB_PORT}
     volumes:
       - db_data:/var/lib/mysql
       - ./docker/db/my.cnf:/etc/mysql/my.cnf
@@ -40,9 +38,9 @@ services:
   migrate:
     image: <%= shortname %>-app
     container_name: <%= shortname %>-migrate
-    entrypoint: dockerize -wait tcp://db:3306 -timeout 30s npm run migrations:migrate
+    entrypoint: dockerize -wait tcp://db:{DB_PORT} -timeout 30s npm run migrations:migrate
     environment:
-      - DB_HOST=db
+      DB_HOST: db
     depends_on:
       - db
       - app<% } %><% if (redis) { %>
@@ -50,8 +48,9 @@ services:
   redis:
     image: redis:alpine
     container_name: <%= shortname %>-redis
+    command: --port ${REDIS_PORT}
     expose:
-      - 6379<% } %><% if (sequelize) { %>
+      - ${REDIS_PORT}<% } %><% if (sequelize) { %>
 
 volumes:
   db_data:<% } %>

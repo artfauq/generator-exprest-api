@@ -6,7 +6,8 @@
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": true,<% if (admin) { %>
+    "jsx": "react",<% } %>
     "lib": ["es2017"],
     "module": "commonjs",
     "moduleResolution": "node",
@@ -27,6 +28,6 @@
     "target": "es6"
   },
   "files": ["./src/types/index.d.ts"],
-  "include": [<% if (sequelize) { %>"./db/**/*", <% } %>"./src/**/*"<% if (mocha) { %>, "./test/**/*"<% } %>],
+  "include": [<% if (sequelize) { %>"./db", <% } %>"./src"<% if (mocha) { %>, "./test"<% } %>],
   "exclude": ["./node_modules", "./src/public"]
 }

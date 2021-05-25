@@ -1,4 +1,3 @@
-import { parseSequelizeConnectionError } from '@kazaar/express-error-handler';
 import { Sequelize, SequelizeOptions } from 'sequelize-typescript';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import config from '../config';
@@ -38,6 +37,6 @@ export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Sequel
 
     return sequelize;
   } catch (err) {
-    throw new Error(`failed to connect to database. ${parseSequelizeConnectionError(err)}`);
+    throw new Error(`failed to connect to database. ${err}`);
   }
 };

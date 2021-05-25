@@ -1,5 +1,5 @@
 // Export middlewares from here
 
-export * from './error-logger';<% if (jwt) { %>
+export * from './error-handler';<% if (jwt) { %>
 export * from './jwt';<% } %><% if (celebrate) { %>
 export * as validation from './validation';<% } %>

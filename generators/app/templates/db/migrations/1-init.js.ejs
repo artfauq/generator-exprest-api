@@ -1,4 +1,14 @@
+/**
+ * @typedef {import('sequelize').QueryInterface} QueryInterface
+ * @typedef {import('sequelize')} Sequelize
+ */
+
 module.exports = {
+  /**
+   * @param {QueryInterface} queryInterface
+   * @param {Sequelize} Sequelize
+   * @returns {Promise<void>}
+   */
   up: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.transaction(async transaction => {
       await queryInterface.createTable(
@@ -53,7 +63,12 @@ module.exports = {
     });
   },
 
-  down: async queryInterface => {
+  /**
+   * @param {QueryInterface} queryInterface
+   * @param {Sequelize} Sequelize
+   * @returns {Promise<void>}
+   */
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.transaction(async transaction => {
       await queryInterface.dropTable('user', { transaction });
     });

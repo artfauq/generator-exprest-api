@@ -97,7 +97,7 @@ export default class UserModel extends Model<UserModel> {
   /**
    * Returns a new JWT for this user.
    */
-  async generateJWT(): Promise<string> {
+  generateJWT(): string {
     return generateSignedJWT(this.id, this.password, {
       name: this.fullName,
       email: this.email,

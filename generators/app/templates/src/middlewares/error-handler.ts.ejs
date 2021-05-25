@@ -1,0 +1,175 @@
+<% if (eslint) { %>/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+<% } %><% if (celebrate) { %>import { ValidationError } from '@hapi/joi';
+<% } %>import { ErrorRequestHandler } from 'express';<% if (jwt) { %>
+import { UnauthorizedError } from 'express-jwt';<% } %>
+import createHttpError, { isHttpError } from 'http-errors';<% if (i18n) { %>
+import { i18n as I18n } from 'i18next';<% } %><% if (sequelize) { %>
+import { DatabaseError } from 'sequelize';<% } %>
+import { Container } from 'typedi';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
+import config from '../config';<% if (celebrate) { %>
+
+interface CelebrateError extends Error {
+  joi: ValidationError;
+}
+
+/**
+ * Returns `true` if the error originated from the `celebrate` middleware.
+ */
+function isCelebrateError(err: any): err is CelebrateError {
+  return err != null && typeof err === 'object' && (<CelebrateError>err).joi !== undefined;
+}
+
+/**
+ * Middleware used to parse `celebrate` errors.
+ */
+export const celebrateErrorParser = (): ErrorRequestHandler => (err, req, res, next) => {
+  if (!isCelebrateError(err)) {
+    return next(err);
+  }
+
+  let { message } = err;
+
+  if (err.joi) {
+    const { details } = err.joi;
+
+    message = details ? details[0].message : err.joi.message;
+  }
+
+  const error = createHttpError(400, err, { message });
+
+  return next(error);
+};<% } %><% if (jwt) { %>
+
+/**
+ * Parses an `express-jwt` error into a readable error message.
+ */
+const parseJwtErrorMessage = (err: UnauthorizedError): string => {<% if (i18n) { %>
+  const i18n = Container.get<I18n>('i18n');
+  const defaultMessage = i18n.t('errors:invalidAuthentication');<% } else { %>
+  const defaultMessage = 'Invalid authentication.';<% } %>
+
+  if (config.isProduction) {
+    return defaultMessage;
+  }
+
+  switch (err.code) {
+    case 'credentials_bad_scheme':
+    case 'credentials_bad_format':
+    case 'credentials_required':
+    case 'revoked_token':
+      return err.message;
+
+    case 'invalid_token':
+      return <% if (i18n) { %>i18n.t('errors:invalidToken')<% } else { %>'Invalid token.'<% } %>;
+
+    default:
+      return defaultMessage;
+  }
+};
+
+/**
+ * Middleware used to parse `express-jwt` errors.
+ */
+export const jwtErrorParser = (): ErrorRequestHandler => {
+  return (err, req, res, next) => {
+    if (!(err instanceof UnauthorizedError)) {
+      return next(err);
+    }
+
+    const message = parseJwtErrorMessage(err);
+    const error = createHttpError(401, err, { message });
+
+    return next(error);
+  };
+};<% } %><% if (sequelize) { %>
+
+/**
+ * Middleware used to parse `sequelize` errors.
+ */
+export const sequelizeErrorParser = (): ErrorRequestHandler => {
+  return (err, req, res, next) => {
+    if (!(err instanceof DatabaseError)) {
+      return next(err);
+    }
+
+    const message = `${err.message}. Query: ${err.sql}`;
+    const error = createHttpError(500, err, { message });
+
+    return next(error);
+  };
+};<% } %>
+
+/**
+ * Middleware used to log errors with the configured `logger`.
+ */
+export const errorLogger = (): ErrorRequestHandler => (err, req, res, next) => {
+  const logger = Container.get<<%= loggerType %>>('logger');
+
+  if (isHttpError(err) && err.statusCode < 500) {
+    logger.warn('%o', err);
+  } else {
+    logger.error('%o', err);
+  }
+
+  next(err);
+};
+
+/**
+ * Parses an error to retrieve its HTTP `status`.
+ */
+const parseErrorStatus = (err: { status?: number | string }): number => {
+  if (!err.status) {
+    return 500;
+  }
+
+  return typeof err.status === 'number' ? err.status : parseInt(err.status, 10);
+};
+
+/**
+ * Parses an error to retrieve its `message`.
+ */
+const parseErrorMessage = (err: { message?: string }, status: number): string => {<% if (i18n) { %>
+  const i18n = Container.get<I18n>('i18n');
+<% } %>
+  return status >= 500 && config.isProduction
+    ? <% if (i18n) { %>i18n.t('errors:internalServerError')<% } else { %>'Internal server error'<% } %>
+    : err.message || `${err}`;
+};
+
+/**
+ * Middleware used to handle HTTP error responses.
+ *
+ * This middleware should be declared after all other middlewares as it will end the response
+ * process.
+ */
+export const httpErrorHandler = (): ErrorRequestHandler => {
+  return (err, req, res, next) => {
+    // Parse error status
+    const status = parseErrorStatus(err);
+
+    // Parse error message
+    const message = parseErrorMessage(err, status);
+
+    // Format HTTP error
+    const error = createHttpError(status, message);
+
+    // Set response status
+    res.status(error.status);
+
+    // Set response content according to acceptable format
+    res.format({
+      text: () => {
+        res.send(`Error ${error.status} - ${error.name}: ${error.message}`);
+      },
+
+      json: () => {
+        res.json({
+          status: error.status,
+          name: error.name,
+          message: error.message,
+        });
+      },
+    });
+  };
+};

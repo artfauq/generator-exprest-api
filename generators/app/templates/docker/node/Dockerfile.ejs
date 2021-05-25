@@ -71,10 +71,9 @@ COPY --chown=node:node --from=build /home/node/app/.sequelizerc .<% } %>
 COPY --chown=node:node --from=build /home/node/app/db ./db
 COPY --chown=node:node --from=build /home/node/app/dist ./dist
 COPY --chown=node:node --from=build /home/node/app/package*.json ./
-COPY --chown=node:node --from=build /home/node/node_modules ./node_modules
 
-# Remove dev dependencies
-RUN npm prune --production
+# Install only production dependencies
+RUN npm i --only=production
 
 # Expose desired port
 EXPOSE 8080

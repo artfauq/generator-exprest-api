@@ -1,8 +1,7 @@
 <% if (admin) { %>import AdminBroExpress from '@admin-bro/express';
-<% } %>import { <% if (celebrate) { %>celebrateErrorParser, <% } %>httpErrorHandler, parseServerError<% if (sequelize) { %>, sequelizeErrorParser<% } %> } from '@kazaar/express-error-handler';<% if (sentry) { %>
-import * as Sentry from '@sentry/node';<% } %><% if (admin) { %>
-import AdminBro from 'admin-bro';<% } %>
-import bodyParser from 'body-parser';
+<% } %><% if (sentry) { %>import * as Sentry from '@sentry/node';
+<% } %><% if (admin) { %>import AdminBro from 'admin-bro';
+<% } %>import bodyParser from 'body-parser';
 import compression from 'compression';
 import cors from 'cors';
 import express, { Application } from 'express';
@@ -10,7 +9,7 @@ import rateLimit from 'express-rate-limit';<% if (monitoring) { %>
 import statusMonitor from 'express-status-monitor';<% } %>
 import helmet from 'helmet';
 import { Server } from 'http';
-import { <% if (sentry) { %>InternalServerError, <% } %>TooManyRequests } from 'http-errors';<% if (i18n) { %>
+import { TooManyRequests } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';
 import i18nHttpMiddleware from 'i18next-http-middleware';<% } %>
 import path from 'path';
@@ -19,54 +18,28 @@ import favicon from 'serve-favicon';<% if (monitoring && socketIo) { %>
 import SocketIO from 'socket.io';<% } %>
 import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-import config from './config';<% if (sentry) { %>
-import './config/sentry';<% } %>
-import { errorLogger<% if (jwt) { %>, jwtErrorParser<% } %> } from './middlewares';
+import config from './config';
+import {<% if (celebrate) { %>
+  celebrateErrorParser,<% } %>
+  errorLogger,
+  httpErrorHandler,<% if (jwt) { %>
+  jwtErrorParser,<% } %><% if (sequelize) { %>
+  sequelizeErrorParser,<% } %>
+} from './middlewares';
 import router from './routes';
 
-export default (app: Application, server: Server): void => {<% if (admin) { %>
-  /**
-   * AdminBro panel configuration
-   */
-  const adminBro = Container.get<AdminBro>('adminBro');
+export default (app: Application, server: Server): void => {
+  const logger = Container.get<<%= loggerType %>>('logger');<% if (admin) { %>
+  const adminBro = Container.get<AdminBro>('adminBro');<% } %><% if (i18n) { %>
+  const i18n = Container.get<I18n>('i18n');<% } %>
 
-  app.use(config.admin.path, AdminBroExpress.buildRouter(adminBro));
-<% } %><% if (sentry) { %>
-  /**
-   * Sentry middlewares configuration
-   */
-  app.use(Sentry.Handlers.requestHandler());
-  app.use(Sentry.Handlers.tracingHandler());
-<% } %><% if (i18n) { %>
-  /**
-   * I18n HTTP middleware configuration
-   */
-  const i18n = Container.get<I18n>('i18n');
-
-  app.use(i18nHttpMiddleware.handle(i18n));
-  app.use((req, res, next) => {
-    if (req.i18n) {
-      Container.set('i18n', req.i18n);
-    }
-
-    next();
-  });
-<% } %>
-  /**
-   * App configuration
-   */
-  app.enable('trust proxy');<% if (monitoring) { %>
-  app.use(
-    statusMonitor({
-      path: '/status',
-      title: '<%= name %> | Monitoring',<% if (socketIo) { %>
-      websocket: Container.get<SocketIO.Server>('socket'),<% } %>
-    }),
-  );<% } %>
+  app.enable('trust proxy');
   app.use(bodyParser.json());
   app.use(compression());
-  app.use(cors({ origin: true, credentials: true }));
+  app.use(cors());
   app.use(helmet());
+
+  // Rate limiting configuration
   app.use(
     rateLimit({
       windowMs: 10 * 60 * 1000, // 10 minutes
@@ -75,66 +48,80 @@ export default (app: Application, server: Server): void => {<% if (admin) { %>
       statusCode: new TooManyRequests().statusCode,
       skip: () => !config.isProduction,
     }),
-  );
-  app.use(favicon(path.resolve(`${__dirname}/public/favicon.ico`)));
+  );<% if (monitoring) { %>
 
-  /**
-   * Public assets
-   */
-  app.use('/public', express.static(path.resolve(`${__dirname}/public`)));<% if (sentry) { %>
+  // Status monitoring configuration
+  app.use(
+    statusMonitor({
+      path: '/status',
+      title: '<%= name %> | Monitoring',<% if (socketIo) { %>
+      websocket: Container.get<SocketIO.Server>('socket'),<% } %>
+    }),
+  );<% } %><% if (admin) { %>
 
-  /**
-   * Sentry debug route
-   */
+  // AdminBro panel configuration
+  app.use(config.admin.path, AdminBroExpress.buildRouter(adminBro));<% } %><% if (sentry) { %>
+
+  // Sentry middleware configuration
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());<% } %><% if (i18n) { %>
+
+  // i18n middleware configuration
+  app.use(i18nHttpMiddleware.handle(i18n));
+  app.use((req, res, next) => {
+    if (req.i18n) {
+      Container.set('i18n', req.i18n);
+    }
+
+    next();
+  });<% } %><% if (openapi) { %>
+
+  // API documentation
+  app.use('/doc', express.static(path.resolve(`${__dirname}/public/doc`)));<% } %>
+
+  // Public assets
+  app.use('/public', express.static(path.resolve(`${__dirname}/public`)));
+  app.use(favicon(path.resolve(`${__dirname}/public/favicon.ico`)));<% if (sentry) { %>
+
+  // Sentry debug route
   app.get('/sentry-debug', () => {
-    throw new InternalServerError('Sentry error!');
+    throw new Error('Sentry error');
   });<% } %>
 
-  /**
-   * Health route
-   */
+  // Health route
   app.get('/health', (req, res) => res.sendStatus(204));
 
-  /**
-   * Routing configuration
-   */
+  // Routing configuration
   app.use(router);
 
-  /**
-   * Error handling
-   */
-  const logger = Container.get<<%= loggerType %>>('logger');
-<% if (jwt) { %>
+  // Error handling<% if (jwt) { %>
   app.use(jwtErrorParser());<% } %><% if (celebrate) { %>
   app.use(celebrateErrorParser());<% } %><% if (sequelize) { %>
   app.use(sequelizeErrorParser());<% } %>
-  app.use(errorLogger(logger));<% if (sentry) { %>
+  app.use(errorLogger());<% if (sentry) { %>
   app.use(Sentry.Handlers.errorHandler());<% } %>
   app.use(httpErrorHandler());
 
-  /**
-   * Start listing on port defined
-   */
+  // Start listening on configured port
   server
     .listen(config.port, () => {
       logger.info(`App is running on port ${config.port} in ${config.env} mode`);
     })
     .on('error', err => {
-      logger.error('%o', parseServerError(err));
+      logger.error('%o', err);
 
       process.exit(1);
     });
 
-  /**
-   * Catch uncaught exceptions and promise rejections
-   */
+  // Handle uncaught exceptions
   process.on('uncaughtException', err => {
-    logger.error('Uncaught Exception - %o', err);
+    <% if (sentry) { %>Sentry.captureException(err);<% } else { %>logger.error('Uncaught exception - %o', err);<% } %>
 
     process.exit(1);
   });
 
+  // Catch unhandled promise rejections
   process.on('unhandledRejection', err => {
-    logger.error('Unhandled Rejection - %o', err);
+    <% if (sentry) { %>Sentry.captureException(err);<% } else { %>logger.error('Unhandled rejection - %o', err);<% } %>
   });
 };
