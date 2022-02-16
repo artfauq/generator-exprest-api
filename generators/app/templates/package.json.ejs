@@ -10,12 +10,14 @@
     "tsc:build": "tsc -p ./tsconfig.build.json",
     "clean": "rimraf ./dist",
     "copy-assets": "cpx 'src/**/*.!(ts)' 'dist'",<% if (mocha) { %>
-    "test": "cross-env NODE_ENV=test nyc mocha",<% } %><% if (sequelize) { %>
-    "db:create": "sequelize db:create --env",
-    "db:drop": "sequelize db:drop --env",
+    "test": "cross-env NODE_ENV=test nyc mocha",<% if (sequelize) { %>
+    "pretest": "cross-env NODE_ENV=test run-s db:reset",<% } %><% } %><% if (sequelize) { %>
+    "db:create": "sequelize db:create",
+    "db:drop": "sequelize db:drop",
     "db:seed": "sequelize db:seed:all",
     "db:migrate": "sequelize db:migrate",
     "db:migrate:undo": "sequelize db:migrate:undo",
+    "db:reset": "run-s db:drop db:create db:migrate db:seed",
     "migrations:create": "sequelize migration:generate --name",
     "seeders:create": "sequelize seed:generate --name",<% } %>
     "lint": "tsc --noEmit<% if (eslint) { %> && eslint \"**/*.{js,ts<% if (admin) { %>,tsx<% } %>}\"<% } %><% if (prettier) { %> && prettier --check --ignore-unknown .<% } %>"<% if (eslint || prettier) { %>,

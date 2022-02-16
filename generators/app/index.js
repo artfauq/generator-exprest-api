@@ -324,7 +324,7 @@ module.exports = class extends Generator {
 
       copy('db/migrations/1-init.js.ejs');
       copy('db/seeders/empty');
-      copy('db/database.js.ejs');
+      copy('db/config.js.ejs');
       copy('src/models/index.ts.ejs');
       copy('src/models/user.ts.ejs');
       copy('src/loaders/sequelize.ts.ejs');

@@ -2,22 +2,10 @@ const convict = require('convict');
 const dotenv = require('dotenv');
 const path = require('path');
 
-// Evaluate current environment
-let env = process.env.NODE_ENV || 'development';
-
-// Parse CLI env argument
-const envArgIndex = process.argv.findIndex(arg => arg === '--env');
-
-if (envArgIndex !== -1) {
-  env = process.argv[envArgIndex + 1];
-}
-
 /**
  * Load environment variables
  */
-const envFile = env === 'test' ? '.env.test' : '.env';
-
-dotenv.config({ path: path.resolve(__dirname, '..', envFile) });
+dotenv.config();
 
 const config = convict({
   dialect: {
