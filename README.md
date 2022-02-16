@@ -37,7 +37,7 @@
 First, install [Yeoman](http://yeoman.io) and generator-exprest-api using [npm](https://www.npmjs.com/).
 
 ```bash
-npm install -g yo generator-exprest-api
+yarn global add yo generator-exprest-api
 ```
 
 ## Usage
