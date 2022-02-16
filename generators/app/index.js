@@ -17,7 +17,7 @@ module.exports = class extends Generator {
         name: 'shortname',
         message: `Package ${yellow('shortname')} [ex: ${gray('rest-api')}]`,
         validate: input =>
-          (validate(input).validForNewPackages && new RegExp(/^[a-zA-Z0-9_-]*$/).test(input)) ||
+          (validate(input).validForNewPackages && /^[a-zA-Z0-9_-]*$/.test(input)) ||
           'Must be a valid package name',
       },
       {
