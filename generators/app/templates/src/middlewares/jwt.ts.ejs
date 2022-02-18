@@ -1,4 +1,6 @@
-import jwt<% if (auth) { %>, { UnauthorizedError }<% } %> from 'express-jwt';<% if (auth && i18n) { %>
+import { ErrorRequestHandler<% if (auth) { %>, Request<% } %> } from 'express';
+import jwt, { UnauthorizedError } from 'express-jwt';
+import { Unauthorized } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';
 import { Container } from 'typedi';<% } %>
 import config from '../config';<% if (auth) { %>
@@ -10,7 +12,7 @@ import { getJwtSecret } from '../utils/jwt';
  * Callback used to dynamically retrieve the secret used to sign a JWT.
  */
 const secretCallback = (
-  req: Express.Request,
+  req: Request,
   payload: DecodedJWT,
   done: (err: any, secret: string) => void,
 ) => {<% if (i18n) { %>
@@ -65,4 +67,22 @@ export const auth = {
     credentialsRequired: false,
     requestProperty: 'auth',
   }),
+};
+
+/**
+ * Middleware used to parse `JWT` authentication errors.
+ */
+export const jwtErrorHandler = (): ErrorRequestHandler => {<% if (i18n) { %>
+  const i18n = Container.get<I18n>('i18n');
+<% } %>
+  return (err, req, res, next) => {
+    if (err instanceof UnauthorizedError) {
+      const message = config.isProduction ? <% if (i18n) { %>i18n.t('errors:invalidAuthentication')<% } else { %>'Invalid authentication.'<% } %> : err.message;
+      const error = Object.assign(new Unauthorized(), err, { message });
+
+      return next(error);
+    }
+
+    return next(err);
+  };
 };

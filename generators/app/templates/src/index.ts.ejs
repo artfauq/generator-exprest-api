@@ -21,6 +21,10 @@ Sentry.init({
     new Sentry.Integrations.Http({ tracing: true }),
     // Enable Express.js middleware tracing
     new Tracing.Integrations.Express({ router }),
+    // Enable uncaught exceptions tracing
+    new Sentry.Integrations.OnUncaughtException(),
+    // Enable unhandled rejections tracing
+    new Sentry.Integrations.OnUnhandledRejection(),
   ],
 });<% } %>
 

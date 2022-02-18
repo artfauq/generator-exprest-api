@@ -16,7 +16,7 @@ export default async (): Promise<Mail> => {
     if (config.smtp.user) {
       options.auth = {
         user: config.smtp.user,
-        pass: config.smtp.pass,
+        pass: config.smtp.password,
       };
     } else {
       const testAccount = await createTestAccount();

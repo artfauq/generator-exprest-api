@@ -32,13 +32,13 @@
     // Common rules
     "arrow-body-style": "off",
     "arrow-parens": ["error", "as-needed"],
+    "class-methods-use-this": "off",
     "implicit-arrow-linebreak": "off",
     "linebreak-style": ["error", "unix"],
     "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
     "newline-before-return": "error",
     "no-process-exit": "off",
     "object-curly-newline": "off",
-    "operator-linebreak": "off",
     "padding-line-between-statements": [
       "error",
       { "blankLine": "always", "prev": "*", "next": "if" },
@@ -67,7 +67,7 @@
           "caseInsensitive": true
         },
         "groups": [["builtin", "external"], "internal", "parent", "sibling", "index"],
-        "newlines-between": "never",
+        "newlines-between": "never"<% if (admin) { %>,
         "pathGroups": [
           {
             "pattern": "react",
@@ -75,7 +75,7 @@
             "position": "before"
           }
         ],
-        "pathGroupsExcludedImportTypes": ["react"]
+        "pathGroupsExcludedImportTypes": ["react"]<% } %>
       }
     ],
     "import/prefer-default-export": "off",
@@ -103,19 +103,19 @@
         "mocha": true
       },
       "rules": {
-        "no-underscore-dangle": 0,
-        "node/no-unpublished-import": 0,
-        "@typescript-eslint/ban-ts-comment": 0,
-        "@typescript-eslint/no-unused-expressions": 0,
-        "@typescript-eslint/no-unsafe-member-access": 0
+        "no-underscore-dangle": "off",
+        "node/no-unpublished-import": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/no-unused-expressions": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off"
       }
     }<% if (admin) { %>,<% } %><% } %><% if (admin) { %>
     {
       "files": ["**/*.tsx"],
       "extends": ["plugin:react/recommended"],
       "rules": {
-        "node/no-extraneous-import": 0,
-        "import/no-extraneous-dependencies": 0
+        "node/no-extraneous-import": "off",
+        "import/no-extraneous-dependencies": "off"
       }
     }<% } %>
   ]

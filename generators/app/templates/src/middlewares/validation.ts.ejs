@@ -1,26 +1,11 @@
 import Joi from '@hapi/joi';
 import { celebrate } from 'celebrate';
 
-// Declare here custom Joi extensions
-
-const stringArray = (joi: typeof Joi): Joi.Extension => ({
-  name: 'stringArray',
-  base: joi.array(),
-  // eslint-disable-next-line
-  coerce: (value, state, options) => (value?.split ? value.split(',') : value),
-});
-
-interface ExtendedJoi extends Joi.Root {
-  stringArray(): Joi.ArraySchema;
-}
-
-const customJoi: ExtendedJoi = Joi.extend(stringArray) as ExtendedJoi;
-
 // Declare here custom validation schemas
-
 const schemas = {
   id: Joi.number().integer().positive(),
+  email: Joi.string().email(),
   uuid: Joi.string().guid(),
 };
 
-export { celebrate, customJoi as Joi, schemas };
+export { celebrate, Joi, schemas };

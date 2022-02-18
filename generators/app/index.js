@@ -238,39 +238,39 @@ module.exports = class extends Generator {
 
     this.packages = {
       dependencies: [
-        'body-parser@1',
-        'compression@1',
-        'convict@5',
-        'cors@2',
-        'dotenv@8',
-        'express@4',
-        'express-promise-router@3',
-        'express-rate-limit@5',
-        'helmet@4',
-        'http-errors@1',
-        'moment@2',
-        'morgan@1',
-        'reflect-metadata@0',
-        'serve-favicon@2',
-        'typedi@0',
+        'body-parser@^1.19.1',
+        'compression@^1.7.4',
+        'convict@^5.2.1',
+        'cors@^2.8.5',
+        'dotenv@^8.6.0',
+        'express@^4.17.1',
+        'express-promise-router@^3.0.3',
+        'express-rate-limit@^5.5.1',
+        'helmet@^4.6.0',
+        'http-errors@^1.8.1',
+        'moment@^2.29.1',
+        'morgan@^1.10.0',
+        'reflect-metadata@^0.1.13',
+        'serve-favicon@^2.5.0',
+        'typedi@^0.10.0',
       ],
       devDependencies: [
-        '@types/compression@1',
-        '@types/convict@4',
-        '@types/cors@2',
-        '@types/express@4',
-        '@types/express-rate-limit@5',
-        '@types/http-errors@1',
-        '@types/morgan@1',
-        '@types/node@12',
-        '@types/serve-favicon@2',
-        'cpx@1',
-        'cross-env@7',
-        'npm-run-all@4',
-        'rimraf@3',
-        'ts-node@8',
-        'tsc-watch@4',
-        'typescript@4',
+        '@types/compression@^1.7.2',
+        '@types/convict@^5.2.1',
+        '@types/cors@^2.8.12',
+        '@types/express@^4.17.13',
+        '@types/express-rate-limit@^5.1.3',
+        '@types/http-errors@^1',
+        '@types/morgan@^1.9.3',
+        '@types/node@^12.12.9',
+        '@types/serve-favicon@^2.5.0',
+        'cpx@^1.5.0',
+        'cross-env@^7.0.3',
+        'npm-run-all@^4.1.5',
+        'rimraf@^3.0.2',
+        'ts-node@^8.10.2',
+        'tsc-watch@^4.6.0',
+        'typescript@^4.4.4',
       ],
     };
 
@@ -299,7 +299,6 @@ module.exports = class extends Generator {
     copy('src/types/index.ts.ejs');
     copy('src/index.ts.ejs');
     copy('src/server.ts.ejs');
-    copy('.env.ejs');
     copy('.env.example.ejs');
     copy('.gitignore.ejs');
     copy('ABOUT.md.ejs');
@@ -314,13 +313,13 @@ module.exports = class extends Generator {
 
     if (answers.sequelize) {
       this.packages.dependencies.push(
-        'bcryptjs@2',
-        'sequelize@5',
-        'sequelize-cli@5',
-        'sequelize-typescript@1',
+        'bcryptjs@^2.4.3',
+        'sequelize@^5.22.5',
+        'sequelize-cli@^5.5.1',
+        'sequelize-typescript@^1.1.0',
         ...dialect.packages
       );
-      this.packages.devDependencies.push('@types/bcryptjs@2', '@types/bluebird@3');
+      this.packages.devDependencies.push('@types/bcryptjs@^2.4.2', '@types/bluebird@^3.5.36');
 
       copy('db/migrations/1-init.js.ejs');
       copy('db/seeders/empty');
@@ -336,8 +335,8 @@ module.exports = class extends Generator {
     //
 
     if (answers.redis) {
-      this.packages.dependencies.push('redis@3');
-      this.packages.devDependencies.push('@types/redis@2');
+      this.packages.dependencies.push('redis@^3.1.2');
+      this.packages.devDependencies.push('@types/redis@^2.8.32');
 
       copy('src/loaders/redis.ts.ejs');
     }
@@ -348,11 +347,14 @@ module.exports = class extends Generator {
 
     if (answers.socketIo) {
       this.packages.dependencies.push(
-        '@ssnxd/socketio-jwt@4',
-        'socket.io@2',
-        'socket.io-client@2.3'
+        '@ssnxd/socketio-jwt@^4.5.3',
+        'socket.io@^2.4.1',
+        'socket.io-client@^2.3.0'
       );
-      this.packages.devDependencies.push('@types/socket.io@2', '@types/socket.io-client@1');
+      this.packages.devDependencies.push(
+        '@types/socket.io@^2.1.13',
+        '@types/socket.io-client@^1.4.36'
+      );
 
       copy('src/loaders/socket-io.ts.ejs');
     }
@@ -362,7 +364,7 @@ module.exports = class extends Generator {
     //
 
     if (answers.i18n) {
-      this.packages.dependencies.push('i18next@19', 'i18next-http-middleware@3');
+      this.packages.dependencies.push('i18next@^19.9.2', 'i18next-http-middleware@^3.2.0');
 
       copy('src/locale/en.json.ejs');
       copy('src/locale/index.ts.ejs');
@@ -374,7 +376,7 @@ module.exports = class extends Generator {
     //
 
     if (answers.winston) {
-      this.packages.dependencies.push('winston@3');
+      this.packages.dependencies.push('winston@^3.6.0');
 
       copy('src/config/logger.ts.ejs');
     }
@@ -384,8 +386,8 @@ module.exports = class extends Generator {
     //
 
     if (answers.celebrate) {
-      this.packages.dependencies.push('@hapi/joi@15', 'celebrate@10');
-      this.packages.devDependencies.push('@types/hapi__joi@15');
+      this.packages.dependencies.push('@hapi/joi@^15.1.1', 'celebrate@^10.1.0');
+      this.packages.devDependencies.push('@types/hapi__joi@^15.0.4');
 
       copy('src/middlewares/validation.ts.ejs');
     }
@@ -395,11 +397,11 @@ module.exports = class extends Generator {
     //
 
     if (answers.jwt) {
-      this.packages.dependencies.push('jsonwebtoken@8', 'express-jwt@6', 'uuid@8');
+      this.packages.dependencies.push('jsonwebtoken@^8.5.1', 'express-jwt@^6.1.0', 'uuid@^8.3.2');
       this.packages.devDependencies.push(
-        '@types/express-jwt@0',
-        '@types/jsonwebtoken@8',
-        '@types/uuid@8'
+        '@types/express-jwt@^0.0.42',
+        '@types/jsonwebtoken@^8.5.8',
+        '@types/uuid@^8.3.4'
       );
 
       copy('src/utils/jwt.ts.ejs');
@@ -412,8 +414,8 @@ module.exports = class extends Generator {
     //
 
     if (answers.nodemailer) {
-      this.packages.dependencies.push('nodemailer@6');
-      this.packages.devDependencies.push('@types/nodemailer@6');
+      this.packages.dependencies.push('nodemailer@^6.7.2');
+      this.packages.devDependencies.push('@types/nodemailer@^6.4.4');
 
       copy('src/loaders/mailer.ts.ejs');
       copy('src/services/email.ts.ejs');
@@ -424,8 +426,8 @@ module.exports = class extends Generator {
     //
 
     if (answers.cron) {
-      this.packages.dependencies.push('node-schedule@1');
-      this.packages.devDependencies.push('@types/node-schedule@1');
+      this.packages.dependencies.push('node-schedule@^1.3.3');
+      this.packages.devDependencies.push('@types/node-schedule@^1.3.2');
 
       copy('src/jobs/index.ts.ejs');
       copy('src/loaders/job-scheduler.ts.ejs');
@@ -437,30 +439,33 @@ module.exports = class extends Generator {
 
     if (answers.eslint) {
       this.packages.devDependencies.push(
-        '@typescript-eslint/eslint-plugin@4',
-        '@typescript-eslint/parser@4',
-        'eslint@7',
-        'eslint-config-airbnb-typescript@12',
-        'eslint-import-resolver-typescript@2',
-        'eslint-plugin-import@2.22',
-        'eslint-plugin-node@11',
-        'eslint-plugin-promise@4',
-        'eslint-plugin-unused-imports@1'
+        '@typescript-eslint/eslint-plugin@^4.33.0',
+        '@typescript-eslint/parser@^4.33.0',
+        'eslint@^7.32.0',
+        'eslint-config-airbnb-typescript@^12.3.1',
+        'eslint-import-resolver-typescript@^2.5.0',
+        'eslint-plugin-import@^2.22.1',
+        'eslint-plugin-node@^11.1.0',
+        'eslint-plugin-promise@^4.3.1',
+        'eslint-plugin-unused-imports@^1.1.5'
       );
 
       copy('.eslintrc.json.ejs');
       copy('.eslintignore.ejs');
 
       if (answers.prettier) {
-        this.packages.devDependencies.push('eslint-config-prettier@8', 'eslint-plugin-prettier@3');
+        this.packages.devDependencies.push(
+          'eslint-config-prettier@^8',
+          'eslint-plugin-prettier@^3'
+        );
       }
 
       if (answers.admin) {
-        this.packages.devDependencies.push('eslint-plugin-react@7');
+        this.packages.devDependencies.push('eslint-plugin-react@^7');
       }
 
       if (answers.mocha) {
-        this.packages.devDependencies.push('eslint-plugin-chai-expect@2');
+        this.packages.devDependencies.push('eslint-plugin-chai-expect@^2');
       }
     }
 
@@ -469,7 +474,7 @@ module.exports = class extends Generator {
     //
 
     if (answers.prettier) {
-      this.packages.devDependencies.push('prettier@2');
+      this.packages.devDependencies.push('prettier@^2.5.1');
 
       copy('.prettierrc.ejs');
       copy('.prettierignore.ejs');
@@ -480,7 +485,7 @@ module.exports = class extends Generator {
     //
 
     if (answers.hook) {
-      this.packages.devDependencies.push('husky@4', 'lint-staged@10');
+      this.packages.devDependencies.push('husky@^4.3.8', 'lint-staged@^10.5.4');
 
       copy('.huskyrc.json.ejs');
     }
@@ -491,20 +496,19 @@ module.exports = class extends Generator {
 
     if (answers.mocha) {
       this.packages.devDependencies.push(
-        '@types/sinon@9',
-        '@types/chai@4',
-        '@types/mocha@8',
-        '@types/supertest@2',
-        'chai@4',
-        'mocha@7',
-        'nyc@15',
-        'sinon@9',
-        'supertest@4'
+        '@types/sinon@^9.0.10',
+        '@types/chai@^4.3.0',
+        '@types/mocha@^8.2.3',
+        '@types/supertest@^2.0.11',
+        'chai@^4.3.6',
+        'mocha@^8.4.0',
+        'nyc@^15',
+        'sinon@^9.2.4',
+        'supertest@^4.0.2'
       );
 
-      copy('.mocharc.json.ejs');
+      copy('.mocharc.js.ejs');
       copy('.nycrc.json.ejs');
-      copy('.env.test.ejs');
       copy('test/helpers/stubs/index.ts.ejs');
       copy('test/helpers/http-responses.ts.ejs');
       copy('test/helpers/index.ts.ejs');
@@ -517,7 +521,7 @@ module.exports = class extends Generator {
       }
 
       if (answers.redis) {
-        this.packages.devDependencies.push('redis-mock@0', '@types/redis-mock@0');
+        this.packages.devDependencies.push('redis-mock@^0.56.3', '@types/redis-mock@^0.17.0');
 
         copy('test/helpers/stubs/redis.ts.ejs');
       }
@@ -545,10 +549,10 @@ module.exports = class extends Generator {
     //
 
     if (answers.sentry) {
-      this.packages.dependencies.push('@sentry/node@5', '@sentry/tracing@5');
+      this.packages.dependencies.push('@sentry/node@^5.30.0', '@sentry/tracing@^5.30.0');
 
       if (answers.winston) {
-        this.packages.dependencies.push('winston-transport-sentry-node@0.7');
+        this.packages.dependencies.push('winston-transport-sentry-node@^2.3.0');
       }
     }
 
@@ -558,20 +562,16 @@ module.exports = class extends Generator {
 
     if (answers.admin) {
       this.packages.dependencies.push(
-        '@admin-bro/design-system@1',
-        '@admin-bro/express@3',
-        '@admin-bro/sequelize@1',
-        'admin-bro@3',
-        'express-formidable@1',
-        'express-session@1',
-        'tslib'
+        '@admin-bro/design-system@^1.7.3',
+        '@admin-bro/express@^3.1.0',
+        '@admin-bro/sequelize@^1.2.1',
+        'admin-bro@^3.4.0',
+        'express-formidable@^1.2.0',
+        'express-session@^1.17.2',
+        'tslib@^2.3.1'
       );
 
-      this.packages.devDependencies.push(
-        '@types/express-session@1',
-        '@types/react-router-dom@5',
-        '@types/styled-components@5'
-      );
+      this.packages.devDependencies.push('@types/express-session@^1.17.4');
 
       copy('src/admin/components/empty');
       copy('src/admin/locale/en.ts.ejs');
@@ -594,11 +594,6 @@ module.exports = class extends Generator {
       copy('docker-compose.dev.yml.ejs');
       copy('docker-compose.prod.yml.ejs');
       copy('.dockerignore.ejs');
-
-      if (answers.sequelize) {
-        copy('docker/db/Dockerfile.ejs');
-        copy('docker/db/my.cnf.ejs');
-      }
     }
 
     //
@@ -615,8 +610,8 @@ module.exports = class extends Generator {
     //
 
     if (answers.monitoring) {
-      this.packages.dependencies.push('express-status-monitor@1');
-      this.packages.devDependencies.push('@types/express-status-monitor@1');
+      this.packages.dependencies.push('express-status-monitor@^1.3.3');
+      this.packages.devDependencies.push('@types/express-status-monitor@^1.2.4');
     }
 
     //
@@ -651,14 +646,12 @@ module.exports = class extends Generator {
 
     process.chdir(appDir);
 
-    this.installDependencies({ bower: false, npm: true }).then(() => {
-      this.spawnCommandSync('npm', ['i', '--save', ...this.packages.dependencies]);
-      this.spawnCommandSync('npm', ['i', '--save-dev', ...this.packages.devDependencies]);
-      this.spawnCommandSync('npm', [
-        'run',
-        this.answers.eslint || this.answers.prettier ? 'lint:fix' : 'lint',
-      ]);
-    });
+    this.spawnCommandSync('yarn', ['add', ...this.packages.dependencies]);
+    this.spawnCommandSync('yarn', ['add', '-D', ...this.packages.devDependencies]);
+
+    if (this.answers.eslint || this.answers.prettier) {
+      this.spawnCommandSync('yarn', ['lint:fix']);
+    }
   }
 
   end() {

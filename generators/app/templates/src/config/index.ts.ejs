@@ -1,25 +1,15 @@
 import convict from 'convict';
 import dotenv from 'dotenv';
 import moment from 'moment';
-import path from 'path';<% if (sequelize) { %>
-import { Dialect } from 'sequelize';<% } %>
 
-export enum NodeEnv {
-  development = 'development',
-  test = 'test',
-  production = 'production',
-}
-
-const env = process.env.NODE_ENV;
-const isTest = env === NodeEnv.test;
-const isProduction = env === NodeEnv.production;
+const env = process.env.NODE_ENV || 'development';
+const isTest = env === 'test';
+const isProduction = env === 'production';
 
 /**
  * Load environment variables
  */
-const envFile = isTest ? '.env.test' : '.env';
-
-dotenv.config({ path: path.resolve(__dirname, '../../', envFile) });
+dotenv.config();
 
 /**
  * Configure moment
@@ -40,12 +30,6 @@ const config = convict({
   /**
    * Environment config
    */
-  env: {
-    doc: 'Application environment',
-    format: Object.values(NodeEnv),
-    env: 'NODE_ENV',
-    default: NodeEnv.development,
-  },
   debug: {
     doc: 'Debug mode',
     format: Boolean,
@@ -56,7 +40,7 @@ const config = convict({
     doc: 'Public host of the server',
     format: 'url',
     env: 'PUBLIC_HOST',
-    default: '',
+    default: 'http://localhost:8080',
   },<% if (winston) { %>
   logsDir: {
     doc: 'Application logs directory',
@@ -73,22 +57,22 @@ const config = convict({
       format: String,
       default: '/admin',
     },
+    title: {
+      doc: 'Admin title',
+      format: String,
+      default: '<%= name %> | Admin',
+    },
   },<% } %><% if (sequelize) { %>
 
   /**
    * Database config
    */
   db: {
-    dialect: {
-      doc: 'Database dialect',
-      format: String,
-      default: '<%= dialect.value %>' as Dialect,
-    },
     host: {
       doc: 'Database host name / IP',
       format: String,
       env: 'DB_HOST',
-      default: '',
+      default: 'localhost',
     },
     port: {
       doc: 'Database port',
@@ -113,11 +97,6 @@ const config = convict({
       format: String,
       env: 'DB_NAME',
       default: '',
-    },
-    dialectOptions: {
-      doc: 'Dialect options',
-      format: Object,
-      default: {},
     },
   },<% } %><% if (redis) { %>
 
@@ -148,6 +127,7 @@ const config = convict({
       format: String,
       env: 'JWT_SECRET',
       default: '',
+      sensitive: true,
     },
     algorithm: {
       doc: 'JWT algorithm',
@@ -192,7 +172,7 @@ const config = convict({
       env: 'SMTP_USER',
       default: '',
     },
-    pass: {
+    password: {
       doc: 'SMTP password',
       format: String,
       env: 'SMTP_PASSWORD',
@@ -222,7 +202,8 @@ export default {
   // Export plain config object
   ...config.getProperties(),
 
-  // Export config related aliases
+  // Export environment config
+  env,
   isTest,
   isProduction,
 };

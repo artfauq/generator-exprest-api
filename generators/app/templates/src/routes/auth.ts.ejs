@@ -15,7 +15,7 @@ router.post<{}, { token: string }, LoginDTO>(
   '/login',<% if (celebrate) { %>
   validation.celebrate({
     body: {
-      email: validation.Joi.string().email().required(),
+      email: validation.schemas.email.required(),
       password: validation.Joi.string().required(),
     },
   }),<% } %>

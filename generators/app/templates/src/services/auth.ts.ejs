@@ -14,12 +14,19 @@ export default class AuthService {<% if (i18n) { %>
     // Check if a user with this email exists
     const user = await UserModel.findOne({ where: { email } });
 
-    if (!user || !user.comparePassword(password)) {
+    if (!user) {
+      throw new Unauthorized(<% if (i18n) { %>this.i18n.t('errors:invalidCredentials')<% } else { %>'Invalid credentials.'<% } %>);
+    }
+
+    // Check if passwords match
+    const passwordMatch = await user.comparePassword(password);
+
+    if (!passwordMatch) {
       throw new Unauthorized(<% if (i18n) { %>this.i18n.t('errors:invalidCredentials')<% } else { %>'Invalid credentials.'<% } %>);
     }
 
     // Generate JWT
-    const token = user.generateJWT();
+    const token = await user.generateJWT();
 
     return token;
   }

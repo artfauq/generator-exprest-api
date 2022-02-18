@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.2.0 (February 18, 2022)
+
+- Replaced `npm` with `yarn`
+- Added `db:reset` command
+- Freezed all package versions
+- Removed `.env.test`
+- Renamed `docker-compose` service `app` to `node`
+- Refactored various minor things
+- Fixed PostgreSQL not supported with Docker
+
 ## 4.1.0 (May 25, 2021)
 
 - Added `AdminBro` option

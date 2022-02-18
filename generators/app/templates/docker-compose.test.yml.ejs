@@ -1,14 +1,32 @@
 version: '3'
 
 services:
-  app:
+  node:
     build:
-      target: development
-    container_name: <%= shortname %>-app-test
-    entrypoint: dockerize<% if (sequelize) { %> -wait tcp://db:${DB_PORT}<% } %> -timeout 30s npm run test<% if (sequelize) { %>
+      context: .
+      dockerfile: docker/node/Dockerfile
+    container_name: <%= shortname %>-test
+    entrypoint: <% if (sequelize) { %>dockerize -wait tcp://db:<%= dialect.port %> -timeout 30s <% } %>yarn test<% if (sequelize) { %>
+    depends_on:
+      - db<% } %>
+    environment:
+      NODE_ENV: test<% if (sequelize) { %>
+      DB_HOST: db
+      DB_PORT: <%= dialect.port %>
+      DB_USER: <%= shortname %>-test
+      DB_PASSWORD: <%= shortname %>-test
+      DB_NAME: <%= shortname %>_test<% } %>
+    volumes:
+      - ./src:/home/node/app/src
+      - ./test:/home/node/app/test
+      - /home/node/node_modules<% if (sequelize) { %>
 
   db:
+    image: <%= dialect.docker.image %>
     container_name: <%= shortname %>-db-test
-
-  migrate:
-    entrypoint: ['echo', 'Migration service disabled']<% } %>
+    environment:
+      <%= dialect.docker.user %>: <%= shortname %>-test
+      <%= dialect.docker.password %>: <%= shortname %>-test
+      <%= dialect.docker.database %>: <%= shortname %>_test
+    ports:
+      - ${DB_PORT}:${DB_PORT}<% } %>

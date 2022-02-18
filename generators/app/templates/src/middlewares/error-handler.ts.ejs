@@ -1,15 +1,14 @@
 <% if (eslint) { %>/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-<% } %><% if (celebrate) { %>import { ValidationError } from '@hapi/joi';
-<% } %>import { ErrorRequestHandler } from 'express';<% if (jwt) { %>
-import { UnauthorizedError } from 'express-jwt';<% } %>
-import createHttpError, { isHttpError } from 'http-errors';<% if (i18n) { %>
-import { i18n as I18n } from 'i18next';<% } %><% if (sequelize) { %>
-import { DatabaseError } from 'sequelize';<% } %>
+<% } %><% if (celebrate) { %>import { JoiObject, ValidationError } from '@hapi/joi';
+import { isCelebrate } from 'celebrate';
+<% } %>import { ErrorRequestHandler } from 'express';
+import createHttpError from 'http-errors';<% if (i18n) { %>
+import { i18n as I18n } from 'i18next';<% } %>
 import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import config from '../config';<% if (celebrate) { %>
 
-interface CelebrateError extends Error {
+interface CelebrateError extends Error, JoiObject {
   joi: ValidationError;
 }
 
@@ -17,13 +16,13 @@ interface CelebrateError extends Error {
  * Returns `true` if the error originated from the `celebrate` middleware.
  */
 function isCelebrateError(err: any): err is CelebrateError {
-  return err != null && typeof err === 'object' && (<CelebrateError>err).joi !== undefined;
+  return isCelebrate(err) || (<CelebrateError>err).joi != null || (<CelebrateError>err).isJoi;
 }
 
 /**
  * Middleware used to parse `celebrate` errors.
  */
-export const celebrateErrorParser = (): ErrorRequestHandler => (err, req, res, next) => {
+export const celebrateErrorHandler = (): ErrorRequestHandler => (err, req, res, next) => {
   if (!isCelebrateError(err)) {
     return next(err);
   }
@@ -36,67 +35,22 @@ export const celebrateErrorParser = (): ErrorRequestHandler => (err, req, res, n
     message = details ? details[0].message : err.joi.message;
   }
 
-  const error = createHttpError(400, err, { message });
-
-  return next(error);
-};<% } %><% if (jwt) { %>
-
-/**
- * Parses an `express-jwt` error into a readable error message.
- */
-const parseJwtErrorMessage = (err: UnauthorizedError): string => {<% if (i18n) { %>
-  const i18n = Container.get<I18n>('i18n');
-  const defaultMessage = i18n.t('errors:invalidAuthentication');<% } else { %>
-  const defaultMessage = 'Invalid authentication.';<% } %>
-
-  if (config.isProduction) {
-    return defaultMessage;
-  }
-
-  switch (err.code) {
-    case 'credentials_bad_scheme':
-    case 'credentials_bad_format':
-    case 'credentials_required':
-    case 'revoked_token':
-      return err.message;
-
-    case 'invalid_token':
-      return <% if (i18n) { %>i18n.t('errors:invalidToken')<% } else { %>'Invalid token.'<% } %>;
-
-    default:
-      return defaultMessage;
-  }
-};
-
-/**
- * Middleware used to parse `express-jwt` errors.
- */
-export const jwtErrorParser = (): ErrorRequestHandler => {
-  return (err, req, res, next) => {
-    if (!(err instanceof UnauthorizedError)) {
-      return next(err);
-    }
-
-    const message = parseJwtErrorMessage(err);
-    const error = createHttpError(401, err, { message });
-
-    return next(error);
-  };
+  return next(createHttpError(400, message, err));
 };<% } %><% if (sequelize) { %>
 
 /**
  * Middleware used to parse `sequelize` errors.
  */
-export const sequelizeErrorParser = (): ErrorRequestHandler => {
+export const sequelizeErrorHandler = (): ErrorRequestHandler => {
   return (err, req, res, next) => {
-    if (!(err instanceof DatabaseError)) {
-      return next(err);
+    if (err.name === 'SequelizeDatabaseError') {
+      const message = `${err.message}. Query: ${err.sql}`;
+      const error = createHttpError(500, message, err);
+
+      return next(error);
     }
 
-    const message = `${err.message}. Query: ${err.sql}`;
-    const error = createHttpError(500, err, { message });
-
-    return next(error);
+    return next(err);
   };
 };<% } %>
 
@@ -106,7 +60,7 @@ export const sequelizeErrorParser = (): ErrorRequestHandler => {
 export const errorLogger = (): ErrorRequestHandler => (err, req, res, next) => {
   const logger = Container.get<<%= loggerType %>>('logger');
 
-  if (isHttpError(err) && err.statusCode < 500) {
+  if (typeof err === 'object' && 'status' in err && err.status < 500) {
     logger.warn('%o', err);
   } else {
     logger.error('%o', err);

@@ -10,11 +10,11 @@ fi
 
 if [ "$ENV" = "dev" ]; then
   # Start development server
-  docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build --renew-anon-volumes<% if (mocha) { %>
+  docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build<% if (mocha) { %>
 elif [ "$ENV" = "test" ]; then
   # Start test server
-  docker-compose --env-file .env.test -f docker-compose.yml -f docker-compose.test.yml up --build --renew-anon-volumes<% } %>
+  docker-compose -f docker-compose.test.yml up --build<% } %>
 elif [ "$ENV" = "prod" ]; then
   # Start production server
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --renew-anon-volumes
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 fi

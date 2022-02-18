@@ -12,15 +12,13 @@
 
 ### Configuration
 
-The application relies on environment variables for various tasks.
-
-To configure these variables, copy and rename `.env.example` to `.env`:
+Copy and rename `.env.example` to `.env`:
 
 ```sh
 cp .env.example .env
 ```
 
-Then, fill the `.env` file according to the following table.
+Fill the `.env` file according to the following table.
 
 | Variable             | Type      | Description                                       | Default | Note                                                                                                                     |
 |----------------------|-----------|---------------------------------------------------|---------|--------------------------------------------------------------------------------------------------------------------------|
@@ -35,7 +33,7 @@ Then, fill the `.env` file according to the following table.
 | `DB_PASSWORD`        | _String_  | Database password                                 |         |                                                                                                                          |<% } %><% if (redis) { %>
 | `REDIS_HOST`         | _String_  | Redis host                                        |         | <% if (docker) { %>Not required when using `docker-compose` as it gets overriden with the `redis` container<% } else { %>                                                                                        <% } %>                                 |
 | `REDIS_PORT`         | _Number_  | Redis port                                        | `6379`  |                                                                                                                          |<% } %><% if (jwt) { %>
-| `JWT_SECRET`         | _String_  | Secret used to sign JWTs                          |         | Run `npm run generate-secret` to generate a random secret                                                                |<% } %><% if (nodemailer) { %>
+| `JWT_SECRET`         | _String_  | Secret used to sign JWTs                          |         | Run `yarn generate-secret` to generate a random secret                                                                   |<% } %><% if (nodemailer) { %>
 | `SMTP_HOST`          | _String_  | SMTP host                                         |         |                                                                                                                          |
 | `SMTP_PORT`          | _Number_  | SMTP port                                         | `465`   |                                                                                                                          |
 | `SMTP_USER`          | _String_  | SMTP user                                         |         |                                                                                                                          |
@@ -62,13 +60,13 @@ If **Node.js** is not installed on your machine, visit [this page](https://nodej
 Install required dependencies:
 
 ```sh
-npm install
+yarn
 ```
 
 Start a development server by running:
 
 ```sh
-npm run dev
+yarn dev
 ```
 
 ## Main commands
@@ -79,13 +77,14 @@ npm run dev
 | `start`              |                                         | Start a server from compiled files                                                          |
 | `build`              |                                         | Transpile TypeScript files into JavaScript in a `/dist` folder                              |<% if (mocha) { %>
 | `test`               |                                         | Run all tests defined in the `/test` folder                                                 |<% } %><% if (sequelize) { %>
-| `db:create`          | `development` \| `test` \| `production` | Create database for the specified environment                                               |
-| `db:drop`            | `development` \| `test` \| `production` | Drop database for the specified environment                                                 |
+| `db:create`          |                                         | Create database for the specified environment                                               |
+| `db:drop`            |                                         | Drop database for the specified environment                                                 |
 | `db:seed`            |                                         | Run seeders                                                                                 |
 | `db:migrate`         |                                         | Run migrations                                                                              |
 | `db:migrate:undo`    |                                         | Undo most recent migration                                                                  |
-| `migrations:create`  | Migration name                          | Create a new migration file (ex: `npm run migrations:create add-user-table`)                |
-| `seeders:create`     | Seeder name                             | Create a new seeder file (ex: `npm run migrations:create base-users`)                       |<% } %>
+| `db:reset`           |                                         | Recreate database and run migrations and seeders                                            |
+| `migrations:create`  | Migration name                          | Create a new migration file (ex: `yarn migrations:create add-user-table`)                   |
+| `seeders:create`     | Seeder name                             | Create a new seeder file (ex: `yarn migrations:create base-users`)                          |<% } %>
 | `lint`               |                                         | Perform a lint check                                                                        |<% if (eslint || prettier) { %>
 | `lint:fix`           |                                         | Perform a lint check and try to automatically fix errors                                    |<% } %>
 

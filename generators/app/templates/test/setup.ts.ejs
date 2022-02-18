@@ -1,5 +1,4 @@
-<% if (sequelize) { %>import { exec } from 'child_process';
-<% } %>import express from 'express';
+import express from 'express';
 import { createServer } from 'http';
 import { Container } from 'typedi';
 import logger from '../src/config/logger';<% if (sequelize || i18n || socketIo || admin) { %>
@@ -15,8 +14,6 @@ before(async () => {
   try {<% if (sequelize) { %>
     // Initialize Sequelize instance
     const sequelize = await loaders.sequelize({ logger });
-    const { database, host, port } = sequelize.config;
-    logger.info(`Successfully connected to database '${database}' at '${host}:${port}'`);
 <% } %><% if (i18n) { %>
     // Initialize i18n
     const i18n = await loaders.i18n();
@@ -34,29 +31,7 @@ before(async () => {
     Container.set('redis', redisStub);<% } %><% if (i18n) { %>
     Container.set('i18n', i18n);<% } %><% if (socketIo) { %>
     Container.set('socket', socket);<% } %><% if (admin) { %>
-    Container.set('adminBro', adminBro);<% } %><% if (sequelize) { %>
-
-    // Recreate database
-    await sequelize.query(`DROP DATABASE IF EXISTS ${database};`);
-    await sequelize.query(`CREATE DATABASE IF NOT EXISTS ${database};`);
-
-    // Run database migrations
-    await new Promise<void>((resolve, reject) => {
-      const migrate = exec('sequelize db:migrate', err => (err ? reject(err) : resolve()));
-
-      // Forward stdout+stderr to this process
-      migrate.stdout?.pipe(process.stdout);
-      migrate.stderr?.pipe(process.stderr);
-    });
-
-    // Run database seeders
-    await new Promise<void>((resolve, reject) => {
-      const seed = exec('sequelize db:seed:all', err => (err ? reject(err) : resolve()));
-
-      // Forward stdout+stderr to this process
-      seed.stdout?.pipe(process.stdout);
-      seed.stderr?.pipe(process.stderr);
-    });<% } %>
+    Container.set('adminBro', adminBro);<% } %>
 
     // Start server
     startServer(app, server);

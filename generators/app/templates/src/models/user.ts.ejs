@@ -1,6 +1,9 @@
 import bcrypt from 'bcryptjs';
+import { BadRequest } from 'http-errors';<% if (i18n) { %>
+import { i18n as I18n } from 'i18next';<% } %>
 import {
   AllowNull,
+  BeforeValidate,
   Column,
   Comment,
   CreatedAt,
@@ -10,13 +13,12 @@ import {
   PrimaryKey,
   Table,
   Unique,
-} from 'sequelize-typescript';<% if (jwt) { %>
+} from 'sequelize-typescript';<% if (i18n) { %>
+import Container from 'typedi';<% } %><% if (jwt) { %>
 import { generateSignedJWT } from '../utils/jwt';<% } %>
 
 @Table({
   tableName: 'user',
-  charset: 'utf8',
-  collate: 'utf8_general_ci',
 })
 export default class UserModel extends Model<UserModel> {
   //
@@ -32,26 +34,24 @@ export default class UserModel extends Model<UserModel> {
 
   @AllowNull(false)
   @Comment('First name of the user')
-  @Column(DataType.STRING(50))
+  @Column(DataType.STRING(64))
   firstName!: string;
 
   @AllowNull(false)
   @Comment('Last name of the user')
-  @Column(DataType.STRING(50))
+  @Column(DataType.STRING(64))
   lastName!: string;
 
   @Unique
   @AllowNull(false)
   @Comment('Email of the user')
-  @Column(DataType.STRING(255))
+  @Column(DataType.STRING(128))
   email!: string;
 
   @AllowNull(false)
   @Comment('Password of the user')
   @Column(DataType.STRING(64))
-  set password(value: string) {
-    this.setDataValue('password', UserModel.generateHash(value));
-  }
+  password!: string;
 
   @CreatedAt
   @AllowNull(false)
@@ -76,6 +76,31 @@ export default class UserModel extends Model<UserModel> {
   // ─── MODEL HOOKS ────────────────────────────────────────────────────────────────
   //
 
+  @BeforeValidate
+  static async validateUserFields(user: UserModel): Promise<void> {<% if (i18n) { %>
+    const i18n = Container.get<I18n>('i18n');
+<% } %>
+    // If `email` property changed
+    if (user.changed('email')) {
+      const email = user.getDataValue('email');
+      const emailCount = await UserModel.count({ where: { email } });
+
+      if (emailCount > 0) {
+        throw new BadRequest(<% if (i18n) { %>i18n.t('errors:emailAlreadyUsed', { email })<% } else { %>`The email address ${email} is already in use.`<% } %>);
+      }
+    }
+
+    // If `password` property changed
+    if (user.changed('password')) {
+      const password = user.getDataValue('password');
+      const hash = await UserModel.generateHash(password);
+
+      user.setDataValue('password', hash);
+    }
+
+    await user.save({ validate: false });
+  }
+
   //
   // ─── CUSTOM METHODS ─────────────────────────────────────────────────────────────
   //
@@ -83,15 +108,17 @@ export default class UserModel extends Model<UserModel> {
   /**
    * Returns a hashed version of the given `password`.
    */
-  static generateHash(password: string): string {
-    return bcrypt.hashSync(password, 10);
+  static async generateHash(password: string): Promise<string> {
+    return bcrypt.hash(password, 10);
   }
 
   /**
    * Returns `true` if `password` matches the user's password, `false` otherwise.
    */
-  comparePassword(password: string): boolean {
-    return bcrypt.compareSync(password, this.password);
+  async comparePassword(password: string): Promise<boolean> {
+    const hash = this.getDataValue('password');
+
+    return bcrypt.compare(password, hash);
   }<% if (jwt) { %>
 
   /**

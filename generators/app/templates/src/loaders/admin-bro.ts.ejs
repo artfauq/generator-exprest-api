@@ -14,7 +14,7 @@ AdminBro.registerAdapter(AdminBroSequelize);
 export default ({ sequelize }: { sequelize: Sequelize }): AdminBro => {
   const adminBro = new AdminBro({
     branding: {
-      companyName: '<%= name %> | Admin',
+      companyName: config.admin.title,
     },
     locale: {
       language: 'en',

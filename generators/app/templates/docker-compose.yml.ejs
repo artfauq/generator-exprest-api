@@ -1,16 +1,16 @@
 version: '3'
 
 services:
-  app:
+  node:
     build:
       context: .
       dockerfile: docker/node/Dockerfile
-    image: <%= shortname %>-app
-    env_file: .env
-    container_name: <%= shortname %>-app<% if (sequelize || redis) { %>
+    image: <%= shortname %>
+    container_name: <%= shortname %><% if (sequelize || redis) { %>
     depends_on:<% if (sequelize) { %>
       - db<% } %><% if (redis) { %>
       - redis<% } %>
+    env_file: .env
     environment:<% if (sequelize) { %>
       DB_HOST: db<% } %><% if (redis) { %>
       REDIS_HOST: redis<% } %><% } %>
@@ -21,29 +21,26 @@ services:
       - /home/node/node_modules<% if (sequelize) { %>
 
   db:
-    build:
-      context: .
-      dockerfile: docker/db/Dockerfile
+    image: <%= dialect.docker_image %>
     container_name: <%= shortname %>-db
     environment:
-      MYSQL_DATABASE: $DB_NAME
-      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
-      MYSQL_TCP_PORT: $DB_PORT
+      <%= dialect.docker.user %>: $DB_USER
+      <%= dialect.docker.password %>: $DB_PASSWORD
+      <%= dialect.docker.database %>: $DB_NAME
     ports:
       - ${DB_PORT}:${DB_PORT}
     volumes:
-      - db_data:/var/lib/mysql
-      - ./docker/db/my.cnf:/etc/mysql/my.cnf
+      - db_data:<%= dialect.docker.volume %>
 
   migrate:
-    image: <%= shortname %>-app
+    image: <%= shortname %>
     container_name: <%= shortname %>-migrate
-    entrypoint: dockerize -wait tcp://db:{DB_PORT} -timeout 30s npm run migrations:migrate
+    entrypoint: dockerize -wait tcp://db:{DB_PORT} -timeout 30s yarn migrations:migrate
     environment:
       DB_HOST: db
     depends_on:
       - db
-      - app<% } %><% if (redis) { %>
+      - node<% } %><% if (redis) { %>
 
   redis:
     image: redis:alpine

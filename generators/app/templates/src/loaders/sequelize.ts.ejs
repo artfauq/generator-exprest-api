@@ -16,16 +16,9 @@ export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Sequel
       database: config.db.database,
       username: config.db.username,
       password: config.db.password,
-      dialect: config.db.dialect,
-      dialectOptions: config.db.dialectOptions,
-      define: {
-        charset: 'utf8',
-        collate: 'utf8_general_ci',
-        createdAt: false,
-        updatedAt: false,
-        underscored: true,
-      },
-      logging: config.debug ? msg => logger.debug(msg) : false,
+      dialect: '<%= dialect.value %>',
+      dialectOptions: {},
+      logging: msg => logger.debug(msg),
       models: Object.values(models),
     };
 

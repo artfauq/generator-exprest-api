@@ -1,29 +1,26 @@
 import Router from 'express-promise-router';
-import { NotFound } from 'http-errors';
 import morgan from 'morgan';
+import config from '../config';
 import logger from '../config/logger';<% if (auth) { %>
 import authRouter from './auth';<% } %>
 
 const router = Router();
 
 /**
- * Router configuration
+ * HTTP request logging configuration
  */
-router.use(morgan('dev', { stream: { write: message => logger.info(message.trim()) } }));
+router.use(
+  morgan(config.isProduction ? 'combined' : 'dev', {
+    stream: {
+      write: message => logger.info(message.trim()),
+    },
+  }),
+);
 
 /**
  * API routes
  */
 router.get('/', (req, res) => res.sendStatus(204));<% if (auth) { %>
 router.use('/auth', authRouter);<% } %>
-
-/**
- * 404 error handling
- */
-router.use((req, res, next) => {
-  const { baseUrl, url, method } = req;
-
-  next(new NotFound(<% if (i18n) { %>req.i18n.t('errors:routeNotFound', { method, baseUrl, url })<% } else { %>`The route '${method} ${baseUrl}${url}' doesn't exist.`<% } %>));
-});
 
 export default router;

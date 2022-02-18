@@ -1,15 +1,7 @@
 import { expect } from 'chai';
-import {
-  BadRequest,
-  Forbidden,
-  HttpError,
-  InternalServerError,
-  NotFound,
-  Unauthorized,
-} from 'http-errors';
 import { Response } from 'supertest';
 
-const expectHttpError = (res: Response, { name, status }: HttpError) => {
+const expectError = (res: Response, status: number, name: string) => {
   expect(res.type).to.match(/json/);
   expect(res.status).to.equal(status);
 
@@ -33,21 +25,21 @@ export const expectNoContent = (res: Response): void => {
 };
 
 export const expectBadRequestError = (res: Response): void => {
-  expectHttpError(res, new BadRequest());
+  expectError(res, 400, 'BadRequestError');
 };
 
 export const expectUnauthorizedError = (res: Response): void => {
-  expectHttpError(res, new Unauthorized());
+  expectError(res, 401, 'UnauthorizedError');
 };
 
 export const expectForbiddenError = (res: Response): void => {
-  expectHttpError(res, new Forbidden());
+  expectError(res, 403, 'ForbiddenError');
 };
 
 export const expectNotFoundError = (res: Response): void => {
-  expectHttpError(res, new NotFound());
+  expectError(res, 404, 'NotFoundError');
 };
 
 export const expectInternalServerError = (res: Response): void => {
-  expectHttpError(res, new InternalServerError());
+  expectError(res, 500, 'InternalServerError');
 };

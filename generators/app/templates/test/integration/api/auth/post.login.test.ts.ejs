@@ -4,10 +4,10 @@ import supertest from 'supertest';
 import config from '../../../../src/config';
 import { UserModel } from '../../../../src/models';
 import {
-  cleanDatabase,
+  cleanDatabase,<% if (celebrate) { %>
+  expectBadRequestError,<% } %>
   expectOk,
-  expectUnauthorizedError,<% if (celebrate) { %>
-  expectValidationError,<% } %>
+  expectUnauthorizedError,
 } from '../../../helpers';
 import { app } from '../../../setup';
 
@@ -72,7 +72,7 @@ describe('POST /auth/login', () => {
       .set('Content-Type', 'application/json')
       .send(requestData);
 
-    expectValidationError(res);
+    expectBadRequestError(res);
   });
 
   it('should return 400 on missing password field', async () => {
@@ -84,7 +84,7 @@ describe('POST /auth/login', () => {
       .set('Content-Type', 'application/json')
       .send(requestData);
 
-    expectValidationError(res);
+    expectBadRequestError(res);
   });<% } %>
 
   it('should return 401 on incorrect email', async () => {
