@@ -31,27 +31,21 @@ Sentry.init({
 (async () => {<% if (sequelize) { %>
   // Initialize Sequelize instance
   const sequelize = await loaders.sequelize({ logger });
-  const { database, host, port } = sequelize.config;
-  logger.info(`Successfully connected to database '${database}' at '${host}:${port}'`);
 <% } %><% if (nodemailer) { %>
   // Initialize mailer instance
-  const mailer = await loaders.mailer();
-  logger.info('Successfully connected to SMTP server');
+  const mailer = await loaders.mailer({ logger });
 <% } %><% if (redis) { %>
   // Initialize Redis client
-  const redis = await loaders.redis();
-  logger.info('Successfully connected to Redis server');
+  const redis = await loaders.redis({ logger });
 <% } %><% if (i18n) { %>
   // Initialize i18n
-  const i18n = await loaders.i18n();
-  logger.info('Successfully initialized i18n resources');
+  const i18n = await loaders.i18n({ logger });
 <% } %><% if (socketIo) { %>
   // Initialize Socket.IO server
-  const socket = loaders.socketIo({ server });
-  logger.info('Successfully initialized Socket.IO server');
+  const socket = loaders.socketIo({ logger, server });
 <% } %><% if (admin) { %>
   // Initialize admin panel
-  const adminBro = loaders.adminBro({ sequelize });
+  const adminBro = loaders.adminBro({ logger, sequelize });
 <% } %>
   // Inject dependencies
   Container.set('logger', logger);<% if (sequelize) { %>

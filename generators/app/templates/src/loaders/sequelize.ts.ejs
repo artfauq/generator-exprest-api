@@ -17,9 +17,10 @@ export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Sequel
       username: config.db.username,
       password: config.db.password,
       dialect: '<%= dialect.value %>',
-      dialectOptions: {},
-      logging: msg => logger.debug(msg),
       models: Object.values(models),
+      benchmark: true,
+      logQueryParameters: config.debug && !config.isProduction,
+      logging: (sql, timing) => logger.debug(`${timing}ms - ${sql}`),
     };
 
     // Initialize Sequelize instance
@@ -27,6 +28,10 @@ export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Sequel
 
     // Test database connection
     await sequelize.authenticate();
+
+    logger.info(
+      `Successfully connected to database '${options.database}' at '${options.host}:${options.port}'`,
+    );
 
     return sequelize;
   } catch (err) {

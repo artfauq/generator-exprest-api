@@ -1,6 +1,7 @@
 import AdminBroSequelize from '@admin-bro/sequelize';
 import AdminBro from 'admin-bro';
-import { Sequelize } from 'sequelize-typescript';
+import { Sequelize } from 'sequelize-typescript';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import * as admin from '../admin';
 import config from '../config';
 import { Models } from './sequelize';
@@ -11,7 +12,7 @@ AdminBro.registerAdapter(AdminBroSequelize);
 /**
  * AdminBro instance initializer
  */
-export default ({ sequelize }: { sequelize: Sequelize }): AdminBro => {
+export default ({ logger, sequelize }: { logger: <%= loggerType %>; sequelize: Sequelize }): AdminBro => {
   const adminBro = new AdminBro({
     branding: {
       companyName: config.admin.title,
@@ -27,6 +28,8 @@ export default ({ sequelize }: { sequelize: Sequelize }): AdminBro => {
     ),
     rootPath: config.admin.path,
   });
+
+  logger.info(`Successfully initialized AdminJs instance`);
 
   return adminBro;
 };

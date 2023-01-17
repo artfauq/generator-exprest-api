@@ -1,11 +1,14 @@
 import { Server as HttpServer } from 'http';
-import SocketIO from 'socket.io';
+import SocketIO from 'socket.io';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 
 /**
  * Socket.IO server initializer
  */
-export default ({ server }: { server: HttpServer }): SocketIO.Server => {
+export default ({ logger, server }: { logger: <%= loggerType %>; server: HttpServer }): SocketIO.Server => {
   const io = SocketIO(server, { path: '/socket.io' });
+
+  logger.info('Successfully initialized Socket.IO server');
 
   return io;
 };

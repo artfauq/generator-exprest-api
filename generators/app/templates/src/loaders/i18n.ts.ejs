@@ -1,18 +1,15 @@
 import i18next, { i18n as I18n } from 'i18next';
-import i18nHttpMiddleware from 'i18next-http-middleware';
+import i18nHttpMiddleware from 'i18next-http-middleware';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import * as resources from '../locale';
 
 /**
  * I18n instance initializer
  */
-export default async (): Promise<I18n> => {
-  // Configure i18n language detector middleware
-  i18next.use(i18nHttpMiddleware.LanguageDetector);
-
-  try {
-    // Initialize i18n instance
-    const i18n = await i18next
-      .init({
+export default async ({ logger }: { logger: <%= loggerType %> }): Promise<I18n> => {
+  const i18n = await new Promise<I18n>((resolve, reject) =>
+    i18next.use(i18nHttpMiddleware.LanguageDetector).init(
+      {
         detection: {
           order: ['cookie', 'header'],
           lookupCookie: 'i18next',
@@ -21,15 +18,20 @@ export default async (): Promise<I18n> => {
         },
         fallbackLng: 'en',
         interpolation: { escapeValue: false },
+        lng: 'en',
         ns: [],
         preload: ['en'],
         resources,
         supportedLngs: ['en'],
-      })
-      .then(() => Promise.resolve(i18next));
+      },
+      err => {
+        if (err) reject(new Error(`failed to initialize i18n instance. ${err}`));
+        else resolve(i18next);
+      },
+    ),
+  );
 
-    return i18n;
-  } catch (err) {
-    throw new Error(`failed to initialize i18n instance. ${err}`);
-  }
+  logger.info('Successfully initialized i18n resources');
+
+  return i18n;
 };

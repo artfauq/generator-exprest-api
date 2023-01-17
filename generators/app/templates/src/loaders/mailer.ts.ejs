@@ -1,12 +1,13 @@
 import { createTestAccount, createTransport } from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import config from '../config';
 
 /**
  * Mail transport initializer
  */
-export default async (): Promise<Mail> => {
+export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Mail> => {
   try {
     const options: SMTPTransport.Options = {
       host: config.smtp.host,
@@ -32,6 +33,8 @@ export default async (): Promise<Mail> => {
 
     // Test SMTP connection
     await smtpTransport.verify();
+
+    logger.info('Successfully connected to SMTP server');
 
     return smtpTransport;
   } catch (err) {
