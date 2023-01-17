@@ -29,5 +29,5 @@
   },
   "files": ["./src/types/index.d.ts"],
   "include": [<% if (sequelize) { %>"./db", <% } %>"./src"<% if (mocha) { %>, "./test"<% } %>],
-  "exclude": ["./node_modules", "./src/public"]
+  "exclude": ["./node_modules", "./public"]
 }

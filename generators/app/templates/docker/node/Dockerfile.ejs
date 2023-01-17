@@ -71,6 +71,7 @@ COPY --chown=node:node --from=build /home/node/app/.env .<% if (sequelize) { %>
 COPY --chown=node:node --from=build /home/node/app/.sequelizerc .<% } %>
 COPY --chown=node:node --from=build /home/node/app/db ./db
 COPY --chown=node:node --from=build /home/node/app/dist ./dist
+COPY --chown=node:node --from=build /home/node/app/public ./public
 COPY --chown=node:node --from=build /home/node/app/package.json ./
 COPY --chown=node:node --from=build /home/node/app/yarn.lock ./
 

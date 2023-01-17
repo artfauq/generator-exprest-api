@@ -12,7 +12,7 @@ import { Server } from 'http';
 import { NotFound, TooManyRequests } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';
 import i18nHttpMiddleware from 'i18next-http-middleware';<% } %>
-import path from 'path';
+import { join } from 'path';
 import 'reflect-metadata';
 import favicon from 'serve-favicon';<% if (monitoring && socketIo) { %>
 import SocketIO from 'socket.io';<% } %>
@@ -31,7 +31,7 @@ export default (app: Application, server: Server): void => {
   app.use(bodyParser.json());
   app.use(compression());
   app.use(cors());
-  app.use(favicon(path.resolve(`${__dirname}/public/favicon.ico`)));
+  app.use(favicon(join(config.publicPath, 'favicon.ico')));
   app.use(helmet());
 
   // Rate limiting configuration
@@ -72,10 +72,10 @@ export default (app: Application, server: Server): void => {
   });<% } %><% if (openapi) { %>
 
   // API documentation
-  app.use('/doc', express.static(path.resolve(`${__dirname}/public/doc`)));<% } %>
+  app.use('/doc', express.static(join(config.publicPath, '/doc')));<% } %>
 
   // Public assets
-  app.use('/public', express.static(path.resolve(`${__dirname}/public`)));<% if (sentry) { %>
+  app.use('/public', express.static(config.publicPath));<% if (sentry) { %>
 
   // Sentry debug route
   app.get('/sentry-debug', () => {

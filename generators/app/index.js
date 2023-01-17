@@ -1,7 +1,7 @@
 const Generator = require('yeoman-generator');
 const { gray, red, yellow } = require('chalk').default;
 const yosay = require('yosay');
-const path = require('path');
+const { join } = require('path');
 const validate = require('validate-npm-package-name');
 
 const SEQUELIZE_DIALECT = require('./utils/sequelize-dialect-enum');
@@ -291,7 +291,7 @@ module.exports = class extends Generator {
     copy('src/loaders/index.ts.ejs');
     copy('src/middlewares/error-handler.ts.ejs');
     copy('src/middlewares/index.ts.ejs');
-    copy('src/public/favicon.ico');
+    copy('public/favicon.ico');
     copy('src/routes/index.ts.ejs');
     copy('src/services/index.ts.ejs');
     copy('src/types/enums/index.ts.ejs');
@@ -601,8 +601,8 @@ module.exports = class extends Generator {
     //
 
     if (answers.openapi) {
-      copy('src/public/doc/index.html.ejs');
-      copy('src/public/doc/openapi.yml.ejs');
+      copy('public/doc/index.html.ejs');
+      copy('public/doc/openapi.yml.ejs');
     }
 
     //
@@ -642,7 +642,7 @@ module.exports = class extends Generator {
   }
 
   install() {
-    const appDir = path.join(process.cwd(), this.answers.shortname);
+    const appDir = join(process.cwd(), this.answers.shortname);
 
     process.chdir(appDir);
 

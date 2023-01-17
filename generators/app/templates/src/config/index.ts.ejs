@@ -1,6 +1,7 @@
 import convict from 'convict';
 import dotenv from 'dotenv';
 import moment from 'moment';
+import { resolve } from 'path';
 
 const env = process.env.NODE_ENV || 'development';
 const isTest = env === 'test';
@@ -41,12 +42,21 @@ const config = convict({
     format: 'url',
     env: 'PUBLIC_HOST',
     default: 'http://localhost:8080',
-  },<% if (winston) { %>
+  },
+
+  /**
+   * Application config
+   */<% if (winston) { %>
   logsDir: {
     doc: 'Application logs directory',
     format: String,
     default: `${__dirname}/../../logs`,
-  },<% } %><% if (admin) { %>
+  },<% } %>
+  publicPath: {
+    doc: 'Public assets path',
+    format: String,
+    default: resolve(`${__dirname}/../../public`),
+  },<% if (admin) { %>
 
   /**
    * Admin config
