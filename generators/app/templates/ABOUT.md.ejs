@@ -104,7 +104,7 @@ To start all containers in `development` mode, run:
 This will:
 
 - Target the `development` stage of the multi-stage [Dockerfile](/docker/node/Dockerfile)
-- Run the `yarn dev` command in the `<%= shortname %>` container<% if (sequelize) { %>
+- Run the `yarn start:dev` command in the `<%= shortname %>` container<% if (sequelize) { %>
 - Run database migrations from the `<%= shortname %>-migrate` container<% } %>
 - Allow the web server to restart automatically on source files changes detected<% if (mocha) { %>
 

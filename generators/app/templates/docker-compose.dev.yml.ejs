@@ -4,7 +4,7 @@ services:
   node:
     build:
       target: development<% if (sequelize || redis) { %>
-    entrypoint: dockerize<% if (sequelize) { %> -wait tcp://db:${DB_PORT}<% } %><% if (redis) { %> -wait tcp://redis:${REDIS_PORT}<% } %> -timeout 30s yarn dev<% } %>
+    entrypoint: dockerize<% if (sequelize) { %> -wait tcp://db:${DB_PORT}<% } %><% if (redis) { %> -wait tcp://redis:${REDIS_PORT}<% } %> -timeout 30s yarn start:dev<% } %>
     ports:
       - ${PORT}:${PORT}
     volumes:

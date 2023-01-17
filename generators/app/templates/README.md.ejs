@@ -66,15 +66,15 @@ yarn
 Start a development server by running:
 
 ```sh
-yarn dev
+yarn start:dev
 ```
 
 ## Main commands
 
 | Command              | Arguments                               | Description                                                                                 |
 |----------------------|-----------------------------------------|---------------------------------------------------------------------------------------------|
-| `dev`                |                                         | Start a development server with source files change detection                               |
 | `start`              |                                         | Start a server from compiled files                                                          |
+| `start:dev`          |                                         | Start a development server with source files change detection                               |
 | `build`              |                                         | Transpile TypeScript files into JavaScript in a `/dist` folder                              |<% if (mocha) { %>
 | `test`               |                                         | Run all tests defined in the `/test` folder                                                 |<% } %><% if (sequelize) { %>
 | `db:create`          |                                         | Create database for the specified environment                                               |
