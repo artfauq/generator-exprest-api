@@ -56,13 +56,13 @@ The project is structured as follows:
     - `/locale`: admin translation files
     - `/resources`: admin resources definitions<% } %>
   - `/config`: configuration files
+  - `/controllers`: controllers definitions
   - `/dto`: Data Transfer Object definitions<% if (cron) { %>
   - `/jobs`: cron jobs definitions<% } %>
   - `/loaders`: application loaders definitions<% if (i18n) { %>
   - `/locale`: i18n resources<% } %>
   - `/middlewares`: middlewares definitions<% if (sequelize) { %>
   - `/models`: database models definitions<% } %>
-  - `/routes`: routes definitions
   - `/services`: business logic (database interaction, API interactions, etc)
   - `/types`: custom types definitions
     - `/enums`: enum definitions
@@ -530,9 +530,9 @@ export * from './user';
 
 ### Routing
 
-- All routes should be defined in `/src/routes`
-- For each main route endpoint, a new file with the route endpoint as filename should be added to the `/routes` folder
-- All the business logic (retrieving, creating or updating data, etc) should be defined in the `/src/services` folder
+- All routes should be defined in `/src/controllers`
+- For each main route endpoint, a new file with the route endpoint as filename should be added to the `/controllers` folder
+- All the business logic (retrieving, creating or updating data, etc) should be defined in the `/services` folder
 
 For example, to define a new `/users` endpoint and two routes `POST /users` and `GET /users/:id`, follow these steps:
 
@@ -590,7 +590,7 @@ export { default as EmailService } from './email';<% } %>
 export { default as UserService } from './user';
 ```
 
-- Create a new route file `/src/routes/users.ts` with the request handlers:
+- Create a new route file `/src/controllers/users.ts` with the request handlers:
 
 ```typescript
 import Router from 'express-promise-router';
@@ -650,14 +650,14 @@ router.post<{}, { user: User }, CreateUserDTO>(
 export default router;
 ```
 
-- Finally, import the router in `/src/routes/index.ts` and declare a new `/users` route:
+- Finally, import the router in `/src/controllers/index.ts` and declare a new `/users` route:
 
 ```typescript
 import Router from 'express-promise-router';
 import { NotFound } from 'http-errors';
 import morgan from 'morgan';
 import logger from '../config/logger';
-import usersRouter from './users';
+import usersController from './users';
 
 const router = Router();
 
@@ -675,7 +675,7 @@ router.use(
 /**
  * API routes
  */
-router.use('/users', usersRouter);
+router.use('/users', usersController);
 
 /**
  * 404 error handling
@@ -721,7 +721,7 @@ export default class UserService {<% if (i18n) { %>
 }
 ```
 
-In addition, the routes defined in `/src/routes` should use the `Router` from the [express-promise-router](https://github.com/express-promise-router/express-promise-router) package instead of the `Router` from `express`. It provides a convenient way to write async request controllers.
+In addition, the routes defined in `/src/controllers` should use the `Router` from the [express-promise-router](https://github.com/express-promise-router/express-promise-router) package instead of the `Router` from `express`. It provides a convenient way to write async request controllers.
 <% if (celebrate) { %>
 ### Object validation
 
@@ -750,7 +750,7 @@ const schemas = {
 export { celebrate, customJoi as Joi, schemas };
 ```
 
-- Add the validation schema to the route definition in `/src/routes/users.ts`:
+- Add the validation schema to the route definition in `/src/controllers/users.ts`:
 
 ```typescript
 import Router from 'express-promise-router';

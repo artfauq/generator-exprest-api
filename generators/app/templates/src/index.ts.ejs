@@ -5,8 +5,7 @@ import { createServer } from 'http';
 import { Container } from 'typedi';<% if (sentry) { %>
 import config from './config';<% } %>
 import logger from './config/logger';<% if (sequelize || nodemailer || redis || i18n || socketIo || admin || cron) { %>
-import * as loaders from './loaders';<% } %><% if (sentry) { %>
-import router from './routes';<% } %>
+import * as loaders from './loaders';<% } %>
 import startServer from './server';
 
 // Create Express application and HTTP server
@@ -20,7 +19,7 @@ Sentry.init({
     // Enable HTTP calls tracing
     new Sentry.Integrations.Http({ tracing: true }),
     // Enable Express.js middleware tracing
-    new Tracing.Integrations.Express({ router }),
+    new Tracing.Integrations.Express({ app }),
     // Enable uncaught exceptions tracing
     new Sentry.Integrations.OnUncaughtException(),
     // Enable unhandled rejections tracing

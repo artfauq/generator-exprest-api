@@ -2,7 +2,7 @@ import Router from 'express-promise-router';
 import morgan from 'morgan';
 import config from '../config';
 import logger from '../config/logger';<% if (auth) { %>
-import authRouter from './auth';<% } %>
+import authController from './auth';<% } %>
 
 const router = Router();
 
@@ -21,6 +21,6 @@ router.use(
  * API routes
  */
 router.get('/', (req, res) => res.sendStatus(204));<% if (auth) { %>
-router.use('/auth', authRouter);<% } %>
+router.use('/auth', authController);<% } %>
 
 export default router;

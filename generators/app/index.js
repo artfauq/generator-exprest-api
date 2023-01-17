@@ -292,7 +292,7 @@ module.exports = class extends Generator {
     copy('src/middlewares/error-handler.ts.ejs');
     copy('src/middlewares/index.ts.ejs');
     copy('public/favicon.ico');
-    copy('src/routes/index.ts.ejs');
+    copy('src/controllers/index.ts.ejs');
     copy('src/services/index.ts.ejs');
     copy('src/types/enums/index.ts.ejs');
     copy('src/types/index.d.ts.ejs');
@@ -619,7 +619,7 @@ module.exports = class extends Generator {
     //
 
     if (answers.auth) {
-      copy('src/routes/auth.ts.ejs');
+      copy('src/controllers/auth.ts.ejs');
       copy('src/services/auth.ts.ejs');
       copy('src/types/auth.ts.ejs');
     }

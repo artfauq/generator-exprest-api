@@ -19,8 +19,8 @@ import SocketIO from 'socket.io';<% } %>
 import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import config from './config';
+import router from './controllers';
 import {<% if (celebrate) { %> celebrateErrorHandler,<% } %> errorLogger, httpErrorHandler<% if (jwt) { %>, jwtErrorHandler<% } %><% if (sequelize) { %>, sequelizeErrorHandler<% } %> } from './middlewares';
-import router from './routes';
 
 export default (app: Application, server: Server): void => {
   const logger = Container.get<<%= loggerType %>>('logger');<% if (admin) { %>
