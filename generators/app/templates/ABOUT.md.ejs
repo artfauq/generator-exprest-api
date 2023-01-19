@@ -577,12 +577,12 @@ export default router;
 - Finally, import the router in `/src/controllers/index.ts` and declare a new `/users` route:
 
 ```typescript
-import Router from 'express-promise-router';
+import Router from 'express-promise-router';<% if (morgan) { %>
 import morgan from 'morgan';
-import logger from '../config/logger.config';
+import logger from '../config/logger.config';<% } %>
 import usersController from './users.controller';
 
-const router = Router();
+const router = Router();<% if (morgan) { %>
 
 /**
  * Router configuration
@@ -593,7 +593,7 @@ router.use(
       write: message => logger.info(message.trim()),
     },
   }),
-);
+);<% } %>
 
 /**
  * API routes
@@ -911,7 +911,7 @@ When updating the project's version number, do not forget to update:
 
 - The `version` field in `package.json`
 - The `info > version` field in `/public/doc/openapi.yml`
-<% } %><% if (winston) { %>
+<% } %><% if (winston && morgan) { %>
 ## Logs
 
 When running, the application outputs some logs. Two modules are used for this:

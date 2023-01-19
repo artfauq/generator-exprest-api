@@ -10,7 +10,6 @@
 - **RESTful API** - Using [Express](https://github.com/expressjs/express/)
 - **Dependency injection** - Using [typedi](https://github.com/typestack/typedi)
 - **Standard error responses** - Using [http-errors](https://www.npmjs.com/package/http-errors)
-- **HTTP requests logging** - Using [morgan](https://github.com/expressjs/morgan#readme)
 
 ## Features / options
 
@@ -18,6 +17,7 @@
 - **Docker containerization** - Using [Docker Compose](https://docs.docker.com/compose/)
 - **Testing** - Using [Mocha](https://mochajs.org/), [Chai](https://www.chaijs.com/), [Sinon](https://sinonjs.org/), [Supertest](https://github.com/visionmedia/supertest) and coverage with [nyc](https://github.com/istanbuljs/nyc)
 - **Logging** - Using [Winston](https://github.com/winstonjs/winston)
+- **HTTP requests logging** - Using [morgan](https://github.com/expressjs/morgan#readme)
 - **Internationalization** - Using [i18next](https://www.i18next.com/)
 - **Error tracking** - Using [Sentry](https://docs.sentry.io/platforms/node/)
 - **Caching** - Using [Redis](https://github.com/NodeRedis/node-redis)
@@ -53,7 +53,10 @@ yo exprest-api
 ## TODO
 
 - [ ] Add unit tests
+- [x] Change `morgan` to option
 - [ ] Add supported locales / default locale option
+- [ ] Migrate tests to `jest`
+- [ ] Migrate ORM to `MikroORM`
 
 ## License
 

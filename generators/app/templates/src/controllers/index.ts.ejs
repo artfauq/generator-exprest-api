@@ -1,11 +1,11 @@
-import Router from 'express-promise-router';
-import morgan from 'morgan';
+import Router from 'express-promise-router';<% if (morgan) { %>
+import morgan from 'morgan';);
 import config from '../config';
-import logger from '../config/logger.config';<% if (auth) { %>
+import logger from '../config/logger.config';<% } %><% if (auth) { %>
 import authController from './auth.controller';<% } %><% if (sequelize) { %>
 import usersController from './users.controller';<% } %>
 
-const router = Router();
+const router = Router();<% if (morgan) { %>
 
 /**
  * HTTP request logging configuration
@@ -16,7 +16,7 @@ router.use(
       write: message => logger.info(message.trim()),
     },
   }),
-);
+);<% } %>
 
 /**
  * API routes

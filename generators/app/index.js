@@ -41,7 +41,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'sequelize',
-        message: `Use ${yellow('Sequelize')} as ORM ?`,
+        message: `Use ${yellow('sequelize')} as ORM ?`,
         default: true,
       },
       {
@@ -59,7 +59,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'mocha',
-        message: `Use ${yellow('Mocha')} and ${yellow('Chai')} for testing ?`,
+        message: `Use ${yellow('mocha')} and ${yellow('chai')} for testing ?`,
         default: true,
       },
       //
@@ -69,7 +69,17 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'winston',
-        message: `Use ${yellow('Winston')} for logging ?`,
+        message: `Use ${yellow('winston')} for logging ?`,
+        default: true,
+      },
+      //
+      // ─── MORGAN ──────────────────────────────────────────────────────
+      //
+      {
+        store: true,
+        type: 'confirm',
+        name: 'morgan',
+        message: `Use ${yellow('morgan')} for HTTP requests logging ?`,
         default: true,
       },
       //
@@ -99,7 +109,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'socketIo',
-        message: `Use ${yellow('Socket.IO')} for real-time events ?`,
+        message: `Use ${yellow('socket.io')} for real-time events ?`,
         default: true,
       },
       //
@@ -109,7 +119,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'redis',
-        message: `Use ${yellow('Redis')} for caching ?`,
+        message: `Use ${yellow('redis')} for caching ?`,
         default: true,
       },
       //
@@ -129,7 +139,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'nodemailer',
-        message: `Use ${yellow('Nodemailer')} to send emails ?`,
+        message: `Use ${yellow('nodemailer')} to send emails ?`,
         default: true,
       },
       //
@@ -149,7 +159,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'sentry',
-        message: `Use ${yellow('Sentry')} for error tracking ?`,
+        message: `Use ${yellow('sentry')} for error tracking ?`,
         default: true,
       },
       //
@@ -159,7 +169,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'admin',
-        message: `Use ${yellow('AdminBro')} to generate an admin panel ?`,
+        message: `Use ${yellow('admin-bro')} to generate an admin panel ?`,
         default: true,
         when: ({ sequelize }) => !!sequelize,
       },
@@ -170,7 +180,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'eslint',
-        message: `Use ${yellow('ESLint')} for code linting ?`,
+        message: `Use ${yellow('eslint')} for code linting ?`,
         default: true,
       },
       //
@@ -180,7 +190,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'prettier',
-        message: `Use ${yellow('Prettier')} for code formatting ?`,
+        message: `Use ${yellow('prettier')} for code formatting ?`,
         default: true,
       },
       //
@@ -200,7 +210,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'docker',
-        message: `Generate ${yellow('Docker')} configuration ?`,
+        message: `Generate ${yellow('docker')} configuration ?`,
         default: true,
       },
       ///
@@ -210,8 +220,8 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'nginx',
-        message: `Configure ${yellow('Nginx')} reverse proxy with automatic ${yellow(
-          "Let's Encrypt"
+        message: `Configure ${yellow('nginx')} reverse proxy with automatic ${yellow(
+          "let's encrypt"
         )} SSL certificate renewal ?`,
         default: true,
         when: ({ docker }) => !!docker,
@@ -223,7 +233,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'openapi',
-        message: `Generate an ${yellow('OpenAPI')} documentation file ?`,
+        message: `Generate an ${yellow('openAPI')} documentation file ?`,
         default: true,
       },
       //
@@ -260,7 +270,6 @@ module.exports = class extends Generator {
         'helmet@^4.6.0',
         'http-errors@^1.8.1',
         'moment@^2.29.1',
-        'morgan@^1.10.0',
         'reflect-metadata@^0.1.13',
         'serve-favicon@^2.5.0',
         'typedi@^0.10.0',
@@ -272,7 +281,6 @@ module.exports = class extends Generator {
         '@types/express@^4.17.13',
         '@types/express-rate-limit@^5.1.3',
         '@types/http-errors@^1',
-        '@types/morgan@^1.9.3',
         '@types/node@^12.12.9',
         '@types/serve-favicon@^2.5.0',
         'cpx@^1.5.0',
@@ -394,6 +402,15 @@ module.exports = class extends Generator {
 
     if (answers.winston) {
       this.packages.dependencies.push('winston@^3.6.0');
+    }
+
+    //
+    // ─── MORGAN ──────────────────────────────────────────────────────
+    //
+
+    if (answers.morgan) {
+      this.packages.dependencies.push('morgan@^1.10.0');
+      this.packages.devDependencies.push('@types/morgan@^1.9.3');
     }
 
     //
