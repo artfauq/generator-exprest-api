@@ -1,5 +1,5 @@
 import { ResourceWithOptions } from 'admin-bro';
-import { Models } from '../../loaders/sequelize';
+import { Models } from '../../loaders/sequelize.loader';
 
 export default ({ models }: { models: Models }): ResourceWithOptions => {
   const resource: ResourceWithOptions = {
@@ -14,7 +14,7 @@ export default ({ models }: { models: Models }): ResourceWithOptions => {
         search: { isAccessible: true },
         show: { isAccessible: true },
       },
-      listProperties: ['lastName', 'firstName', 'email', 'createdAt'],
+      listProperties: ['id', 'email', 'firstName', 'lastName', 'createdAt'],
       showProperties: ['id', 'email', 'firstName', 'lastName', 'createdAt'],
       editProperties: ['email', 'password', 'firstName', 'lastName'],
       filterProperties: ['email', 'firstName', 'lastName', 'createdAt'],

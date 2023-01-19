@@ -4,7 +4,10 @@ import { celebrate } from 'celebrate';
 // Declare here custom validation schemas
 const schemas = {
   id: Joi.number().integer().positive(),
-  email: Joi.string().email(),
+  firstName: Joi.string().min(2).max(50),
+  lastName: Joi.string().min(2).max(50),
+  email: Joi.string().max(255).email(),
+  password: Joi.string().min(8).max(64),
   uuid: Joi.string().guid(),
 };
 

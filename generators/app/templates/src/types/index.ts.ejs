@@ -1,6 +1,7 @@
 // Export types from here
-<% if (auth) { %>
-export * from './auth';<% } %><% if (jwt) { %>
-export * from './jwt';
+<% if (auth || jwt || sequelize) { %><% if (auth) { %>
+export * from './auth.type';<% } %><% if (jwt) { %>
+export * from './jwt.type';<% } %><% if (sequelize) { %>
+export * from './user.type';<% } %>
 <% } %>
 export { default } from './index.d';

@@ -27,12 +27,13 @@
     "plugin:node/recommended"<% if (prettier) { %>,
     "plugin:prettier/recommended"<% } %>
   ],
-  "plugins": ["unused-imports"],
+  "plugins": ["import", "unused-imports"],
   "rules": {
     // Common rules
     "arrow-body-style": "off",
     "arrow-parens": ["error", "as-needed"],
     "class-methods-use-this": "off",
+    "comma-dangle": ["error", "always-multiline"],
     "implicit-arrow-linebreak": "off",
     "linebreak-style": ["error", "unix"],
     "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
@@ -55,8 +56,10 @@
       }
     ],
     "spaced-comment": ["error", "always", { "line": { "markers": ["/"] } }],
+
     // eslint-plugin-node
     "node/no-unsupported-features/es-syntax": ["error", { "ignores": ["modules"] }],
+
     // eslint-plugin-import rules
     "import/no-cycle": "off",
     "import/order": [
@@ -79,15 +82,20 @@
       }
     ],
     "import/prefer-default-export": "off",
+
     // @typescript-eslint/eslint-plugin rules
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/ban-types": "off",
+    "@typescript-eslint/indent": "off",
     "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "next" }],
+    "@typescript-eslint/no-misused-promises": "off",
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "next" }],
     "@typescript-eslint/restrict-template-expressions": "off",
+
     // eslint-plugin-unused-imports
     "unused-imports/no-unused-imports": "error"
-  },
+  },<% if (sequelize || mocha || admin) { %>
   "overrides": [<% if (sequelize) { %>
     {
       "files": ["**/*.js"],
@@ -118,5 +126,5 @@
         "import/no-extraneous-dependencies": "off"
       }
     }<% } %>
-  ]
+  ]<% } %>
 }

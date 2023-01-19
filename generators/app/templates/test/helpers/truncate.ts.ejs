@@ -14,14 +14,16 @@ export const truncateModel = async (model: ModelType, transaction?: Transaction)
 export const cleanDatabase = async (): Promise<void> => {
   const sequelize = Container.get<Sequelize>('sequelize');
 
-  return sequelize.transaction(async transaction => {
+  return sequelize.transaction(async transaction => {<% if (dialect.value === 'mysql') { %>
     await sequelize.query(`USE ${sequelize.config.database}`, { transaction });
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 0', { transaction });
+    await sequelize.query('SET FOREIGN_KEY_CHECKS = 0', { transaction });<% } %><% if (dialect.value === 'postgres') { %>
+    await sequelize.query("SET session_replication_role = 'replica'", { transaction });<% } %>
 
     await Promise.all(
       Object.entries(sequelize.models).map(([, model]) => truncateModel(model, transaction)),
-    );
+    );<% if (dialect.value === 'mysql') { %>
 
-    await sequelize.query('SET FOREIGN_KEY_CHECKS = 1', { transaction });
+    await sequelize.query('SET FOREIGN_KEY_CHECKS = 1', { transaction });<% } %><% if (dialect.value === 'postgres') { %>
+    await sequelize.query("SET session_replication_role = 'origin'", { transaction });<% } %>
   });
 };

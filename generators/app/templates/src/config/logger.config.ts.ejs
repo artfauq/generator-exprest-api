@@ -10,12 +10,13 @@ if (!existsSync(config.logsDir)) {
   mkdirSync(config.logsDir);
 }
 
-const customFormat: Logform.Format = format.combine(
-  format.errors({ stack: true }),
-  format.metadata(),
-  format.json(),
-  format.splat(),
-  format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+const { colorize, combine, errors, json, metadata, printf, timestamp } = format;
+
+const customFormat: Logform.Format = combine(
+  errors({ stack: !config.isTest || config.debug }),
+  json(),
+  metadata(),
+  timestamp({ format: () => moment().format('YYYY-MM-DD HH:mm:ss') }),
 );
 
 // Configure logger
@@ -23,30 +24,29 @@ const logger = createLogger({
   level: config.debug ? 'debug' : 'info',
   transports: [
     new transports.Console({
-      format: format.combine(
-        format.colorize(),
+      format: combine(
+        colorize(),
         customFormat,
-        format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`),
+        printf(info => {
+          const log = `${info.timestamp} ${info.level}: ${info.message}`;
+
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          return info.metadata.stack ? `${log}\n${info.metadata.stack}` : log;
+        }),
       ),
     }),
     new transports.File({
       level: 'error',
       dirname: config.logsDir,
       filename: `${moment().format('YYYY-MM-DD')}-errors.log`,
-    }),
-  ],
-  exitOnError: false,
-});<% if (sentry) { %>
-
-// If app is in in production mode, log errors to Sentry
-if (config.isProduction) {
-  logger.add(
+    }),<% if (sentry) { %>
     new SentryTransport({
       level: 'error',
       format: customFormat,
       sentry: config.sentry,
-    }),
-  );
-}<% } %><% } else { %>const logger = console;<% } %>
+    }),<% } %>
+  ],
+  exitOnError: false,
+});<% } else { %>const logger = console;<% } %>
 
 export default logger;

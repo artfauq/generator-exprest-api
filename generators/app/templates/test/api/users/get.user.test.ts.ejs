@@ -1,0 +1,49 @@
+import { expect } from 'chai';
+import supertest from 'supertest';
+import { UserModel } from '../../../src/models';
+import { cleanDatabase, expectNotFoundError, expectOk } from '../../helpers';
+import { app } from '../../setup';
+
+const api = supertest(app);
+
+/**
+ * GET /users/:userId
+ */
+describe('GET /users/:userId', () => {
+  let user: UserModel;
+  let userId: string;
+
+  before(async () => {
+    await cleanDatabase();
+
+    user = await UserModel.create({
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@gmail.com',
+      password: 'p4ssW0rd',
+    });
+    userId = user.id;
+  });
+
+  it('should return 200 and the details of the user', async () => {
+    const res = await api
+      .get(`/users/${userId}`)
+      .set('Accept', 'application/json')
+      .set('Content-Type', 'application/json');
+
+    expectOk(res);
+
+    expect(res.body).to.be.an('object').that.has.all.keys('id', 'fullName', 'email', 'createdAt');
+  });
+
+  it('should return 404 on user not found', async () => {
+    await user.destroy();
+
+    const res = await api
+      .get(`/users/${userId}`)
+      .set('Accept', 'application/json')
+      .set('Content-Type', 'application/json');
+
+    expectNotFoundError(res);
+  });
+});

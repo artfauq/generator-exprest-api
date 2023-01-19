@@ -10,7 +10,7 @@
   - [Sequelize](#sequelize)
     - [Models](#models)
     - [Migrations](#migrations)
-    - [Seed](#seed)<% } %><% if (redis) { %>
+    - [Seeders](#seeders)<% } %><% if (redis) { %>
   - [Redis](#redis)<% } %><% } %>
 - [Features](#features)
   - [Dependency injection](#dependency-injection)
@@ -54,17 +54,17 @@ The project is structured as follows:
   - `/admin`: admin related files
     - `/components`: custom React components used in the admin panel
     - `/locale`: admin translation files
-    - `/resources`: admin resources definitions<% } %>
+    - `/resources`: admin resource definitions<% } %>
   - `/config`: configuration files
-  - `/controllers`: controllers definitions
+  - `/controllers`: controller definitions
   - `/dto`: Data Transfer Object definitions<% if (cron) { %>
-  - `/jobs`: cron jobs definitions<% } %>
-  - `/loaders`: application loaders definitions<% if (i18n) { %>
+  - `/jobs`: cron job definitions<% } %>
+  - `/loaders`: application loader definitions<% if (i18n) { %>
   - `/locale`: i18n resources<% } %>
-  - `/middlewares`: middlewares definitions<% if (sequelize) { %>
-  - `/models`: database models definitions<% } %>
+  - `/middlewares`: custom middleware definitions<% if (sequelize) { %>
+  - `/models`: database model definitions<% } %>
   - `/services`: business logic (database interaction, API interactions, etc)
-  - `/types`: custom types definitions
+  - `/types`: custom type definitions
     - `/enums`: enum definitions
   - `/utils`: utilities and helpers<% if (mocha) { %>
 - `/test`: testing files<% } %>
@@ -132,12 +132,12 @@ To start all containers in `production` mode, run:
 This will:
 
 - Target the `final` stage of the multi-stage [Dockerfile](/docker/node/Dockerfile)
-- Run the `node ./dist/index.js` command in the `<%= shortname %>` container
+- Run `node ./dist/index.js` in the `<%= shortname %>` container<% if (nginx || (sequelize && dialect.value === 'mysql')) { %>
 
 In production environment, some other containers are mounted:
 <% if (sequelize && dialect.value === 'mysql') { %>
-- `<%= shortname %>-db-backup`: a container that runs a database backup script as a cron job and outputs the resulting SQL file in a `/backup` folder<% } %>
-- `nginx-proxy`, `nginx-proxy-gen` and `nginx-proxy-le`: these containers enable a reverse Nginx proxy with automatic Let's Encrypt SSL certificate renewal
+- `<%= shortname %>-db-backup`: a container that runs a database backup script as a cron job and outputs the resulting SQL file in a `/backup` folder<% } %><% if (nginx) { %>
+- `nginx-proxy`, `nginx-proxy-gen` and `nginx-proxy-le`: these containers enable a reverse Nginx proxy with automatic Let's Encrypt SSL certificate renewal<% } %><% } %>
 
 In addition, all containers are configured to restart automatically unless stopped manually.
 <% } %><% if (sequelize || redis) { %>
@@ -147,9 +147,10 @@ In addition, all containers are configured to restart automatically unless stopp
 
 The project uses [sequelize](https://github.com/sequelize/sequelize) as an ORM to connect to a <%= dialect.name %> database and [sequelize-cli](https://github.com/sequelize/cli) to perform database related commands.
 
-- Database connection options are defined in `/src/config/index.ts` through the `DB_` environment variables
-- Sequelize instance is initialized and exported from `/src/loaders/sequelize.ts`.
+- Database connection options are defined through the `DB_` environment variables
 - Sequelize CLI options are defined in `.sequelizerc` and `/db/config.js`
+
+The sequelize instance is configured in `/src/loaders/sequelize.loader.ts` and injected in the application as the `sequelize` service.
 
 #### Models
 
@@ -159,15 +160,11 @@ Sequelize models should be defined in `/src/models`. Each model should be declar
 
 For example, to declare two new models `User` and `UserAddress`:
 
-- Create a new file `user.ts` in `/src/models`:
+- Create a new file `user.model.ts` in `/src/models`:
 
 ```typescript
-import bcrypt from 'bcryptjs';
-import { BadRequest } from 'http-errors';<% if (i18n) { %>
-import { i18n as I18n } from 'i18next';<% } %>
 import {
   AllowNull,
-  BeforeValidate,
   Column,
   Comment,
   CreatedAt,
@@ -177,9 +174,8 @@ import {
   PrimaryKey,
   Table,
   Unique,
-} from 'sequelize-typescript';<% if (i18n) { %>
-import Container from 'typedi';<% } %><% if (jwt) { %>
-import { generateSignedJWT } from '../utils/jwt';<% } %>
+} from 'sequelize-typescript';
+import UserAddressModel from './user-address.model';
 
 @Table({
   tableName: 'user',
@@ -219,85 +215,20 @@ export default class UserModel extends Model<UserModel> {
 
   @CreatedAt
   @AllowNull(false)
-  @Comment("Date and time of the user's profile creation date")
+  @Comment("Date and time of the user's creation date")
   @Column(DataType.DATE)
   createdAt!: string;
-
-  //
-  // ─── VIRTUAL ATTRIBUTES ─────────────────────────────────────────────────────────
-  //
-
-  @Column(DataType.VIRTUAL)
-  get fullName(): string {
-    return `${this.getDataValue('firstName')} ${this.getDataValue('lastName')}`;
-  }
 
   //
   // ─── MODEL ASSOCIATIONS ─────────────────────────────────────────────────────────
   //
 
-  //
-  // ─── MODEL HOOKS ────────────────────────────────────────────────────────────────
-  //
-
-  @BeforeValidate
-  static async validateUserFields(user: UserModel): Promise<void> {<% if (i18n) { %>
-    const i18n = Container.get<I18n>('i18n');
-<% } %>
-    // If `email` property changed
-    if (user.changed('email')) {
-      const email = user.getDataValue('email');
-      const emailCount = await UserModel.count({ where: { email } });
-
-      if (emailCount > 0) {
-        throw new BadRequest(<% if (i18n) { %>i18n.t('errors:emailAlreadyUsed', { email })<% } else { %>`The email address ${email} is already in use.`<% } %>);
-      }
-    }
-
-    // If `password` property changed
-    if (user.changed('password')) {
-      const password = user.getDataValue('password');
-      const hash = await UserModel.generateHash(password);
-
-      user.setDataValue('password', hash);
-    }
-
-    await user.save({ validate: false });
-  }
-
-  //
-  // ─── CUSTOM METHODS ─────────────────────────────────────────────────────────────
-  //
-
-  /**
-   * Returns a hashed version of the given `password`.
-   */
-  static async generateHash(password: string): Promise<string> {
-    return bcrypt.hash(password, 10);
-  }
-
-  /**
-   * Returns `true` if `password` matches the user's password, `false` otherwise.
-   */
-  async comparePassword(password: string): Promise<boolean> {
-    const hash = this.getDataValue('password');
-
-    return bcrypt.compare(password, hash);
-  }<% if (jwt) { %>
-
-  /**
-   * Returns a new JWT for this user.
-   */
-  generateJWT(): string {
-    return generateSignedJWT(this.id, this.password, {
-      name: this.fullName,
-      email: this.email,
-    });
-  }<% } %>
+  @HasOne(() => UserAddressModel)
+  address!: UserAddressModel;
 }
 ```
 
-- Create a new file `user-address.ts` in `/src/models`:
+- Create a new file `user-address.model.ts` in `/src/models`:
 
 ```typescript
 import {
@@ -311,12 +242,10 @@ import {
   PrimaryKey,
   Table,
 } from 'sequelize-typescript';
-import { UserModel } from '.';
+import UserModel from './user.model';
 
 @Table({
   tableName: 'user_address',
-  charset: 'utf8',
-  collate: 'utf8_general_ci',
 })
 export default class UserAddressModel extends Model<UserAddressModel> {
   //
@@ -351,10 +280,6 @@ export default class UserAddressModel extends Model<UserAddressModel> {
   countryCode!: string;
 
   //
-  // ─── VIRTUAL ATTRIBUTES ─────────────────────────────────────────────────────────
-  //
-
-  //
   // ─── MODEL ASSOCIATIONS ─────────────────────────────────────────────────────────
   //
 
@@ -363,10 +288,6 @@ export default class UserAddressModel extends Model<UserAddressModel> {
     onUpdate: 'CASCADE',
   })
   user!: UserModel;
-
-  //
-  // ─── MODEL HOOKS ────────────────────────────────────────────────────────────────
-  //
 }
 ```
 
@@ -375,8 +296,8 @@ export default class UserAddressModel extends Model<UserAddressModel> {
 ```typescript
 // Export models from here
 
-export { default as UserModel } from './User';
-export { default as UserAddressModel } from './UserAddress';
+export { default as UserModel } from './user.model';
+export { default as UserAddressModel } from './user-address.model';
 ```
 
 #### Migrations
@@ -388,13 +309,13 @@ Migrations are defined in `/db/migrations`.
 To update the database with latest model changes, run migrations with [Sequelize CLI](https://github.com/sequelize/cli) with the following command:
 
 ```sh
-yarn migrations:migrate
+yarn db:migrate
 ```
 
 To undo the most recent migration, run the following command:
 
 ```sh
-yarn migrations:undo
+yarn db:migrate:undo
 ```
 
 ##### Create a new migration <!-- omit in toc -->
@@ -407,21 +328,31 @@ yarn migrations:create <migration_name>
 
 For more information about migrations and seeders, please refer to [the docs](https://sequelize.org/master/manual/migrations.html).
 
-#### Seed
+#### Seeders
 
 Seeders are defined in `/db/seeders`.
+
+##### Run seeders <!-- omit in toc -->
 
 To fill the database with initial data, run seeders with the following command:
 
 ```sh
-yarn seed
+yarn db:seed
+```
+
+##### Create a new seeder <!-- omit in toc -->
+
+To create an empty migration file, run:
+
+```sh
+yarn seeders:create <migration_name>
 ```
 
 For more information about migrations and seeders, please refer to [the docs](https://sequelize.org/master/manual/migrations.html#running-seeds).
 <% } %><% if (redis) { %>
 ### Redis
 
-The redis client is configured in `/src/loaders/redis.ts` and injected in the application as the `redis` service.
+The redis client is configured in `/src/loaders/redis.loader.ts` and injected in the application as the `redis` service.
 
 If you're not familiar with its usage, please refer to [the docs](https://github.com/NodeRedis/node-redis).
 <% } %><% } %>
@@ -477,15 +408,14 @@ Data Transfer Object methods ensure the data you send back to your API's clients
 
 For example, to create a new `User` type and a new `userDTO` method, follow these steps:
 
-- Create a new file `/src/types/user.ts` to declare the `User` type:
+- Create a new file `/src/types/user.type.ts` to declare the `User` type:
 
 ```typescript
 export type User = {
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
-  phone: string;
+  createdAt: string;
 };
 ```
 
@@ -493,15 +423,13 @@ export type User = {
 
 ```typescript
 // Export types from here
-<% if (auth) { %>
-export * from './auth';<% } %><% if (jwt) { %>
-export * from './jwt';<% } %>
-export * from './user';
+
+export * from './user.type';
 
 export { default } from './index.d';
 ```
 
-- Create a new DTO file `/src/dto/user.ts`:
+- Create a new DTO file `/src/dto/user.dto.ts`:
 
 ```typescript
 import { UserModel } from '../models';
@@ -510,10 +438,9 @@ import { User } from '../types';
 export const userDTO = (userDetails: UserModel): User => {
   const user: User = {
     id: userDetails.id,
-    firstName: userDetails.firstName,
-    lastName: userDetails.lastName,
+    fullName: userDetails.fullName,
     email: userDetails.email,
-    phone: userDetails.phone,
+    createdAt: userDetails.createdAt,
   };
 
   return user;
@@ -525,7 +452,7 @@ export const userDTO = (userDetails: UserModel): User => {
 ```typescript
 // Export DTO methods from here
 
-export * from './user';
+export * from './user.dto';
 ```
 
 ### Routing
@@ -534,9 +461,9 @@ export * from './user';
 - For each main route endpoint, a new file with the route endpoint as filename should be added to the `/controllers` folder
 - All the business logic (retrieving, creating or updating data, etc) should be defined in the `/services` folder
 
-For example, to define a new `/users` endpoint and two routes `POST /users` and `GET /users/:id`, follow these steps:
+For example, to define a new `/users` endpoint and two routes `POST /users` and `GET /users/:userId`, follow these steps:
 
-- Create a new service `/src/services/user.ts` to handle the business logic of creating and retrieving a user:
+- Create a new service `/src/services/user.service.ts` to handle the business logic of creating and retrieving a user:
 
 ```typescript<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';
@@ -570,7 +497,7 @@ export default class UserService {<% if (i18n) { %>
     const existingUser = await UserModel.findOne({ where: { email: userDetails.email } });
 
     if (existingUser) {
-      throw new BadRequest(<% if (i18n) { %>this.i18n.t('errors:duplicateEmail')<% } else { %>'This email address is already in use.'<% } %>);
+      throw new BadRequest(<% if (i18n) { %>this.i18n.t('errors:emailAlreadyUsed')<% } else { %>'An account with this email address already exists.'<% } %>);
     }
 
     const user = await UserModel.create(userDetails);
@@ -584,13 +511,11 @@ export default class UserService {<% if (i18n) { %>
 
 ```typescript
 // Export services from here
-<% if (auth) { %>
-export { default as AuthService } from './auth';<% } %><% if (nodemailer) { %>
-export { default as EmailService } from './email';<% } %>
+
 export { default as UserService } from './user';
 ```
 
-- Create a new route file `/src/controllers/users.ts` with the request handlers:
+- Create a new route file `/src/controllers/users.controller.ts` with the request handlers:
 
 ```typescript
 import Router from 'express-promise-router';
@@ -602,32 +527,32 @@ import { CreateUserDTO, User } from '../types';
 const router = Router();
 
 /**
- * GET /users/:id
+ * GET /users/:userId
  *
- * Retrieve a user's details
+ * Get user details
  */
-router.get<{ id: string }, { user: User }>(
-  '/:id',<% if (celebrate) { %>
+router.get<{ v: string }, User>(
+  '/:userId',<% if (celebrate) { %>
   validation.celebrate({
     params: {
-      id: validation.schemas.uuid.required(),
+      userId: validation.schemas.uuid.required(),
     },
   }),<% } %>
   async (req, res) => {
-    const { id } = req.params;
+    const { userId } = req.params;
 
-    const user = await Container.get(UserService).getUserById(id);
+    const user = await Container.get(UserService).getUserById(userId);
 
-    res.status(201).json({ user });
+    res.status(201).json(user);
   },
 );
 
 /**
  * POST /users
  *
- * Register new user
+ * Create new user
  */
-router.post<{}, { user: User }, CreateUserDTO>(
+router.post<{}, User, CreateUserDTO>(
   '/',<% if (celebrate) { %>
   validation.celebrate({
     body: validation.Joi.object({
@@ -635,7 +560,6 @@ router.post<{}, { user: User }, CreateUserDTO>(
       lastName: validation.schemas.lastName.required(),
       email: validation.schemas.email.required(),
       password: validation.schemas.password.required(),
-      phone: validation.schemas.phoneNumber.required(),
     }).required(),
   }),<% } %>
   async (req, res) => {
@@ -643,7 +567,7 @@ router.post<{}, { user: User }, CreateUserDTO>(
 
     const user = await Container.get(UserService).createUser(userDetails);
 
-    res.status(201).json({ user });
+    res.status(201).json(user);
   },
 );
 
@@ -654,10 +578,9 @@ export default router;
 
 ```typescript
 import Router from 'express-promise-router';
-import { NotFound } from 'http-errors';
 import morgan from 'morgan';
-import logger from '../config/logger';
-import usersController from './users';
+import logger from '../config/logger.config';
+import usersController from './users.controller';
 
 const router = Router();
 
@@ -675,25 +598,17 @@ router.use(
 /**
  * API routes
  */
+router.get('/', (req, res) => res.sendStatus(204));
 router.use('/users', usersController);
-
-/**
- * 404 error handling
- */
-router.use((req, res, next) => {
-  const { baseUrl, url, method } = req;
-
-  next(new NotFound(<% if (i18n) { %>req.i18n.t('errors:routeNotFound', { method, baseUrl, url })<% } else { %>`The route '${method} ${baseUrl}${url}' doesn't exist.`<% } %>));
-});
 
 export default router;
 ```
 
 ### Error handling
 
-HTTP error responses are handled by the `httpErrorHandler` middleware defined in `/src/server.ts`.
+HTTP error responses are handled by the `errorHandler` middleware declared in `/src/server.ts`.
 
-When an error is thrown inside of a route controller with `next()` or inside a service with `throw`, the middleware will try to parse the error into a standard HTTP error and send back the error to the client.
+When an error is thrown inside of a route controller with `next()` or inside a service with `throw`, the middleware will try to parse the error into a standard HTTP error, log the error and send back the formatted error to the client.
 
 To throw custom HTTP errors, use the `http-errors` library.
 
@@ -704,12 +619,13 @@ import { NotFound } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';
 import { Inject, Service } from 'typedi';<% } %>
 import { UserModel } from '../models';
+import { User } from '../types';
 
 @Service()
 export default class UserService {<% if (i18n) { %>
   constructor(@Inject('i18n') private i18n: I18n) {}
 <% } %>
-  async function getUserById(userId) {
+  async getUserById(userId: string): Promise<User> {
     const user = await UserModel.findByPk(userId);
 
     if (!user) {
@@ -721,30 +637,26 @@ export default class UserService {<% if (i18n) { %>
 }
 ```
 
-In addition, the routes defined in `/src/controllers` should use the `Router` from the [express-promise-router](https://github.com/express-promise-router/express-promise-router) package instead of the `Router` from `express`. It provides a convenient way to write async request controllers.
+In addition, the routes defined in `/src/controllers` should use the `Router` from the [express-promise-router](https://github.com/express-promise-router/express-promise-router) package (instead of the `Router` from `express`) as it provides a convenient way to write async request controllers.
 <% if (celebrate) { %>
 ### Object validation
 
 To validate HTTP request parameters and body, use [celebrate](https://www.npmjs.com/package/celebrate).
 
-Custom validation schemas should be defined in `/src/middlewares/validation.ts`.
+Custom validation schemas should be defined in `/src/middlewares/validation.middleware.ts`.
 
-For example, to add validation to the `id` parameter of the `GET /users/:id` route:
+For example, to add validation to the `userId` parameter of the `GET /users/:userId` route:
 
-- Define a new validation schema in `/src/middlewares/validation.ts`:
+- Define a new validation schema in `/src/middlewares/validation.middleware.ts`:
 
 ```typescript
 import { celebrate } from 'celebrate';
 import Joi from '@hapi/joi';
 
-const id = Joi.number().integer().positive();
-
-//
-// ─── GENERIC VALIDATION SCHEMAS ─────────────────────────────────────────────────
-//
+const uuid = Joi.string().guid();
 
 const schemas = {
-  id,
+  uuid,
 };
 
 export { celebrate, customJoi as Joi, schemas };
@@ -761,28 +673,28 @@ import { UserService } from '../services';
 const router = Router();
 
 /**
- * GET /users/:id
+ * GET /users/:userId
  */
 router.get(
-  '/:id',
+  '/:userId',
   celebrate({
     params: {
-      id: validation.schemas.id
+      userId: validation.schemas.uuid
         .required()
-        .error(() => 'User ID is required and must be a positive integer.'),
+        .error(() => 'User ID is required and must be a valid UUID.'),
     },
   }),
   async (req, res) => {
-    const { id } = req.params;
+    const { userId } = req.params;
 
-    const user = await Container.get(UserService).getUserById(id);
+    const user = await Container.get(UserService).getUserById(userId);
 
     res.status(200).json(user);
   },
 );
 ```
 
-Validation errors are handled by the `celebrateErrorHandler` middleware defined in `/src/server.ts`:
+Validation errors are handled by the `celebrateErrorHandler` middleware declared in `/src/server.ts`:
 <% } %><% if (mocha) { %>
 ### Testing
 
@@ -809,19 +721,17 @@ This will:
 
 The `/test` folder is structured as follows:
 
+- `/api`: API test files
 - `/helpers`: test helpers
   - `/stubs`: test stub definitions
-- `/integration`: integration test files
-  - `/api`: API test files
-- `/unit`: unit test files
 
-All API tests should be defined in `/test/integration/api` with one directory per main route and inside each directory one file per endpoint.
+All API tests should be defined in `/test/api` with one directory per main route and inside each directory one file per endpoint.
 
-For example: if a `POST /users` route is defined, the associated test file would be `/test/integration/api/users/post.users.test.ts`.
+For example: if a `POST /users` route is defined, the associated test file would be `/test/api/users/post.users.test.ts`.
 <% } %><% if (i18n) { %>
 ### i18n
 
-i18n is configured with [i18next](https://www.i18next.com/) in `/src/loaders/i18n.ts` and injected in the application as the `i18n` service.
+i18n is configured with [i18next](https://www.i18next.com/) in `/src/loaders/i18n.loader.ts` and injected in the application as the `i18n` service.
 
 Translations are located in `/src/locale`.
 
@@ -829,16 +739,17 @@ All incoming requests are parsed by `i18next-http-middleware` to retrieve the re
 
 To add a new language, for example Spanish:
 
-- In `/src/locale`, create a new file `es.json`
+- In `/src/locale`, create a new file `es.locale.json`
 - In `/src/locale/index.ts`, export this new language by adding:
 
 ```typescript
 // Export translations files from here
 
-export { default as es } from './es.json';
+export { default as en } from './en.locale.json';
+export { default as es } from './es.locale.json';
 ```
 
-- In `/src/loaders/i18n.ts`, add `'es'` to the `supportedLngs` property
+- In `/src/loaders/i18n.loader.ts`, add `'es'` to the `supportedLngs` property
 <% } %><% if (cron) { %>
 ### Job scheduler
 
@@ -846,18 +757,18 @@ Cron jobs are handled by the [node-schedule](https://github.com/node-schedule/no
 
 To create a new job, for example a logs cleaning job:
 
-- In `/src/jobs`, create a new file `clean-logs.ts` with the following content:
+- In `/src/jobs`, create a new file `clean-logs.job.ts` with the following content:
 
 ```typescript
 import moment from 'moment';
 import { JobCallback } from 'node-schedule';
 import { Container } from 'typedi';
-import { Op } from 'sequelize';
-import { Logger } from 'winston';
+import { Op } from 'sequelize';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import { LogModel } from '../models';
 
 export default (): JobCallback => () => {
-  const logger = Container.get<Logger>('logger');
+  const logger = Container.get<<%= loggerType %>>('logger');
 
   logger.info('Running logs cleaning job');
 
@@ -870,9 +781,9 @@ export default (): JobCallback => () => {
       },
     },
   })
-    .then(deletedRowsCount =>
-      logger.info(`Completed logs cleaning job with ${deletedRowsCount} rows deleted`),
-    )
+    .then(deletedRowsCount => {
+      logger.info(`Completed logs cleaning job with ${deletedRowsCount} rows deleted`);
+    })
     .catch(err => {
       logger.error(`Logs cleaning job failed: ${err}`);
     });
@@ -884,10 +795,10 @@ export default (): JobCallback => () => {
 ```typescript
 // Export individual jobs from here
 
-export { default as cleanJobs } from './clean-logs';
+export { default as cleanLogs } from './clean-logs.job';
 ```
 
-- In `/src/loaders/job-scheduler.ts`, configure the execution date of this new job:
+- In `/src/loaders/job-scheduler.loader.ts`, configure the execution date of this new job:
 
 ```typescript
 import scheduler from 'node-schedule';
@@ -911,11 +822,7 @@ Monitoring is available at [http://localhost:8080/status] configured in `/src/se
 ### Sentry
 
 This project uses [@sentry/node](https://docs.sentry.io/platforms/node/guides/express/) to report errors and perform requests tracing.
-
-Sentry is configured in `/src/config/sentry.ts` and defaults to:
-
-- Enabled only in `production` mode (`NODE_ENV` set to `production`)
-- Reports only errors with a status `> 500`
+Sentry is configured in `/src/config/index.ts`, initialized in `/src/index.ts` and enabled only in `production` mode (`NODE_ENV` set to `production`).
 
 To configure Sentry:
 
@@ -925,13 +832,13 @@ To configure Sentry:
 <% } %><% if (socketIo) { %>
 ### Socket IO
 
-This project uses [Socket.IO](https://socket.io/docs/v2/) for real-time events which is configured in `/src/loaders/socket-io.ts` and injected in the application as the `socket` service.
+This project uses [Socket.IO](https://socket.io/docs/v2/) for real-time events which is configured in `/src/loaders/socket-io.loader.ts` and injected in the application as the `socket` service.
 <% } %><% if (nodemailer) { %>
 ### Nodemailer
 
 To send emails, this project uses [Nodemailer](https://github.com/nodemailer/nodemailer).
 
-The SMTP transport is configured in `/src/loaders/mailer.ts` and injected in the application as the `mailer` service.
+The SMTP transport is configured in `/src/loaders/mailer.loader.ts` and injected in the application as the `mailer` service.
 
 To configure the SMTP connection options, change the `SMTP_` environment variables in `.env`.
 <% } %><% if (openapi) { %>
@@ -943,7 +850,7 @@ The interface is generated by [ReDoc](https://github.com/Rebilly/ReDoc) and is a
 <% } %><% if (admin) { %>
 ### Admin panel
 
-The admin panel is generated with [AdminBro](https://adminbro.com/docs) and configured in `/src/config/admin-bro.ts`.
+The admin panel is generated with [AdminBro](https://adminbro.com/docs) and configured in `/src/config/admin-bro.loader.ts`.
 
 All admin-related files should reside in `/src/admin`.
 <% } %>
@@ -951,7 +858,7 @@ All admin-related files should reside in `/src/admin`.
 
 ### Filenames
 
-All filenames should use `kebab-case`.
+All filenames should use `kebab-case` with a suffix matching the file content (`.model`, `.service`, `.test`, etc).
 
 ### Formatting
 
@@ -982,7 +889,7 @@ yarn lint:fix
 <% } %>
 More info:
 
-- [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) for Typescript compiling errors (configuration file: [`tsconfig.json`](tsconfig.json))<% if (eslint) { %>
+- [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) for TypeScript compiling errors (configuration file: [`tsconfig.json`](tsconfig.json))<% if (eslint) { %>
 - [ESlint](https://eslint.org/) for TypeScript/JavaScript linting errors (configuration file: [`.eslintrc.json`](.eslintrc.json))<% } %><% if (prettier) { %>
 - [Prettier](https://prettier.io/) for formatting errors (configuration file: [`.prettierrc`](.prettierrc))<% } %>
 <% if (hook) { %>
@@ -1014,5 +921,5 @@ When running, the application outputs some logs. Two modules are used for this:
 <% if (sentry) { %>
 In production mode (`NODE_ENV` set to `production`), all `error` logs are also sent to `Sentry`.
 <% } %>
-Please refer to `/src/config/logger.ts` to see winston configuration.
+Please refer to `/src/config/logger.config.ts` to see winston configuration.
 <% } %>

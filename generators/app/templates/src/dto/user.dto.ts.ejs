@@ -1,0 +1,13 @@
+import { UserModel } from '../models';
+import { User } from '../types';
+
+export const userDTO = (userDetails: UserModel): User => {
+  const user: User = {
+    id: userDetails.id,
+    fullName: userDetails.fullName,
+    email: userDetails.email,
+    createdAt: userDetails.createdAt,
+  };
+
+  return user;
+};

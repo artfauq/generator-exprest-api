@@ -1,72 +1,24 @@
-const convict = require('convict');
 const dotenv = require('dotenv');
-const path = require('path');
 
-/**
- * Load environment variables
- */
 dotenv.config();
 
-const config = convict({
-  dialect: {
-    doc: 'Database dialect',
-    format: String,
-    default: '<%= dialect.value %>',
-  },
-  host: {
-    doc: 'Database host name / IP',
-    format: String,
-    env: 'DB_HOST',
-    default: '',
-  },
-  port: {
-    doc: 'Database port',
-    format: 'port',
-    env: 'DB_PORT',
-    default: <%= dialect.port %>,
-  },
-  username: {
-    doc: 'Database username',
-    format: String,
-    env: 'DB_USER',
-    default: '',
-  },
-  password: {
-    doc: 'Database password',
-    format: String,
-    env: 'DB_PASSWORD',
-    default: '',
-  },
-  database: {
-    doc: 'Database name',
-    format: String,
-    env: 'DB_NAME',
-    default: '',
-  },
+const env = process.env.NODE_ENV || 'development';
+const debug = process.env.DEBUG === 'true';
+const isTest = env === 'test';
+
+const options = {
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '<%= dialect.port %>', 10),
+  database: isTest ? '<%= shortname %>_test' : process.env.DB_NAME,
+  username: isTest ? '<%= shortname %>-test' : process.env.DB_USER,
+  password: isTest ? '<%= shortname %>-test' : process.env.DB_PASSWORD,
+  dialect: '<%= dialect.value %>',
   dialectOptions: {
-    doc: 'Dialect options',
-    format: Object,
-    default: {},
+    charset: 'utf8_general_ci',
   },
-  logging: {
-    doc: 'Query logging',
-    format: Boolean,
-    env: 'DEBUG',
-    default: false,
-  },
-  migrationStorageTableName: {
-    doc: 'Migration storage table name',
-    format: String,
-    default: 'sequelize_migrations',
-  },
-});
-
-/**
- * Validate options
- */
-config.validate({ allowed: 'strict' });
-
-const options = config.get();
+  logging: debug ? console.log : false,
+  migrationStorageTableName: 'sequelize_migrations',
+};
 
 module.exports = {
   development: options,

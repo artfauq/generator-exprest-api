@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Container } from 'typedi';
-import logger from '../src/config/logger';<% if (sequelize || i18n || socketIo || admin) { %>
+import logger from '../src/config/logger.config';<% if (sequelize || i18n || socketIo || admin) { %>
 import * as loaders from '../src/loaders';<% } %>
 import startServer from '../src/server';<% if (stubs) { %>
 import { <% if (nodemailer) { %>mailerStub, <% } %><% if (redis) { %>redisStub<% } %> } from './helpers';<% } %>
@@ -16,13 +16,13 @@ before(async () => {
     const sequelize = await loaders.sequelize({ logger });
 <% } %><% if (i18n) { %>
     // Initialize i18n
-    const i18n = await loaders.i18n();
+    const i18n = await loaders.i18n({ logger });
 <% } %><% if (socketIo) { %>
     // Initialize Socket.IO server
-    const socket = loaders.socketIo({ server });
+    const socket = loaders.socketIo({ logger, server });
 <% } %><% if (admin) { %>
     // Initialize admin panel
-    const adminBro = loaders.adminBro({ sequelize });
+    const adminBro = loaders.adminBro({ logger, sequelize });
 <% } %>
     // Inject dependencies
     Container.set('logger', logger);<% if (sequelize) { %>

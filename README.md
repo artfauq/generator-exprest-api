@@ -50,6 +50,11 @@ yo exprest-api
 
 **NOTE:** No need to create a new folder before running the command, the generator will do it for you.
 
+## TODO
+
+- [ ] Add unit tests
+- [ ] Add supported locales / default locale option
+
 ## License
 
 MIT © [Arthur Fauquenot](https://github.com/arthurfauq)

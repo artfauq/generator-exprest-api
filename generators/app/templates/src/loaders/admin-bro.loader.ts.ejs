@@ -4,7 +4,7 @@ import { Sequelize } from 'sequelize-typescript';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import * as admin from '../admin';
 import config from '../config';
-import { Models } from './sequelize';
+import { Models } from './sequelize.loader';
 
 // Register Sequelize adapter
 AdminBro.registerAdapter(AdminBroSequelize);

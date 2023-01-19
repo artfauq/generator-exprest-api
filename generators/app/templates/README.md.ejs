@@ -39,7 +39,7 @@ Fill the `.env` file according to the following table.
 | `SMTP_USER`          | _String_  | SMTP user                                         |         |                                                                                                                          |
 | `SMTP_PASSWORD`      | _String_  | SMTP password                                     |         |                                                                                                                          |<% } %><% if (sentry) { %>
 | `SENTRY_DSN`         | _String_  | Sentry DSN                                        |         | See [Sentry Configuration](https://docs.sentry.io/platforms/node/configuration/options/)                                 |
-| `SENTRY_ENVIRONMENT` | _String_  | Sentry environment                                |         | See [Sentry Configuration](https://docs.sentry.io/platforms/node/configuration/options/)                                 |<% } %><% if (docker) { %>
+| `SENTRY_ENVIRONMENT` | _String_  | Sentry environment                                |         | See [Sentry Configuration](https://docs.sentry.io/platforms/node/configuration/options/)                                 |<% } %><% if (nginx) { %>
 | `LETSENCRYPT_HOST`   | _String_  | Let's Encrypt host                                |         | See [letsencrypt-nginx-proxy-companion](https://github.com/nginx-proxy/docker-letsencrypt-nginx-proxy-companion)         |
 | `LETSENCRYPT_EMAIL`  | _String_  | Let's Encrypt email                               |         | See [letsencrypt-nginx-proxy-companion](https://github.com/nginx-proxy/docker-letsencrypt-nginx-proxy-companion)         |<% } %>
 
@@ -53,8 +53,8 @@ Start a development server by running:
 ./docker/start.sh dev
 ```
 
-#### Without docker-compose <!-- omit in toc -->
-<% } %>
+#### Without docker-compose <!-- omit in toc --><% } %>
+
 If **Node.js** is not installed on your machine, visit [this page](https://nodejs.org/en/download/) for download instructions.
 
 Install required dependencies:

@@ -1,22 +1,30 @@
 import bcrypt from 'bcryptjs';
 import { BadRequest } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';<% } %>
+import { Op, Transaction } from 'sequelize';
 import {
   AllowNull,
-  BeforeValidate,
+  BeforeCreate,
+  BeforeUpdate,
   Column,
   Comment,
   CreatedAt,
   DataType,
   Default,
+  DefaultScope,
   Model,
   PrimaryKey,
   Table,
   Unique,
 } from 'sequelize-typescript';<% if (i18n) { %>
 import Container from 'typedi';<% } %><% if (jwt) { %>
-import { generateSignedJWT } from '../utils/jwt';<% } %>
+import { generateSignedJWT } from '../utils';<% } %>
 
+@DefaultScope(() => ({
+  attributes: {
+    exclude: ['password'],
+  },
+}))
 @Table({
   tableName: 'user',
 })
@@ -55,7 +63,7 @@ export default class UserModel extends Model<UserModel> {
 
   @CreatedAt
   @AllowNull(false)
-  @Comment("Date and time of the user's profile creation date")
+  @Comment("Date and time of the user's creation date")
   @Column(DataType.DATE)
   createdAt!: string;
 
@@ -69,36 +77,42 @@ export default class UserModel extends Model<UserModel> {
   }
 
   //
-  // ─── MODEL ASSOCIATIONS ─────────────────────────────────────────────────────────
-  //
-
-  //
   // ─── MODEL HOOKS ────────────────────────────────────────────────────────────────
   //
 
-  @BeforeValidate
-  static async validateUserFields(user: UserModel): Promise<void> {<% if (i18n) { %>
+  @BeforeCreate
+  @BeforeUpdate
+  static async checkEmailUniqueness(
+    user: UserModel,
+    options?: { transaction?: Transaction },
+  ): Promise<void> {<% if (i18n) { %>
     const i18n = Container.get<I18n>('i18n');
 <% } %>
-    // If `email` property changed
     if (user.changed('email')) {
       const email = user.getDataValue('email');
-      const emailCount = await UserModel.count({ where: { email } });
+      const emailCount = await UserModel.count({
+        where: {
+          id: { [Op.ne]: user.id },
+          email,
+        },
+        transaction: options?.transaction,
+      });
 
       if (emailCount > 0) {
-        throw new BadRequest(<% if (i18n) { %>i18n.t('errors:emailAlreadyUsed', { email })<% } else { %>`The email address ${email} is already in use.`<% } %>);
+        throw new BadRequest(<% if (i18n) { %>i18n.t('errors:emailAlreadyUsed')<% } else { %>'An account with this email address already exists.'<% } %>);
       }
     }
+  }
 
-    // If `password` property changed
+  @BeforeCreate
+  @BeforeUpdate
+  static async hashPassword(user: UserModel): Promise<void> {
     if (user.changed('password')) {
       const password = user.getDataValue('password');
       const hash = await UserModel.generateHash(password);
 
-      user.setDataValue('password', hash);
+      user.password = hash;
     }
-
-    await user.save({ validate: false });
   }
 
   //
@@ -116,9 +130,7 @@ export default class UserModel extends Model<UserModel> {
    * Returns `true` if `password` matches the user's password, `false` otherwise.
    */
   async comparePassword(password: string): Promise<boolean> {
-    const hash = this.getDataValue('password');
-
-    return bcrypt.compare(password, hash);
+    return bcrypt.compare(password, this.password);
   }<% if (jwt) { %>
 
   /**

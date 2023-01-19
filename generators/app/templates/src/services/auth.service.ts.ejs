@@ -12,7 +12,12 @@ export default class AuthService {<% if (i18n) { %>
    */
   async login(email: string, password: string): Promise<string> {
     // Check if a user with this email exists
-    const user = await UserModel.findOne({ where: { email } });
+    const user = await UserModel.findOne({
+      attributes: {
+        include: ['password'],
+      },
+      where: { email },
+    });
 
     if (!user) {
       throw new Unauthorized(<% if (i18n) { %>this.i18n.t('errors:invalidCredentials')<% } else { %>'Invalid credentials.'<% } %>);
@@ -26,7 +31,7 @@ export default class AuthService {<% if (i18n) { %>
     }
 
     // Generate JWT
-    const token = await user.generateJWT();
+    const token = user.generateJWT();
 
     return token;
   }

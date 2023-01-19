@@ -16,7 +16,7 @@ router.post<{}, { token: string }, LoginDTO>(
   validation.celebrate({
     body: {
       email: validation.schemas.email.required(),
-      password: validation.Joi.string().required(),
+      password: validation.schemas.password.required(),
     },
   }),<% } %>
   async (req, res) => {

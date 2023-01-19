@@ -1,8 +1,9 @@
 import Router from 'express-promise-router';
 import morgan from 'morgan';
 import config from '../config';
-import logger from '../config/logger';<% if (auth) { %>
-import authController from './auth';<% } %>
+import logger from '../config/logger.config';<% if (auth) { %>
+import authController from './auth.controller';<% } %><% if (sequelize) { %>
+import usersController from './users.controller';<% } %>
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use(
  * API routes
  */
 router.get('/', (req, res) => res.sendStatus(204));<% if (auth) { %>
-router.use('/auth', authController);<% } %>
+router.use('/auth', authController);<% } %><% if (sequelize) { %>
+router.use('/users', usersController);<% } %>
 
 export default router;

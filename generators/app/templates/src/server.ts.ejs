@@ -20,7 +20,7 @@ import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import config from './config';
 import router from './controllers';
-import {<% if (celebrate) { %> celebrateErrorHandler,<% } %> errorLogger, httpErrorHandler<% if (jwt) { %>, jwtErrorHandler<% } %><% if (sequelize) { %>, sequelizeErrorHandler<% } %> } from './middlewares';
+import {<% if (celebrate) { %> celebrateErrorHandler,<% } %> errorHandler<% if (jwt) { %>, jwtErrorHandler<% } %><% if (sequelize) { %>, sequelizeErrorHandler<% } %> } from './middlewares';
 
 export default (app: Application, server: Server): void => {
   const logger = Container.get<<%= loggerType %>>('logger');<% if (admin) { %>
@@ -58,7 +58,11 @@ export default (app: Application, server: Server): void => {
   app.use(config.admin.path, AdminBroExpress.buildRouter(adminBro));<% } %><% if (sentry) { %>
 
   // Sentry middleware configuration
-  app.use(Sentry.Handlers.requestHandler());
+  app.use(
+    Sentry.Handlers.requestHandler({
+      user: ['id', 'email'],
+    }),
+  );
   app.use(Sentry.Handlers.tracingHandler());<% } %><% if (i18n) { %>
 
   // i18n middleware configuration
@@ -95,13 +99,12 @@ export default (app: Application, server: Server): void => {
     next(new NotFound(<% if (i18n) { %>req.i18n.t('errors:routeNotFound', { method, baseUrl, url })<% } else { %>`The route '${method} ${baseUrl}${url}' doesn't exist.`<% } %>));
   });
 
-  // Error handling<% if (jwt) { %>
+  // Error handling<% if (sentry) { %>
+  app.use(Sentry.Handlers.errorHandler());<% } %><% if (jwt) { %>
   app.use(jwtErrorHandler());<% } %><% if (celebrate) { %>
   app.use(celebrateErrorHandler());<% } %><% if (sequelize) { %>
   app.use(sequelizeErrorHandler());<% } %>
-  app.use(errorLogger());<% if (sentry) { %>
-  app.use(Sentry.Handlers.errorHandler());<% } %>
-  app.use(httpErrorHandler());
+  app.use(errorHandler());
 
   // Start listening on configured port
   server
@@ -113,16 +116,4 @@ export default (app: Application, server: Server): void => {
 
       process.exit(1);
     });
-
-  // Handle uncaught exceptions
-  process.on('uncaughtException', err => {
-    <% if (sentry) { %>Sentry.captureException(err);<% } else { %>logger.error('Uncaught exception - %o', err);<% } %>
-
-    process.exit(1);
-  });
-
-  // Catch unhandled promise rejections
-  process.on('unhandledRejection', err => {
-    <% if (sentry) { %>Sentry.captureException(err);<% } else { %>logger.error('Unhandled rejection - %o', err);<% } %>
-  });
 };

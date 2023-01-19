@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.3.0 (January 19, 2023)
+
+- Added suffix to all filenames
+- Added `POST /users` route (controller, service, DTO, type, test)
+- Added `GET /users/:id` route (controller, service, DTO, type, test)
+- Changed `Nginx` as option
+- Moved `/public` folder to project root
+- Renamed `/routes` folder to `/controllers`
+- Updated outdated documentation
+- Fixed various issues
+
 ## 4.2.0 (February 18, 2022)
 
 - Replaced `npm` with `yarn`

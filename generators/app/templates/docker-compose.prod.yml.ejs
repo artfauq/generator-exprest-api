@@ -4,11 +4,11 @@ services:
   node:
     build:
       target: final<% if (sequelize || redis) { %>
-    entrypoint: dockerize<% if (sequelize) { %> -wait tcp://db:${DB_PORT}<% } %><% if (redis) { %> -wait tcp://redis:${REDIS_PORT}<% } %> -timeout 30s node ./dist/index.js<% } %>
+    entrypoint: dockerize<% if (sequelize) { %> -wait tcp://db:${DB_PORT}<% } %><% if (redis) { %> -wait tcp://redis:${REDIS_PORT}<% } %> -timeout 30s node ./dist/index.js<% } %><% if (nginx) { %>
     environment:
       VIRTUAL_HOST: $LETSENCRYPT_HOST
       LETSENCRYPT_HOST: $LETSENCRYPT_HOST
-      LETSENCRYPT_EMAIL: $LETSENCRYPT_EMAIL
+      LETSENCRYPT_EMAIL: $LETSENCRYPT_EMAIL<% } %>
     restart: unless-stopped<% if (sequelize) { %>
 
   db:
@@ -30,7 +30,7 @@ services:
       MAX_BACKUPS: 10
       INIT_BACKUP: 0
       CRON_TIME: 0 3 * * *
-    restart: unless-stopped<% } %><% } %>
+    restart: unless-stopped<% } %><% } %><% if (nginx) { %>
 
   nginx-proxy:
     image: nginx:1.13.1
@@ -76,4 +76,4 @@ volumes:
   conf:
   vhost:
   html:
-  certs:
+  certs:<% } %>

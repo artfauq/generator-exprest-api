@@ -3,7 +3,7 @@ version: '3'
 services:
   node:
     build:
-      context: .
+      context: ./
       dockerfile: docker/node/Dockerfile
     image: <%= shortname %>
     container_name: <%= shortname %><% if (sequelize || redis) { %>
@@ -21,11 +21,12 @@ services:
       - /home/node/node_modules<% if (sequelize) { %>
 
   db:
-    image: <%= dialect.docker_image %>
+    image: <%= dialect.docker.image %>
     container_name: <%= shortname %>-db
     environment:
       <%= dialect.docker.user %>: $DB_USER
-      <%= dialect.docker.password %>: $DB_PASSWORD
+      <%= dialect.docker.password %>: $DB_PASSWORD<% if (dialect.value === 'mysql') { %>
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD<% } %>
       <%= dialect.docker.database %>: $DB_NAME
     ports:
       - ${DB_PORT}:${DB_PORT}

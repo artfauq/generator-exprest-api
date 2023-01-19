@@ -4,7 +4,7 @@ import * as Tracing from '@sentry/tracing';
 import { createServer } from 'http';
 import { Container } from 'typedi';<% if (sentry) { %>
 import config from './config';<% } %>
-import logger from './config/logger';<% if (sequelize || nodemailer || redis || i18n || socketIo || admin || cron) { %>
+import logger from './config/logger.config';<% if (sequelize || nodemailer || redis || i18n || socketIo || admin || cron) { %>
 import * as loaders from './loaders';<% } %>
 import startServer from './server';
 

@@ -17,6 +17,13 @@ export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Sequel
       username: config.db.username,
       password: config.db.password,
       dialect: '<%= dialect.value %>',
+      define: {
+        charset: 'utf8',
+        collate: 'utf8_general_ci',
+        createdAt: false,
+        updatedAt: false,
+        underscored: true,
+      },
       models: Object.values(models),
       benchmark: true,
       logQueryParameters: config.debug && !config.isProduction,

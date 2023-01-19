@@ -3,8 +3,9 @@ version: '3'
 services:
   node:
     build:
-      context: .
+      context: ./
       dockerfile: docker/node/Dockerfile
+      target: development
     container_name: <%= shortname %>-test
     entrypoint: <% if (sequelize) { %>dockerize -wait tcp://db:<%= dialect.port %> -timeout 30s <% } %>yarn test<% if (sequelize) { %>
     depends_on:
@@ -26,7 +27,8 @@ services:
     container_name: <%= shortname %>-db-test
     environment:
       <%= dialect.docker.user %>: <%= shortname %>-test
-      <%= dialect.docker.password %>: <%= shortname %>-test
+      <%= dialect.docker.password %>: <%= shortname %>-test<% if (dialect.value === 'mysql') { %>
+      MYSQL_ROOT_PASSWORD: <%= shortname %>-test<% } %>
       <%= dialect.docker.database %>: <%= shortname %>_test
     ports:
-      - ${DB_PORT}:${DB_PORT}<% } %>
+      - <%= dialect.port %>:<%= dialect.port %><% } %>

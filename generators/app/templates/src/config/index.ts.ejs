@@ -93,20 +93,20 @@ const config = convict({
     username: {
       doc: 'Database username',
       format: String,
-      env: 'DB_USER',
-      default: '',
+      env: isTest ? undefined : 'DB_USER',
+      default: isTest ? '<%= shortname %>-test' : '',
     },
     password: {
       doc: 'Database password',
       format: String,
-      env: 'DB_PASSWORD',
-      default: '',
+      env: isTest ? undefined : 'DB_PASSWORD',
+      default: isTest ? '<%= shortname %>-test' : '',
     },
     database: {
       doc: 'Database name',
       format: String,
-      env: 'DB_NAME',
-      default: '',
+      env: isTest ? undefined : 'DB_NAME',
+      default: isTest ? '<%= shortname %>_test' : '',
     },
   },<% } %><% if (redis) { %>
 
@@ -117,8 +117,8 @@ const config = convict({
     host: {
       doc: 'Redis host',
       format: String,
-      env: 'REDIS_HOST',
-      default: '',
+      env: isTest ? undefined : 'REDIS_HOST',
+      default: isTest ? 'TEST_REDIS_HOST' : '',
     },
     port: {
       doc: 'Redis port',
@@ -135,8 +135,8 @@ const config = convict({
     secret: {
       doc: 'JWT secret',
       format: String,
-      env: 'JWT_SECRET',
-      default: '',
+      env: isTest ? undefined : 'JWT_SECRET',
+      default: isTest ? 'TEST_JWT_SECRET' : '',
       sensitive: true,
     },
     algorithm: {
@@ -167,8 +167,8 @@ const config = convict({
     host: {
       doc: 'SMTP host',
       format: String,
-      env: 'SMTP_HOST',
-      default: '',
+      env: isTest ? undefined : 'SMTP_HOST',
+      default: isTest ? 'TEST_SMTP_HOST' : '',
     },
     port: {
       doc: 'SMTP port',
@@ -179,14 +179,14 @@ const config = convict({
     user: {
       doc: 'SMTP user',
       format: String,
-      env: 'SMTP_USER',
-      default: '',
+      env: isTest ? undefined : 'SMTP_USER',
+      default: isTest ? 'TEST_SMTP_USER' : '',
     },
     password: {
       doc: 'SMTP password',
       format: String,
-      env: 'SMTP_PASSWORD',
-      default: '',
+      env: isTest ? undefined : 'SMTP_PASSWORD',
+      default: isTest ? 'TEST_SMTP_PASSWORD' : '',
     },
   },<% } %><% if (sentry) { %>
 

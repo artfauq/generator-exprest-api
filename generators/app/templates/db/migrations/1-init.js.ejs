@@ -51,12 +51,10 @@ module.exports = {
             type: Sequelize.DATE,
             allowNull: false,
             field: 'created_at',
-            comment: "Date and time of the user's profile creation date",
+            comment: "Date and time of the user's creation date",
           },
         },
         {
-          charset: 'utf8',
-          collate: 'utf8_general_ci',
           transaction,
         },
       );

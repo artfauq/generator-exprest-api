@@ -15,7 +15,7 @@ module.exports = {
   postgresql: {
     name: 'PostgreSQL',
     value: 'postgres',
-    packages: ['pg@^7.18.2', 'pg-hstore@^2.3.4'],
+    packages: ['pg@^8.8.0', 'pg-hstore@^2.3.4'],
     docker: {
       image: 'postgres:12.3',
       user: 'POSTGRES_USER',

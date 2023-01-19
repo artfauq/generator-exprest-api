@@ -1,15 +1,15 @@
 import { expect } from 'chai';
 import jwt from 'jsonwebtoken';
 import supertest from 'supertest';
-import config from '../../../../src/config';
-import { UserModel } from '../../../../src/models';
+import config from '../../../src/config';
+import { UserModel } from '../../../src/models';
 import {
   cleanDatabase,<% if (celebrate) { %>
   expectBadRequestError,<% } %>
   expectOk,
   expectUnauthorizedError,
-} from '../../../helpers';
-import { app } from '../../../setup';
+} from '../../helpers';
+import { app } from '../../setup';
 
 const api = supertest(app);
 

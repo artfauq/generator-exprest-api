@@ -30,14 +30,19 @@ info:
     | **message** | *string* | A readable error message
 servers:
   - url: http://localhost:8080/api
-    description: Local development server<% if (auth) { %>
-tags:
+    description: Local development server<% if (auth || sequelize) { %>
+tags:<% if (auth) { %>
   - name: auth-login
-    x-displayName: Login
-x-tagGroups:
+    x-displayName: Login<% } %><% if (sequelize) { %>
+  - name: user
+    x-displayName: User<% } %>
+x-tagGroups:<% if (auth) { %>
   - name: Auth
     tags:
       - auth-login<% } %>
+  - name: Users<% if (sequelize) { %>
+    tags:
+      - user<% } %><% } %>
 paths:
   /health:
     get:
@@ -67,7 +72,46 @@ paths:
                     type: string
                     description: JWT token
         401:
+          $ref: '#/components/responses/401'<% } %><% if (sequelize) { %>
+  /users:
+    post:
+      summary: Create new user
+      description: Creates a new user.
+      tags:
+        - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDTO'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          $ref: '#/components/responses/400'
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/userId'
+    get:
+      summary: Get user details
+      description: Returns the details of a user.
+      tags:
+        - user
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'<% if (jwt) { %>
+        401:
           $ref: '#/components/responses/401'<% } %>
+        404:
+          $ref: '#/components/responses/404'<% } %>
 components:<% if (jwt) { %>
   securitySchemes:
     BearerAuth:
@@ -75,8 +119,6 @@ components:<% if (jwt) { %>
       scheme: bearer
       bearerFormat: JWT<% } %>
   responses:
-    201:
-      description: Created
     204:
       description: No Content
     400:
@@ -117,7 +159,41 @@ components:<% if (jwt) { %>
         message:
           type: string
           description: Readable error message
-          example: Missing parameter 'email'<% if (auth) { %>
+          example: Missing parameter 'email'<% if (sequelize) { %>
+    CreateUserDTO:
+      title: User
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+      properties:
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          nullable: false
+          description: First name of the user
+        lastName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          nullable: false
+          description: Last name of the user
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: false
+          description: Email of the user
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 64
+          nullable: false
+          description: Password of the user<% } %><% if (auth) { %>
     LoginDTO:
       description: User's credentials
       required:
@@ -133,4 +209,37 @@ components:<% if (jwt) { %>
           type: string
           format: password
           nullable: false
-          description: Password of the user<% } %>
+          description: Password of the user<% } %><% if (sequelize) { %>
+    User:
+      title: User
+      description: User details
+      properties:
+        id:
+          type: string
+          format: uuid
+          nullable: false
+          description: ID of the user
+        fullName:
+          type: string
+          nullable: false
+          description: Full name of the user
+        email:
+          type: string
+          format: email
+          nullable: false
+          description: Email of the user
+        createdAt:
+          type: string
+          format: date-time
+          nullable: false
+          description: Date and time of the user's creation date
+  parameters:
+    userId:
+      in: path
+      name: userId
+      description: ID of the user
+      required: true
+      allowEmptyValue: false
+      schema:
+        type: string
+        format: uuid<% } %>

@@ -35,7 +35,7 @@ export const celebrateErrorHandler = (): ErrorRequestHandler => (err, req, res, 
     message = details ? details[0].message : err.joi.message;
   }
 
-  return next(createHttpError(400, message, err));
+  return next(createHttpError(400, err, { message }));
 };<% } %><% if (sequelize) { %>
 
 /**
@@ -43,31 +43,15 @@ export const celebrateErrorHandler = (): ErrorRequestHandler => (err, req, res, 
  */
 export const sequelizeErrorHandler = (): ErrorRequestHandler => {
   return (err, req, res, next) => {
-    if (err.name === 'SequelizeDatabaseError') {
-      const message = `${err.message}. Query: ${err.sql}`;
-      const error = createHttpError(500, message, err);
-
-      return next(error);
+    if (err.name !== 'SequelizeDatabaseError') {
+      return next(err);
     }
 
-    return next(err);
+    const message = `${err.message}. Query: ${err.sql}`;
+
+    return next(createHttpError(500, err, { message }));
   };
 };<% } %>
-
-/**
- * Middleware used to log errors with the configured `logger`.
- */
-export const errorLogger = (): ErrorRequestHandler => (err, req, res, next) => {
-  const logger = Container.get<<%= loggerType %>>('logger');
-
-  if (typeof err === 'object' && 'status' in err && err.status < 500) {
-    logger.warn('%o', err);
-  } else {
-    logger.error('%o', err);
-  }
-
-  next(err);
-};
 
 /**
  * Parses an error to retrieve its HTTP `status`.
@@ -87,7 +71,7 @@ const parseErrorMessage = (err: { message?: string }, status: number): string =>
   const i18n = Container.get<I18n>('i18n');
 <% } %>
   return status >= 500 && config.isProduction
-    ? <% if (i18n) { %>i18n.t('errors:internalServerError')<% } else { %>'Internal server error'<% } %>
+    ? <% if (i18n) { %>i18n.t('errors:internalServerError')<% } else { %>'Internal server error.'<% } %>
     : err.message || `${err}`;
 };
 
@@ -97,7 +81,9 @@ const parseErrorMessage = (err: { message?: string }, status: number): string =>
  * This middleware should be declared after all other middlewares as it will end the response
  * process.
  */
-export const httpErrorHandler = (): ErrorRequestHandler => {
+export const errorHandler = (): ErrorRequestHandler => {
+  const logger = Container.get<<%= loggerType %>>('logger');
+
   return (err, req, res, next) => {
     // Parse error status
     const status = parseErrorStatus(err);
@@ -108,21 +94,26 @@ export const httpErrorHandler = (): ErrorRequestHandler => {
     // Format HTTP error
     const error = createHttpError(status, message);
 
+    // Log error<% if (auth && sentry) { %>
+    const { user } = req;
+<% } %>
+    if (status < 500) {
+      logger.warn(error<% if (auth && sentry) { %>, { user }<% } %>);
+    } else {
+      logger.error(error<% if (auth && sentry) { %>, { user }<% } %>);
+    }
+
     // Set response status
     res.status(error.status);
 
     // Set response content according to acceptable format
     res.format({
       text: () => {
-        res.send(`Error ${error.status} - ${error.name}: ${error.message}`);
+        res.send(`Error ${status} - ${error.name}: ${message}`);
       },
 
       json: () => {
-        res.json({
-          status: error.status,
-          name: error.name,
-          message: error.message,
-        });
+        res.json({ status, name: error.name, message });
       },
     });
   };
