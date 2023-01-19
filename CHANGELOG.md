@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.4.0 (January 19, 2023)
+
+- Changed `morgan` as option
+- Migrated from `mocha` to `jest`
+
 ## 4.3.0 (January 19, 2023)
 
 - Added suffix to all filenames

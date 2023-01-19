@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import jwt from 'jsonwebtoken';
 import supertest from 'supertest';
 import config from '../../../src/config';
@@ -19,7 +18,7 @@ const api = supertest(app);
 describe('POST /auth/login', () => {
   let user: UserModel;
 
-  before(async () => {
+  beforeAll(async () => {
     await cleanDatabase();
 
     user = await UserModel.create({
@@ -44,23 +43,23 @@ describe('POST /auth/login', () => {
 
     expectOk(res);
 
-    expect(res.body).to.be.an('object').that.has.all.keys('token');
+    expect(Object.keys(res.body)).toContain('token');
 
-    expect(res.body.token).to.be.a('string');
+    expect(typeof res.body.token).toBe('string');
 
     const decodedToken = jwt.decode(res.body.token, { json: true }) as { [key: string]: any };
 
-    expect(decodedToken)
-      .to.be.an('object')
-      .that.has.all.keys('email', 'iat', 'iss', 'jti', 'name', 'sub');
-    expect(decodedToken).to.include({
+    expect(Object.keys(decodedToken)).toEqual(
+      expect.arrayContaining(['email', 'iat', 'iss', 'jti', 'name', 'sub']),
+    );
+    expect(decodedToken).toMatchObject({
       email: user.email,
       iss: config.publicHost,
       name: user.fullName,
       sub: user.id,
     });
-    expect(decodedToken.iat).to.be.a('number');
-    expect(decodedToken.jti).to.be.a('string');
+    expect(typeof decodedToken.iat).toBe('number');
+    expect(typeof decodedToken.jti).toBe('string');
   });<% if (celebrate) { %>
 
   it('should return 400 on missing email field', async () => {

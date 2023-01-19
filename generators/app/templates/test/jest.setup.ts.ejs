@@ -1,5 +1,6 @@
 import express from 'express';
-import { createServer } from 'http';
+import { createServer } from 'http';<% if (sequelize) { %>
+import { Sequelize } from 'sequelize';<% } %>
 import { Container } from 'typedi';
 import logger from '../src/config/logger.config';<% if (sequelize || i18n || socketIo || admin) { %>
 import * as loaders from '../src/loaders';<% } %>
@@ -10,7 +11,7 @@ import { <% if (nodemailer) { %>mailerStub, <% } %><% if (redis) { %>redisStub<%
 export const app = express();
 export const server = createServer(app);
 
-before(async () => {
+beforeAll(async () => {
   try {<% if (sequelize) { %>
     // Initialize Sequelize instance
     const sequelize = await loaders.sequelize({ logger });
@@ -45,8 +46,23 @@ before(async () => {
       }
     });
   } catch (err) {
-    logger.error('Tests setup failed. %o', err);
+    logger.error('Tests setup failed.', err);
 
     process.exit(1);
   }
+});
+
+afterAll(async () => {<% if (sequelize) { %>
+  // Close database connection
+  const sequelize = Container.get<Sequelize>('sequelize');
+
+  await sequelize.close();
+<% } %>
+  // Wait for server to close
+  await new Promise<void>((resolve, reject) => {
+    server.close(err => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
 });

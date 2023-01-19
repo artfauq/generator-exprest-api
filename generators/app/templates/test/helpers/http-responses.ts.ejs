@@ -1,27 +1,26 @@
-import { expect } from 'chai';
 import { Response } from 'supertest';
 
 const expectError = (res: Response, status: number, name: string) => {
-  expect(res.type).to.match(/json/);
-  expect(res.status).to.equal(status);
+  expect(res.type).toMatch(/json/);
+  expect(res.status).toBe(status);
 
-  expect(res.body).to.be.an('object').that.has.all.keys('status', 'name', 'message');
-  expect(res.body).to.include({ status, name });
+  expect(Object.keys(res.body)).toEqual(expect.arrayContaining(['status', 'name', 'message']));
+  expect(res.body).toMatchObject({ status, name });
 };
 
 export const expectOk = (res: Response): void => {
-  expect(res.type).to.match(/json/);
-  expect(res.status).to.equal(200);
+  expect(res.type).toMatch(/json/);
+  expect(res.status).toBe(200);
 };
 
 export const expectCreated = (res: Response): void => {
-  expect(res.type).to.match(/json/);
-  expect(res.status).to.equal(201);
+  expect(res.type).toMatch(/json/);
+  expect(res.status).toBe(201);
 };
 
 export const expectNoContent = (res: Response): void => {
-  expect(res.body).to.be.empty;
-  expect(res.status).to.equal(204);
+  expect(res.body).toMatchObject({});
+  expect(res.status).toBe(204);
 };
 
 export const expectBadRequestError = (res: Response): void => {

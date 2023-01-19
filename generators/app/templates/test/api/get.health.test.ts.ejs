@@ -9,7 +9,7 @@ const api = supertest(app);
  */
 describe('GET /health', () => {
   it('should return 204 on health route', async () => {
-    const res = await api.get('/health');
+    const res = await api.get('/health').set('Accept', 'application/json');
 
     expectNoContent(res);
   });

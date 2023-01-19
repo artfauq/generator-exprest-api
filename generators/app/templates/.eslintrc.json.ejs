@@ -95,7 +95,7 @@
 
     // eslint-plugin-unused-imports
     "unused-imports/no-unused-imports": "error"
-  },<% if (sequelize || mocha || admin) { %>
+  },<% if (sequelize || jest || admin) { %>
   "overrides": [<% if (sequelize) { %>
     {
       "files": ["**/*.js"],
@@ -103,18 +103,14 @@
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/no-unused-vars": "off"
       }
-    }<% if (mocha) { %>,<% } %><% } %><% if (mocha) { %>
+    }<% if (jest) { %>,<% } %><% } %><% if (jest) { %>
     {
-      "files": ["./test/**/*.ts"],
-      "extends": ["plugin:chai-expect/recommended"],
+      "files": ["./jest.config.ts", "./test/**/*.ts"],
       "env": {
-        "mocha": true
+        "jest": true
       },
       "rules": {
-        "no-underscore-dangle": "off",
         "node/no-unpublished-import": "off",
-        "@typescript-eslint/ban-ts-comment": "off",
-        "@typescript-eslint/no-unused-expressions": "off",
         "@typescript-eslint/no-unsafe-member-access": "off"
       }
     }<% if (admin) { %>,<% } %><% } %><% if (admin) { %>

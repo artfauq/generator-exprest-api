@@ -67,12 +67,12 @@ const parseErrorStatus = (err: { status?: number | string }): number => {
 /**
  * Parses an error to retrieve its `message`.
  */
-const parseErrorMessage = (err: { message?: string }, status: number): string => {<% if (i18n) { %>
-  const i18n = Container.get<I18n>('i18n');
-<% } %>
-  return status >= 500 && config.isProduction
-    ? <% if (i18n) { %>i18n.t('errors:internalServerError')<% } else { %>'Internal server error.'<% } %>
-    : err.message || `${err}`;
+const parseErrorMessage = (err: any): string => {
+  if (typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
+    return err.message as string;
+  }
+
+  return `${err}`;
 };
 
 /**
@@ -81,7 +81,8 @@ const parseErrorMessage = (err: { message?: string }, status: number): string =>
  * This middleware should be declared after all other middlewares as it will end the response
  * process.
  */
-export const errorHandler = (): ErrorRequestHandler => {
+export const errorHandler = (): ErrorRequestHandler => {<% if (i18n) { %>
+  const i18n = Container.get<I18n>('i18n');<% } %>
   const logger = Container.get<<%= loggerType %>>('logger');
 
   return (err, req, res, next) => {
@@ -89,18 +90,22 @@ export const errorHandler = (): ErrorRequestHandler => {
     const status = parseErrorStatus(err);
 
     // Parse error message
-    const message = parseErrorMessage(err, status);
-
-    // Format HTTP error
-    const error = createHttpError(status, message);
+    const message = parseErrorMessage(err);
 
     // Log error<% if (auth && sentry) { %>
     const { user } = req;
 <% } %>
     if (status < 500) {
-      logger.warn(error<% if (auth && sentry) { %>, { user }<% } %>);
+      logger.warn(message<% if (auth && sentry) { %>, err, { user }<% } %>);
     } else {
-      logger.error(error<% if (auth && sentry) { %>, { user }<% } %>);
+      logger.error(message<% if (auth && sentry) { %>, err, { user }<% } %>);
+    }
+
+    // Format HTTP error
+    const error = createHttpError(status, message);
+
+    if (config.isProduction && !error.expose) {
+      error.message = <% if (i18n) { %>i18n.t('errors:internalServerError')<% } else { %>'Internal server error.'<% } %>;
     }
 
     // Set response status

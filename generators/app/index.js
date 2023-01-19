@@ -53,13 +53,13 @@ module.exports = class extends Generator {
         when: ({ sequelize }) => !!sequelize,
       },
       //
-      // ─── MOCHA ───────────────────────────────────────────────────────
+      // ─── JEST ────────────────────────────────────────────────────────
       //
       {
         store: true,
         type: 'confirm',
-        name: 'mocha',
-        message: `Use ${yellow('mocha')} and ${yellow('chai')} for testing ?`,
+        name: 'jest',
+        message: `Use ${yellow('jest')} for testing ?`,
         default: true,
       },
       //
@@ -496,10 +496,6 @@ module.exports = class extends Generator {
       if (answers.admin) {
         this.packages.devDependencies.push('eslint-plugin-react@^7.32.0');
       }
-
-      if (answers.mocha) {
-        this.packages.devDependencies.push('eslint-plugin-chai-expect@^3.0.0');
-      }
     }
 
     //
@@ -524,30 +520,27 @@ module.exports = class extends Generator {
     }
 
     //
-    // ─── MOCHA ───────────────────────────────────────────────────────
+    // ─── JEST ────────────────────────────────────────────────────────
     //
 
-    if (answers.mocha) {
+    if (answers.jest) {
       this.packages.devDependencies.push(
+        '@types/jest@^29.2.6',
         '@types/sinon@^9.0.10',
-        '@types/chai@^4.3.0',
-        '@types/mocha@^8.2.3',
         '@types/supertest@^2.0.11',
-        'chai@^4.3.6',
-        'mocha@^8.4.0',
-        'nyc@^15',
+        'jest@^29.3.1',
         'sinon@^9.2.4',
-        'supertest@^4.0.2'
+        'supertest@^4.0.2',
+        'ts-jest@^29.0.5'
       );
 
-      copy('.mocharc.js.ejs');
-      copy('.nycrc.json.ejs');
+      copy('jest.config.ts.ejs');
       copy('test/helpers/stubs/index.ts.ejs');
       copy('test/helpers/http-responses.ts.ejs');
       copy('test/helpers/index.ts.ejs');
       copy('test/api/404.test.ts.ejs');
       copy('test/api/get.health.test.ts.ejs');
-      copy('test/setup.ts.ejs');
+      copy('test/jest.setup.ts.ejs');
 
       if (answers.sequelize) {
         copy('test/helpers/truncate.ts.ejs');

@@ -9,8 +9,8 @@
     "build": "run-s clean tsc:build copy-assets",
     "tsc:build": "tsc -p ./tsconfig.build.json",
     "clean": "rimraf ./dist",
-    "copy-assets": "cpx 'src/**/*.!(ts)' 'dist'",<% if (mocha) { %>
-    "test": "cross-env NODE_ENV=test nyc mocha",<% if (sequelize) { %>
+    "copy-assets": "cpx 'src/**/*.!(ts)' 'dist'",<% if (jest) { %>
+    "test": "cross-env NODE_ENV=test jest --runInBand",<% if (sequelize) { %>
     "pretest": "cross-env NODE_ENV=test run-s db:reset",<% } %><% } %><% if (sequelize) { %>
     "db:create": "sequelize db:create",
     "db:drop": "sequelize db:drop",

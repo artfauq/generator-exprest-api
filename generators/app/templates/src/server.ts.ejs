@@ -112,7 +112,7 @@ export default (app: Application, server: Server): void => {
       logger.info(`App is running on port ${config.port} in ${config.env} mode`);
     })
     .on('error', err => {
-      logger.error('%o', err);
+      logger.error(err.message, err);
 
       process.exit(1);
     });

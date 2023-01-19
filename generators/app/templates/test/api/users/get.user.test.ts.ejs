@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import supertest from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
 import { UserModel } from '../../../src/models';
 import { cleanDatabase, expectNotFoundError, expectOk } from '../../helpers';
 import { app } from '../../setup';
@@ -12,8 +12,9 @@ const api = supertest(app);
 describe('GET /users/:userId', () => {
   let user: UserModel;
   let userId: string;
+  let token: string;
 
-  before(async () => {
+  beforeAll(async () => {
     await cleanDatabase();
 
     user = await UserModel.create({
@@ -23,20 +24,34 @@ describe('GET /users/:userId', () => {
       password: 'p4ssW0rd',
     });
     userId = user.id;
+    token = user.generateJWT();
   });
 
   it('should return 200 and the details of the user', async () => {
     const res = await api
       .get(`/users/${userId}`)
       .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${token}`)
       .set('Content-Type', 'application/json');
 
     expectOk(res);
 
-    expect(res.body).to.be.an('object').that.has.all.keys('id', 'fullName', 'email', 'createdAt');
+    expect(Object.keys(res.body)).toEqual(
+      expect.arrayContaining(['id', 'fullName', 'email', 'createdAt']),
+    );
   });
 
   it('should return 404 on user not found', async () => {
+    const res = await api
+      .get(`/users/${uuidv4()}`)
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/json');
+
+    expectNotFoundError(res);
+  });
+
+  it('should return 401 on user not authenticated', async () => {
     await user.destroy();
 
     const res = await api
@@ -44,6 +59,6 @@ describe('GET /users/:userId', () => {
       .set('Accept', 'application/json')
       .set('Content-Type', 'application/json');
 
-    expectNotFoundError(res);
+    expectUnauthorizedError(res);
   });
 });

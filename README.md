@@ -15,7 +15,7 @@
 
 - **Database ORM** - Using [Sequelize](http://docs.sequelizejs.com/) (MySQL and PostgreSQL support)
 - **Docker containerization** - Using [Docker Compose](https://docs.docker.com/compose/)
-- **Testing** - Using [Mocha](https://mochajs.org/), [Chai](https://www.chaijs.com/), [Sinon](https://sinonjs.org/), [Supertest](https://github.com/visionmedia/supertest) and coverage with [nyc](https://github.com/istanbuljs/nyc)
+- **Testing** - Using [Jest](https://jestjs.io/) and [Supertest](https://github.com/visionmedia/supertest)
 - **Logging** - Using [Winston](https://github.com/winstonjs/winston)
 - **HTTP requests logging** - Using [morgan](https://github.com/expressjs/morgan#readme)
 - **Internationalization** - Using [i18next](https://www.i18next.com/)
@@ -55,7 +55,8 @@ yo exprest-api
 - [ ] Add unit tests
 - [x] Change `morgan` to option
 - [ ] Add supported locales / default locale option
-- [ ] Migrate tests to `jest`
+- [ ] Change `config` as injected dependency
+- [x] Migrate tests to `jest`
 - [ ] Migrate ORM to `MikroORM`
 
 ## License
