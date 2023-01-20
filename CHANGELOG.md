@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.4.1 (January 20, 2023)
+
+- Fixed error middlewares call order
+- Fixed incorrect `this.logger` in `ABOUT.md`
+- Fixed request logging not using injected `logger`
+
 ## 4.4.0 (January 19, 2023)
 
 - Changed `morgan` as option

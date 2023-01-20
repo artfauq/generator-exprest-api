@@ -396,7 +396,7 @@ export default class UserService {
   async createUser(userDetails: Object): Promise<void> {
     const logger = Container.get<<%= loggerType %>>('logger');
 
-    this.logger.info('Message logged by the logger instance');
+    logger.info('Message logged by the logger instance');
   }
 }
 ```
@@ -578,7 +578,8 @@ export default router;
 ```typescript
 import Router from 'express-promise-router';<% if (morgan) { %>
 import morgan from 'morgan';
-import logger from '../config/logger.config';<% } %>
+import config from '../config';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %><% } %><% if (auth) { %>
 import usersController from './users.controller';
 
 const router = Router();<% if (morgan) { %>
@@ -589,7 +590,11 @@ const router = Router();<% if (morgan) { %>
 router.use(
   morgan('dev', {
     stream: {
-      write: message => logger.info(message.trim()),
+      write: message => {
+        const logger = Container.get<<%= loggerType %>>('logger');
+
+        logger.info(message.trim());
+      },
     },
   }),
 );<% } %>

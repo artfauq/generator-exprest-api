@@ -99,11 +99,11 @@ export default (app: Application, server: Server): void => {
     next(new NotFound(<% if (i18n) { %>req.i18n.t('errors:routeNotFound', { method, baseUrl, url })<% } else { %>`The route '${method} ${baseUrl}${url}' doesn't exist.`<% } %>));
   });
 
-  // Error handling<% if (sentry) { %>
-  app.use(Sentry.Handlers.errorHandler());<% } %><% if (jwt) { %>
+  // Error handling<% if (jwt) { %>
   app.use(jwtErrorHandler());<% } %><% if (celebrate) { %>
   app.use(celebrateErrorHandler());<% } %><% if (sequelize) { %>
-  app.use(sequelizeErrorHandler());<% } %>
+  app.use(sequelizeErrorHandler());<% } %><% if (sentry) { %>
+  app.use(Sentry.Handlers.errorHandler());<% } %>
   app.use(errorHandler());
 
   // Start listening on configured port

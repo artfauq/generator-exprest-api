@@ -1,7 +1,7 @@
 import Router from 'express-promise-router';<% if (morgan) { %>
-import morgan from 'morgan';);
-import config from '../config';
-import logger from '../config/logger.config';<% } %><% if (auth) { %>
+import morgan from 'morgan';
+import config from '../config';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %><% } %><% if (auth) { %>
 import authController from './auth.controller';<% } %><% if (sequelize) { %>
 import usersController from './users.controller';<% } %>
 
@@ -13,7 +13,11 @@ const router = Router();<% if (morgan) { %>
 router.use(
   morgan(config.isProduction ? 'combined' : 'dev', {
     stream: {
-      write: message => logger.info(message.trim()),
+      write: message => {
+        const logger = Container.get<<%= loggerType %>>('logger');
+
+        logger.info(message.trim());
+      },
     },
   }),
 );<% } %>
