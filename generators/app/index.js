@@ -604,7 +604,6 @@ module.exports = class extends Generator {
       copy('src/admin/locale/index.ts.ejs');
       copy('src/admin/resources/index.ts.ejs');
       copy('src/admin/index.ts.ejs');
-      copy('src/loaders/admin-bro.loader.ts.ejs');
 
       if (answers.sequelize) {
         copy('src/admin/resources/user.resource.ts.ejs');

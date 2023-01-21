@@ -58,6 +58,7 @@ yo exprest-api
 - [ ] Change `config` as injected dependency
 - [x] Migrate tests to `jest`
 - [ ] Migrate ORM to `MikroORM`
+- [ ] Update `admin-bro` to latest version
 
 ## License
 

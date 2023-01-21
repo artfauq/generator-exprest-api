@@ -1,6 +1,5 @@
 // Export loaders from here
-<% if (admin || i18n || cron || nodemailer || redis || sequelize || socketIo) { %><% if (admin) { %>
-export { default as adminBro } from './admin-bro.loader';<% } %><% if (i18n) { %>
+<% if (i18n || cron || nodemailer || redis || sequelize || socketIo) { %><% if (i18n) { %>
 export { default as i18n } from './i18n.loader';<% } %><% if (cron) { %>
 export { default as jobScheduler } from './job-scheduler.loader';<% } %><% if (nodemailer) { %>
 export { default as mailer } from './mailer.loader';<% } %><% if (redis) { %>

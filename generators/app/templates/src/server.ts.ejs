@@ -1,7 +1,7 @@
-<% if (admin) { %>import AdminBroExpress from '@admin-bro/express';
-<% } %><% if (sentry) { %>import * as Sentry from '@sentry/node';
-<% } %><% if (admin) { %>import AdminBro from 'admin-bro';
-<% } %>import bodyParser from 'body-parser';
+import 'reflect-metadata';<% if (admin) { %>
+import AdminBroExpress from '@admin-bro/express';<% } %><% if (sentry) { %>
+import * as Sentry from '@sentry/node';<% } %>
+import bodyParser from 'body-parser';
 import compression from 'compression';
 import cors from 'cors';
 import express, { Application } from 'express';
@@ -12,8 +12,8 @@ import { Server } from 'http';
 import { NotFound, TooManyRequests } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';
 import i18nHttpMiddleware from 'i18next-http-middleware';<% } %>
-import { join } from 'path';
-import 'reflect-metadata';
+import { join } from 'path';<% if (admin) { %>
+import { Sequelize } from 'sequelize';<% } %>
 import favicon from 'serve-favicon';<% if (monitoring && socketIo) { %>
 import SocketIO from 'socket.io';<% } %>
 import { Container } from 'typedi';<% if (winston) { %>
@@ -22,10 +22,10 @@ import config from './config';
 import router from './controllers';
 import {<% if (celebrate) { %> celebrateErrorHandler,<% } %> errorHandler<% if (jwt) { %>, jwtErrorHandler<% } %><% if (sequelize) { %>, sequelizeErrorHandler<% } %> } from './middlewares';
 
-export default (app: Application, server: Server): void => {
-  const logger = Container.get<<%= loggerType %>>('logger');<% if (admin) { %>
-  const adminBro = Container.get<AdminBro>('adminBro');<% } %><% if (i18n) { %>
+export default (app: Application, server: Server): void => {<% if (i18n) { %>
   const i18n = Container.get<I18n>('i18n');<% } %>
+  const logger = Container.get<<%= loggerType %>>('logger');<% if (admin) { %>
+  const sequelize = Container.get<Sequelize>('sequelize');<% } %>
 
   app.enable('trust proxy');
   app.use(bodyParser.json());
@@ -55,7 +55,10 @@ export default (app: Application, server: Server): void => {
   );<% } %><% if (admin) { %>
 
   // AdminBro panel configuration
-  app.use(config.admin.path, AdminBroExpress.buildRouter(adminBro));<% } %><% if (sentry) { %>
+  const adminBro = setupAdminBro(sequelize);
+  const adminRouter = AdminBroExpress.buildRouter(adminBro);
+
+  app.use(adminBro.options.rootPath, adminRouter);<% } %><% if (sentry) { %>
 
   // Sentry middleware configuration
   app.use(

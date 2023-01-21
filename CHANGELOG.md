@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.5.0 (January 21, 2023)
+
+- Removed `adminBro` from injected services
+
 ## 4.4.1 (January 20, 2023)
 
 - Fixed error middlewares call order

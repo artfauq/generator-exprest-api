@@ -1,2 +1,26 @@
-export * as translations from './locale';
-export * as resources from './resources';
+import AdminBroSequelize from '@admin-bro/sequelize';
+import AdminBro from 'admin-bro';
+import { Sequelize } from 'sequelize';
+import { Models } from '../loaders/sequelize.loader';
+import * as translations from './locale';
+import * as resources from './resources';
+
+export default function setupAdminBro(sequelize: Sequelize) {
+  const adminBro = new AdminBro({
+    branding: {
+      companyName: '<%= name %> | Admin',
+    },
+    locale: {
+      language: 'en',
+      translations: translations.en,
+    },
+    resources: Object.values(resources).map(resource =>
+      resource({
+        models: sequelize.models as Models,
+      }),
+    ),
+    rootPath: '/admin',
+  });
+
+  return adminBro;
+}
