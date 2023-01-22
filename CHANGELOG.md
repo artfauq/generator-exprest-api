@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.5.1 (January 22, 2023)
+
+- Fixed `ejs` tag issue
+
 ## 4.5.0 (January 21, 2023)
 
 - Removed `adminBro` from injected services

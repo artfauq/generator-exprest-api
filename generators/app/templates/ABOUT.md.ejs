@@ -579,7 +579,7 @@ export default router;
 import Router from 'express-promise-router';<% if (morgan) { %>
 import morgan from 'morgan';
 import config from '../config';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %><% } %><% if (auth) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %><% } %>
 import usersController from './users.controller';
 
 const router = Router();<% if (morgan) { %>
