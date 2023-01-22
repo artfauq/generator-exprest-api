@@ -2,7 +2,7 @@ import supertest from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 import { UserModel } from '../../../src/models';
 import { cleanDatabase, expectNotFoundError, expectOk } from '../../helpers';
-import { app } from '../../setup';
+import { app } from '../../jest.setup';
 
 const api = supertest(app);
 
