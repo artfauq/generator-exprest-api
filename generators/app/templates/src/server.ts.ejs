@@ -17,7 +17,8 @@ import { Sequelize } from 'sequelize';<% } %>
 import favicon from 'serve-favicon';<% if (monitoring && socketIo) { %>
 import SocketIO from 'socket.io';<% } %>
 import { Container } from 'typedi';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %><% if (admin) { %>
+import setupAdminBro from './admin';<% } %>
 import config from './config';
 import router from './controllers';
 import {<% if (celebrate) { %> celebrateErrorHandler,<% } %> errorHandler<% if (jwt) { %>, jwtErrorHandler<% } %><% if (sequelize) { %>, sequelizeErrorHandler<% } %> } from './middlewares';

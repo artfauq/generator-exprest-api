@@ -1,5 +1,6 @@
 import Router from 'express-promise-router';<% if (morgan) { %>
 import morgan from 'morgan';
+import { Container } from 'typedi';
 import config from '../config';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %><% } %><% if (auth) { %>
 import authController from './auth.controller';<% } %><% if (sequelize) { %>

@@ -42,9 +42,6 @@ Sentry.init({
 <% } %><% if (socketIo) { %>
   // Initialize Socket.IO server
   const socket = loaders.socketIo({ logger, server });
-<% } %><% if (admin) { %>
-  // Initialize admin panel
-  const adminBro = loaders.adminBro({ logger, sequelize });
 <% } %>
   // Inject dependencies
   Container.set('logger', logger);<% if (sequelize) { %>
@@ -52,8 +49,7 @@ Sentry.init({
   Container.set('mailer', mailer);<% } %><% if (redis) { %>
   Container.set('redis', redis);<% } %><% if (i18n) { %>
   Container.set('i18n', i18n);<% } %><% if (socketIo) { %>
-  Container.set('socket', socket);<% } %><% if (admin) { %>
-  Container.set('adminBro', adminBro);<% } %><% if (cron) { %>
+  Container.set('socket', socket);<% } %><% if (cron) { %>
 
   // Initialize job scheduler
   loaders.jobScheduler();<% } %>

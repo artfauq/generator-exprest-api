@@ -2,7 +2,7 @@
 
 ## 4.5.2 (January 22, 2023)
 
-- Fixed invalid `setup.ts` require
+- Fixed various build issues
 
 ## 4.5.1 (January 22, 2023)
 
