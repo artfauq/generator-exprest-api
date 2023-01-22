@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.5.3 (January 22, 2023)
+
+- Fixed lint issue
+
 ## 4.5.2 (January 22, 2023)
 
 - Fixed various build issues
