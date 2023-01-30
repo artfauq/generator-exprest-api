@@ -15,13 +15,14 @@ export default async function initI18n(): Promise<I18n> {
           lookupHeader: 'accept-language',
           caches: ['cookie'],
         },
-        fallbackLng: 'en',
-        interpolation: { escapeValue: false },
-        lng: 'en',
+        fallbackLng: '<%= defaultLocale %>',
+        interpolation: {
+          escapeValue: false,
+        },
         ns: [],
-        preload: ['en'],
+        preload: ['<%= defaultLocale %>'],
         resources,
-        supportedLngs: ['en'],
+        supportedLngs: [<%- supportedLocales.map(locale => `'${locale}'`).join(', ') %>],
       },
       err => {
         if (err) reject(new Error(`failed to initialize i18n instance. ${err}`));

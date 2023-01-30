@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.6.1 (January 30, 2023)
+
+- Added `supported locales` and `default locale` options
+- Fixed config `default` issues
+
 ## 4.6.0 (January 30, 2023)
 
 - Added `git` option

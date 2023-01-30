@@ -1,9 +1,9 @@
 {
   "errors": {<% if (jwt) { %>
     "emailAlreadyUsed": "An account with this email address already exists.",
+    "internalServerError": "Internal server error.",
     "invalidAuthentication": "Invalid authentication.",<% } %><% if (auth) { %>
-    "invalidCredentials": "Invalid credentials.",<% } %><% if (jwt) { %>
-    "invalidToken": "Invalid token.",<% } %>
+    "invalidCredentials": "Invalid credentials.",<% } %>
     "routeNotFound": "The route '{{method}} {{baseUrl}}{{url}}' doesn't exist.",
     "tooManyRequests": "Too many requests, please try again later."<% if (sequelize) { %>,
     "userNotFound": "User not found."<% } %>

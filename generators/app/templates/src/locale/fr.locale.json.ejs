@@ -1,0 +1,11 @@
+{
+  "errors": {<% if (jwt) { %>
+    "emailAlreadyUsed": "Un compte avec cette adresse email existe déjà.",
+    "internalServerError": "Erreur interne du serveur.",
+    "invalidAuthentication": "Authentification invalide.",<% } %><% if (auth) { %>
+    "invalidCredentials": "Identifiants incorrects.",<% } %>
+    "routeNotFound": "La route '{{method}} {{baseUrl}}{{url}}' n'existe pas.",
+    "tooManyRequests": "Trop de requêtes, veuillez réessayer plus tard."<% if (sequelize) { %>,
+    "userNotFound": "Utilisateur non trouvé."<% } %>
+  }
+}

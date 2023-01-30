@@ -1,3 +1,4 @@
 // Export translations files from here
-
-export { default as en } from './en.locale.json';
+<% if (supportedLocales.includes('en')) { %>
+export { default as en } from './en.locale.json';<% } %><% if (supportedLocales.includes('fr')) { %>
+export { default as fr } from './fr.locale.json';<% } %>

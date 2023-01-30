@@ -52,9 +52,8 @@ yo exprest-api
 
 ## TODO
 
-- [ ] Add unit tests
 - [ ] Add internationalized validation errors
-- [ ] Add supported locales / default locale option
+- [ ] Add multer for file upload support
 - [ ] Migrate ORM to `MikroORM` ?
 - [ ] Add `user.verifiedAt` property
 

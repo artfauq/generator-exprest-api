@@ -1,3 +1,4 @@
 // Export admin translations from here
-
-export { default as en } from './en';
+<% if (supportedLocales.includes('en')) { %>
+export { default as en } from './en';<% } %><% if (supportedLocales.includes('fr')) { %>
+export { default as fr } from './fr';<% } %>

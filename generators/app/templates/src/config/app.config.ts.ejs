@@ -2,6 +2,7 @@ import convict from 'convict';
 import dotenv from 'dotenv';
 import moment from 'moment';
 import { resolve } from 'path';
+import 'moment/locale/<%= defaultLocale %>';
 
 type NodeEnv = 'development' | 'production' | 'test';
 
@@ -13,7 +14,7 @@ dotenv.config(<% if (jest) { %>{ path: process.env.NODE_ENV === 'test' ? '.env.t
 /**
  * Configure moment
  */
-moment.locale('en');
+moment.locale('<%= defaultLocale %>');
 
 /**
  * Configure error stack trace limit
@@ -93,16 +94,19 @@ const configSchema = convict({
       doc: 'Database username',
       format: String,
       env: 'DB_USER',
+      default: '',
     },
     password: {
       doc: 'Database password',
       format: String,
       env: 'DB_PASSWORD',
+      default: '',
     },
     database: {
       doc: 'Database name',
       format: String,
       env: 'DB_NAME',
+      default: '',
     },
   },<% } %><% if (redis) { %>
 
@@ -114,6 +118,7 @@ const configSchema = convict({
       doc: 'Redis host',
       format: String,
       env: 'REDIS_HOST',
+      default: '',
     },
     port: {
       doc: 'Redis port',
@@ -132,6 +137,7 @@ const configSchema = convict({
       format: String,
       env: 'JWT_SECRET',
       sensitive: true,
+      default: '',
     },
   },<% } %><% if (nodemailer) { %>
 
@@ -143,6 +149,7 @@ const configSchema = convict({
       doc: 'SMTP host',
       format: String,
       env: 'SMTP_HOST',
+      default: '',
     },
     port: {
       doc: 'SMTP port',
@@ -154,11 +161,13 @@ const configSchema = convict({
       doc: 'SMTP user',
       format: String,
       env: 'SMTP_USER',
+      default: '',
     },
     password: {
       doc: 'SMTP password',
       format: String,
       env: 'SMTP_PASSWORD',
+      default: '',
     },
   },<% } %>
 });

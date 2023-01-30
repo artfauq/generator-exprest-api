@@ -55,7 +55,7 @@ export default function setupAdminJs(sequelize: Sequelize) {
       favicon: '/public/favicon.ico',
     },
     componentLoader,
-    locale: translations.en,
+    locale: translations.<%= defaultLocale %>,
     resources: Object.values(resources).map(resource => resource(sequelize)),
     rootPath: '/admin',
     settings: {

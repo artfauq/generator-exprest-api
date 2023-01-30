@@ -4,6 +4,7 @@ const yosay = require('yosay');
 const { join } = require('path');
 const validate = require('validate-npm-package-name');
 
+const LOCALE_ENUM = require('./utils/locale.enum');
 const SEQUELIZE_DIALECT_ENUM = require('./utils/sequelize-dialect.enum');
 
 module.exports = class extends Generator {
@@ -33,6 +34,28 @@ module.exports = class extends Generator {
         name: 'description',
         message: `App ${yellow('description')} [ex: ${gray('A REST API for cats and dogs')}]`,
         validate: input => input.trim() !== '',
+      },
+      //
+      // ─── LOCALE ──────────────────────────────────────────────────────
+      //
+      {
+        store: true,
+        type: 'checkbox',
+        name: 'supportedLocales',
+        message: `Select ${yellow('supported locales')}:`,
+        choices: Object.values(LOCALE_ENUM),
+        validate: input => input.length >= 1,
+      },
+      {
+        store: true,
+        type: 'list',
+        name: 'defaultLocale',
+        message: `Pick a ${yellow('default locale')}:`,
+        default: ({ supportedLocales }) =>
+          supportedLocales.length > 1 ? undefined : supportedLocales[0],
+        choices: ({ supportedLocales }) =>
+          Object.values(LOCALE_ENUM).filter(locale => supportedLocales.includes(locale.value)),
+        when: ({ supportedLocales }) => supportedLocales.length > 1,
       },
       //
       // ─── SEQUELIZE ───────────────────────────────────────────────────
@@ -309,6 +332,7 @@ module.exports = class extends Generator {
 
     answers.admin = !!answers.admin;
     answers.auth = !!answers.sequelize && !!answers.jwt;
+    answers.defaultLocale = answers.defaultLocale || answers.supportedLocales[0];
     answers.dialect = dialect;
     answers.nginx = !!answers.nginx;
     answers.mocks = answers.nodemailer || answers.redis;
@@ -406,6 +430,7 @@ module.exports = class extends Generator {
       this.packages.dependencies.push('i18next@^19.9.2', 'i18next-http-middleware@^3.2.0');
 
       copy('src/locale/en.locale.json.ejs');
+      copy('src/locale/fr.locale.json.ejs');
       copy('src/locale/index.ts.ejs');
       copy('src/loaders/i18n.loader.ts.ejs');
     }
@@ -618,6 +643,7 @@ module.exports = class extends Generator {
       copy('public/styles/admin.css.ejs');
       copy('src/admin/components/index.ts.ejs');
       copy('src/admin/locale/en.ts.ejs');
+      copy('src/admin/locale/fr.ts.ejs');
       copy('src/admin/locale/index.ts.ejs');
       copy('src/admin/index.ts.ejs');
       copy('src/admin/resources/index.ts.ejs');
