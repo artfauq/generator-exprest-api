@@ -1,16 +1,10 @@
 import jwt from 'jsonwebtoken';
-import supertest from 'supertest';
-import config from '../../../src/config';
+import { Container } from 'typedi';
+import { Config } from '../../../src/config';
 import { UserModel } from '../../../src/models';
-import {
-  cleanDatabase,<% if (celebrate) { %>
-  expectBadRequestError,<% } %>
-  expectOk,
-  expectUnauthorizedError,
-} from '../../helpers';
-import { app } from '../../jest.setup';
-
-const api = supertest(app);
+import { UserRoleEnum } from '../../../src/types/enums';
+import { agent } from '../../jest.setup';
+import { cleanDatabase } from '../../utils';
 
 /**
  * POST /auth/login
@@ -30,60 +24,47 @@ describe('POST /auth/login', () => {
   });
 
   it('should return 200 on user login', async () => {
+    const config = Container.get<Config>('config');
+
     const requestData = {
       email: 'john.doe@gmail.com',
       password: 'p4ssW0rd',
     };
 
-    const res = await api
+    const res = await agent
       .post('/auth/login')
-      .set('Accept', 'application/json')
-      .set('Content-Type', 'application/json')
-      .send(requestData);
+      .accept('json')
+      .type('json')
+      .send(requestData)
+      .expect(200);
 
-    expectOk(res);
-
-    expect(Object.keys(res.body)).toContain('token');
-
-    expect(typeof res.body.token).toBe('string');
+    expect(res.body).toStrictEqual({
+      token: expect.any(String),
+    });
 
     const decodedToken = jwt.decode(res.body.token, { json: true }) as { [key: string]: any };
 
-    expect(Object.keys(decodedToken)).toEqual(
-      expect.arrayContaining(['email', 'iat', 'iss', 'jti', 'name', 'sub']),
-    );
-    expect(decodedToken).toMatchObject({
-      email: user.email,
+    expect(decodedToken).toStrictEqual({
+      email: 'john.doe@gmail.com',
+      iat: expect.any(Number),
       iss: config.publicHost,
-      name: user.fullName,
+      jti: expect.any(String),
+      name: 'John Doe',
+      role: UserRoleEnum.User,
       sub: user.id,
     });
-    expect(typeof decodedToken.iat).toBe('number');
-    expect(typeof decodedToken.jti).toBe('string');
   });<% if (celebrate) { %>
 
   it('should return 400 on missing email field', async () => {
     const requestData = { password: 'p4ssW0rd' };
 
-    const res = await api
-      .post('/auth/login')
-      .set('Accept', 'application/json')
-      .set('Content-Type', 'application/json')
-      .send(requestData);
-
-    expectBadRequestError(res);
+    await agent.post('/auth/login').accept('json').type('json').send(requestData).expect(400);
   });
 
   it('should return 400 on missing password field', async () => {
     const requestData = { email: 'john.doe@gmail.com' };
 
-    const res = await api
-      .post('/auth/login')
-      .set('Accept', 'application/json')
-      .set('Content-Type', 'application/json')
-      .send(requestData);
-
-    expectBadRequestError(res);
+    await agent.post('/auth/login').accept('json').type('json').send(requestData).expect(400);
   });<% } %>
 
   it('should return 401 on incorrect email', async () => {
@@ -92,13 +73,7 @@ describe('POST /auth/login', () => {
       password: 'p4ssW0rd',
     };
 
-    const res = await api
-      .post('/auth/login')
-      .set('Accept', 'application/json')
-      .set('Content-Type', 'application/json')
-      .send(requestData);
-
-    expectUnauthorizedError(res);
+    await agent.post('/auth/login').accept('json').type('json').send(requestData).expect(401);
   });
 
   it('should return 401 on incorrect password', async () => {
@@ -107,12 +82,6 @@ describe('POST /auth/login', () => {
       password: 'wrong_password',
     };
 
-    const res = await api
-      .post('/auth/login')
-      .set('Accept', 'application/json')
-      .set('Content-Type', 'application/json')
-      .send(requestData);
-
-    expectUnauthorizedError(res);
+    await agent.post('/auth/login').accept('json').type('json').send(requestData).expect(401);
   });
 });

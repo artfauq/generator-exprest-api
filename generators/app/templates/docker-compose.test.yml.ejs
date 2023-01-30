@@ -7,7 +7,7 @@ services:
       dockerfile: docker/node/Dockerfile
       target: development
     container_name: <%= shortname %>-test
-    entrypoint: <% if (sequelize) { %>dockerize -wait tcp://db:<%= dialect.port %> -timeout 30s <% } %>yarn test<% if (sequelize) { %>
+    entrypoint: <% if (sequelize) { %>dockerize -wait tcp://db:<%= dialect.port %> -timeout 30s <% } %>yarn test:e2e<% if (sequelize) { %>
     depends_on:
       - db<% } %>
     environment:

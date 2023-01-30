@@ -1,37 +1,30 @@
-<% if (winston) { -%>
-import { existsSync, mkdirSync } from 'fs';
+<% if (winston) { %>import { existsSync, mkdirSync } from 'fs';
 import moment from 'moment';
-import { createLogger, format, Logform, transports } from 'winston';<% if (sentry) { %>
-import SentryTransport from 'winston-transport-sentry-node';<% } %>
-import config from './index';
+import { createLogger, format, Logform, transports } from 'winston';
+import { config } from './app.config';
 
-// Check if logs folder exists
+const { colorize, combine, errors, printf, timestamp } = format;
+
+const customFormat: Logform.Format = combine(
+  errors({ stack: config.env === 'development' || config.debug }),
+  timestamp({ format: () => moment().format('YYYY-MM-DD HH:mm:ss') }),
+);
+
 if (!existsSync(config.logsDir)) {
   mkdirSync(config.logsDir);
 }
 
-const { colorize, combine, errors, json, metadata, printf, timestamp } = format;
-
-const customFormat: Logform.Format = combine(
-  errors({ stack: !config.isTest || config.debug }),
-  json(),
-  metadata(),
-  timestamp({ format: () => moment().format('YYYY-MM-DD HH:mm:ss') }),
-);
-
-// Configure logger
-const logger = createLogger({
-  level: config.debug ? 'debug' : 'info',
+export const logger = createLogger({
+  format: customFormat,
   transports: [
     new transports.Console({
+      level: config.debug ? 'debug' : 'info',
       format: combine(
         colorize(),
-        customFormat,
         printf(info => {
           const log = `${info.timestamp} ${info.level}: ${info.message}`;
 
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          return info.metadata.stack ? `${log}\n${info.metadata.stack}` : log;
+          return info.stack ? `${log}\n${info.stack}` : log;
         }),
       ),
     }),
@@ -39,14 +32,8 @@ const logger = createLogger({
       level: 'error',
       dirname: config.logsDir,
       filename: `${moment().format('YYYY-MM-DD')}-errors.log`,
-    }),<% if (sentry) { %>
-    new SentryTransport({
-      level: 'error',
-      format: customFormat,
-      sentry: config.sentry,
-    }),<% } %>
+    }),
   ],
   exitOnError: false,
-});<% } else { %>const logger = console;<% } %>
-
-export default logger;
+});<% } else { -%>
+export const logger = console;<% } %>

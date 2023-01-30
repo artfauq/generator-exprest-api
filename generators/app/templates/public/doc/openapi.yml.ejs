@@ -46,10 +46,10 @@ x-tagGroups:<% if (auth) { %>
 paths:
   /health:
     get:
-      summary: Health route
+      summary: Check server health
       responses:
-        200:
-          description: OK<% if (auth) { %>
+        204:
+          $ref: '#/components/responses/204'<% if (auth) { %>
   /auth/login:
     post:
       summary: Authenticate user

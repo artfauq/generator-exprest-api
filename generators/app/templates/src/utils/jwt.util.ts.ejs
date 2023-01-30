@@ -1,12 +1,17 @@
-import jwt, { Algorithm } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import { Container } from 'typedi';
 import { v4 as uuidv4 } from 'uuid';
-import config from '../config';
+import { Config } from '../config';
 import { JWTPayload } from '../types';<% if (auth) { %>
 
 /**
  * Returns the secret used to sign a JWT token.
  */
-export const getJwtSecret = (passwordHash: string): string => config.jwt.secret + passwordHash;
+export const getJwtSecret = (passwordHash: string): string => {
+  const config = Container.get<Config>('config');
+
+  return config.jwt.secret + passwordHash;
+};
 
 /**
  * Generates and returns a signed JWT.
@@ -16,10 +21,12 @@ export const generateSignedJWT = (
   passwordHash: string,
   payload: JWTPayload,
 ): string => {
+  const config = Container.get<Config>('config');
+
   const secret = getJwtSecret(passwordHash);
 
   return jwt.sign(payload, secret, {
-    algorithm: config.jwt.algorithm as Algorithm,
+    algorithm: 'HS256',
     issuer: config.publicHost,
     subject: userId,
     jwtid: uuidv4(),
@@ -30,8 +37,10 @@ export const generateSignedJWT = (
  * Generates and returns a signed JWT.
  */
 export const generateSignedJWT = (userId: string, payload: JWTPayload): string => {
+  const config = Container.get<Config>('config');
+
   return jwt.sign(payload, config.jwt.secret, {
-    algorithm: config.jwt.algorithm as Algorithm,
+    algorithm: 'HS256',
     issuer: config.publicHost,
     subject: userId,
     jwtid: uuidv4(),

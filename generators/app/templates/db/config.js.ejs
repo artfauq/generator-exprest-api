@@ -1,23 +1,28 @@
 const dotenv = require('dotenv');
 
-dotenv.config();
+dotenv.config(<% if (jest) { %>{ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' }<% } %>);
 
-const env = process.env.NODE_ENV || 'development';
 const debug = process.env.DEBUG === 'true';
-const isTest = env === 'test';
 
 const options = {
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '<%= dialect.port %>', 10),
-  database: isTest ? '<%= shortname %>_test' : process.env.DB_NAME,
-  username: isTest ? '<%= shortname %>-test' : process.env.DB_USER,
-  password: isTest ? '<%= shortname %>-test' : process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   dialect: '<%= dialect.value %>',
   dialectOptions: {
     charset: 'utf8_general_ci',
   },
   logging: debug ? console.log : false,
+
+  // Migration storage
+  migrationStorage: 'sequelize',
   migrationStorageTableName: 'sequelize_migrations',
+
+  // Seed storage
+  seederStorage: 'sequelize',
+  seederStorageTableName: 'sequelize_seeders',
 };
 
 module.exports = {

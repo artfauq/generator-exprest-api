@@ -79,4 +79,4 @@ COPY --chown=node:node --from=build /home/node/app/yarn.lock ./
 RUN yarn install --production
 
 # Run server
-ENTRYPOINT ["node", "./dist/index.js"]
+ENTRYPOINT ["node", "./dist/server.js"]

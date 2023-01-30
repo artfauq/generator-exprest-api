@@ -20,16 +20,10 @@
       "version": "detect"
     }<% } %>
   },
-  "extends": [
-    "airbnb-typescript/base",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking",
-    "plugin:node/recommended"<% if (prettier) { %>,
-    "plugin:prettier/recommended"<% } %>
-  ],
+  "extends": ["airbnb-typescript/base", "plugin:node/recommended"<% if (prettier) { %>, "plugin:prettier/recommended"<% } %>],
   "plugins": ["import", "unused-imports"],
   "rules": {
-    // Common rules
+    // Common
     "arrow-body-style": "off",
     "arrow-parens": ["error", "as-needed"],
     "class-methods-use-this": "off",
@@ -60,7 +54,7 @@
     // eslint-plugin-node
     "node/no-unsupported-features/es-syntax": ["error", { "ignores": ["modules"] }],
 
-    // eslint-plugin-import rules
+    // eslint-plugin-import
     "import/no-cycle": "off",
     "import/order": [
       "error",
@@ -83,44 +77,56 @@
     ],
     "import/prefer-default-export": "off",
 
-    // @typescript-eslint/eslint-plugin rules
-    "@typescript-eslint/ban-ts-comment": "off",
-    "@typescript-eslint/ban-types": "off",
-    "@typescript-eslint/indent": "off",
-    "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-misused-promises": "off",
-    "@typescript-eslint/no-unsafe-argument": "off",
-    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "next" }],
-    "@typescript-eslint/restrict-template-expressions": "off",
-
     // eslint-plugin-unused-imports
     "unused-imports/no-unused-imports": "error"
-  },<% if (sequelize || jest || admin) { %>
-  "overrides": [<% if (sequelize) { %>
+  },
+  "overrides": [
+    {
+      "files": ["**/*.{ts,tsx}"],
+      "extends": [
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking"
+      ],
+      "rules": {
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/ban-types": "off",
+        "@typescript-eslint/indent": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-misused-promises": "off",
+        "@typescript-eslint/no-unsafe-argument": "off",
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "next" }],
+        "@typescript-eslint/restrict-template-expressions": "off"
+      }
+    }<% if (sequelize) { %>,
     {
       "files": ["**/*.js"],
       "rules": {
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/no-unused-vars": "off"
       }
-    }<% if (jest) { %>,<% } %><% } %><% if (jest) { %>
+    }<% } %><% if (jest) { %>,
     {
-      "files": ["./jest.config.ts", "./test/**/*.ts"],
+      "files": ["test/**", "**/*.spec.ts", "jest*.config.ts"],
       "env": {
         "jest": true
       },
       "rules": {
+        "import/no-extraneous-dependencies": "off",
         "node/no-unpublished-import": "off",
         "@typescript-eslint/no-unsafe-member-access": "off"
+      },
+      "parserOptions": {
+        "project": "./tsconfig.spec.json"
       }
-    }<% if (admin) { %>,<% } %><% } %><% if (admin) { %>
+    }<% } %><% if (admin) { %>,
     {
       "files": ["**/*.tsx"],
-      "extends": ["plugin:react/recommended"],
+      "extends": ["airbnb-typescript", "plugin:react/recommended"],
       "rules": {
         "node/no-extraneous-import": "off",
         "import/no-extraneous-dependencies": "off"
       }
     }<% } %>
-  ]<% } %>
+  ]
 }

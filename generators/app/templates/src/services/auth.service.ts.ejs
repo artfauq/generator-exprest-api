@@ -5,7 +5,8 @@ import { UserModel } from '../models';
 
 @Service()
 export default class AuthService {<% if (i18n) { %>
-  constructor(@Inject('i18n') private i18n: I18n) {}
+  @Inject('i18n')
+  i18n!: I18n;
 <% } %>
   /**
    * Authenticates a user and returns a JWT token.
@@ -31,7 +32,7 @@ export default class AuthService {<% if (i18n) { %>
     }
 
     // Generate JWT
-    const token = user.generateJWT();
+    const token = await user.generateJWT();
 
     return token;
   }

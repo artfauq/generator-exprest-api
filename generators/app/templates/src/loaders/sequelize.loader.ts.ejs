@@ -1,47 +1,19 @@
-import { Sequelize, SequelizeOptions } from 'sequelize-typescript';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-import config from '../config';
-import * as models from '../models';
-
-export type Models = typeof models;
+import { Sequelize } from 'sequelize-typescript';
+import { sequelizeOptions } from '../config';
 
 /**
  * Sequelize instance initializer
  */
-export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Sequelize> => {
+export default async function initSequelize(): Promise<Sequelize> {
   try {
-    const options: SequelizeOptions = {
-      host: config.db.host,
-      port: config.db.port,
-      database: config.db.database,
-      username: config.db.username,
-      password: config.db.password,
-      dialect: '<%= dialect.value %>',
-      define: {
-        charset: 'utf8',
-        collate: 'utf8_general_ci',
-        createdAt: false,
-        updatedAt: false,
-        underscored: true,
-      },
-      models: Object.values(models),
-      benchmark: true,
-      logQueryParameters: config.debug && !config.isProduction,
-      logging: (sql, timing) => logger.debug(`${timing}ms - ${sql}`),
-    };
-
     // Initialize Sequelize instance
-    const sequelize = new Sequelize(options);
+    const sequelize = new Sequelize(sequelizeOptions);
 
     // Test database connection
     await sequelize.authenticate();
-
-    logger.info(
-      `Successfully connected to database '${options.database}' at '${options.host}:${options.port}'`,
-    );
 
     return sequelize;
   } catch (err) {
     throw new Error(`failed to connect to database. ${err}`);
   }
-};
+}

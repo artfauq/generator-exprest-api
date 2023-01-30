@@ -1,23 +1,14 @@
-import supertest from 'supertest';
-import { v4 as uuidv4 } from 'uuid';
+import { randomBytes } from 'crypto';
 import { UserModel } from '../../../src/models';
-import {
-  cleanDatabase,
-  expectNotFoundError,
-  expectOk,
-  expectUnauthorizedError,
-} from '../../helpers';
-import { app } from '../../jest.setup';
-
-const api = supertest(app);
+import { agent } from '../../jest.setup';
+import { cleanDatabase } from '../../utils';
 
 /**
  * GET /users/:userId
  */
 describe('GET /users/:userId', () => {
-  let user: UserModel;
-  let userId: string;
-  let token: string;
+  let user: UserModel;<% if (jwt) { %>
+  let token: string;<% } %>
 
   beforeAll(async () => {
     await cleanDatabase();
@@ -27,43 +18,44 @@ describe('GET /users/:userId', () => {
       lastName: 'Doe',
       email: 'john.doe@gmail.com',
       password: 'p4ssW0rd',
-    });
-    userId = user.id;
-    token = user.generateJWT();
+    });<% if (jwt) { %>
+    token = await user.generateJWT();<% } %>
   });
 
   it('should return 200 and the details of the user', async () => {
-    const res = await api
+    const userId = user.id;
+
+    const res = await agent
       .get(`/users/${userId}`)
-      .set('Accept', 'application/json')
-      .set('Authorization', `Bearer ${token}`)
-      .set('Content-Type', 'application/json');
+      .accept('json')<% if (jwt) { %>
+      .auth(token, { type: 'bearer' })<% } %>
+      .type('json')
+      .expect(200);
 
-    expectOk(res);
-
-    expect(Object.keys(res.body)).toEqual(
-      expect.arrayContaining(['id', 'fullName', 'email', 'createdAt']),
-    );
+    expect(res.body).toStrictEqual({
+      id: expect.any(String),
+      fullName: 'John Doe',
+      email: 'john.doe@gmail.com',
+      createdAt: expect.any(String),
+    });
   });
 
   it('should return 404 on user not found', async () => {
-    const res = await api
-      .get(`/users/${uuidv4()}`)
-      .set('Accept', 'application/json')
-      .set('Authorization', `Bearer ${token}`)
-      .set('Content-Type', 'application/json');
+    const userId = randomBytes(16).toString('hex');
 
-    expectNotFoundError(res);
-  });
+    await agent
+      .get(`/users/${userId}`)
+      .accept('json')<% if (jwt) { %>
+      .auth(token, { type: 'bearer' })<% } %>
+      .type('json')
+      .expect(404);
+  });<% if (jwt) { %>
 
   it('should return 401 on user not authenticated', async () => {
+    const userId = user.id;
+
     await user.destroy();
 
-    const res = await api
-      .get(`/users/${userId}`)
-      .set('Accept', 'application/json')
-      .set('Content-Type', 'application/json');
-
-    expectUnauthorizedError(res);
-  });
+    await agent.get(`/users/${userId}`).accept('json').type('json').expect(401);
+  });<% } %>
 });

@@ -28,6 +28,6 @@
     "target": "es6"
   },
   "files": ["./src/types/index.d.ts"],
-  "include": [<% if (sequelize) { %>"./db", <% } %>"./src"<% if (jest) { %>, "./test", "./jest.config.ts"<% } %>],
-  "exclude": ["./node_modules", "./public"]
+  "include": [<% if (sequelize) { %>"db", <% } %>"src"],
+  "exclude": ["node_modules", "public"<% if (jest) { %>, "**/*.spec.ts"<% } %>]
 }

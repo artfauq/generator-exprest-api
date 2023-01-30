@@ -1,6 +1,6 @@
 import Router from 'express-promise-router';
 import { Container } from 'typedi';<% if (celebrate || jwt) { %>
-import {<% if (jwt) { %> auth,<% } %><% if (celebrate) { %> validation<% } %> } from '../middlewares';<% } %>
+import { <% if (jwt) { %>auth<% if (celebrate) { %>, <% } %><% } %><% if (celebrate) { %>validation<% } %> } from '../middlewares';<% } %>
 import { UserService } from '../services';
 import { CreateUserDTO, User } from '../types';
 

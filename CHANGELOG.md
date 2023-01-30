@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.6.0 (January 30, 2023)
+
+- Added `git` option
+- Added `health.controller`
+- Added `logger` and `config` to injected services
+- Replaced `admin-bro` with `adminjs`
+- Updated `admin` config
+- Updated `Sentry` config
+- Refactored `test` environment
+- Refactored `app` and `server` initialization and export
+- Replaced `docker/start.sh` with `package.json` commands
+- Changed `pre-commit hook` to `pre-push hook`
+- Fixed various issues
+
 ## 4.5.3 (January 22, 2023)
 
 - Fixed lint issue

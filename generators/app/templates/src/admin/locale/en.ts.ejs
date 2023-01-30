@@ -1,4 +1,4 @@
-import { LocaleTranslations } from 'admin-bro';
+import { Locale, LocaleTranslations } from 'adminjs';
 
 const translations: LocaleTranslations = {
   actions: {},
@@ -11,4 +11,9 @@ const translations: LocaleTranslations = {
   resources: {},
 };
 
-export default translations;
+const locale: Locale = {
+  language: 'en',
+  translations,
+};
+
+export default locale;

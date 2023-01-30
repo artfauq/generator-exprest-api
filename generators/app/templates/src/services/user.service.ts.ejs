@@ -7,7 +7,8 @@ import { CreateUserDTO, User } from '../types';
 
 @Service()
 export default class UserService {<% if (i18n) { %>
-  constructor(@Inject('i18n') private i18n: I18n) {}
+  @Inject('i18n')
+  i18n!: I18n;
 <% } %>
   /**
    * Returns the details of a user or throws a `NotFound` error if not found.

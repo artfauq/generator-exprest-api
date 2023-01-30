@@ -47,6 +47,13 @@ module.exports = {
             field: 'password',
             comment: 'Password of the user',
           },
+          role: {
+            type: Sequelize.ENUM('user', 'admin'),
+            allowNull: false,
+            defaultValue: 'user',
+            field: 'role',
+            comment: 'User role',
+          },
           createdAt: {
             type: Sequelize.DATE,
             allowNull: false,
@@ -55,9 +62,38 @@ module.exports = {
           },
         },
         {
+          charset: 'utf8',
+          collate: 'utf8_general_ci',
           transaction,
         },
-      );
+      );<% if (admin) { %>
+
+      await queryInterface.createTable(
+        'session',
+        {
+          sid: {
+            type: Sequelize.STRING(36),
+            primaryKey: true,
+            field: 'sid',
+            allowNull: false,
+          },
+          expires: {
+            type: Sequelize.DATE,
+            allowNull: true,
+            field: 'expires',
+          },
+          data: {
+            type: Sequelize.TEXT,
+            allowNull: true,
+            field: 'data',
+          },
+        },
+        {
+          charset: 'utf8',
+          collate: 'utf8_general_ci',
+          transaction,
+        },
+      );<% } %>
     });
   },
 
@@ -67,7 +103,8 @@ module.exports = {
    * @returns {Promise<void>}
    */
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.sequelize.transaction(async transaction => {
+    await queryInterface.sequelize.transaction(async transaction => {<% if (admin) { %>
+      await queryInterface.dropTable('session', { transaction });<% } %>
       await queryInterface.dropTable('user', { transaction });
     });
   },

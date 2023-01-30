@@ -1,0 +1,5 @@
+<% if (sequelize) { %>import { initializeTestDatabase } from './utils';
+
+<% } %>export default<% if (sequelize) { %> async<% } %> function globalSetup() {<% if (sequelize) { %>
+  await initializeTestDatabase();
+<% } %>}

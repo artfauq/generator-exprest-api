@@ -1,0 +1,56 @@
+<% if (sequelize) { -%>import { hashSync } from 'bcryptjs';
+<% } %>import jwt from 'jsonwebtoken';
+import Container from 'typedi';
+import { v4 as uuidv4 } from 'uuid';
+import { config } from '../../config';<% if (sequelize) { %>
+import { UserRoleEnum } from '../../types/enums';<% } %>
+import { generateSignedJWT<% if (auth) { %>, getJwtSecret<% } %> } from '../jwt.util';
+
+<% if (auth) { %>const JWT_SECRET = 'jwt-secret';
+<% } %>const PUBLIC_HOST = 'http://localhost:8080';
+
+describe('jwt.util', () => {<% if (sequelize) { %>
+  let hash: string;
+<% } %>
+  beforeAll(() => {
+    config.publicHost = PUBLIC_HOST;<% if (auth) { %>
+    config.jwt.secret = JWT_SECRET;<% } %>
+
+    Container.set('config', config);<% if (sequelize) { %>
+
+    hash = hashSync('fake-password');<% } %>
+  });<% if (auth) { %>
+
+  describe('getJwtSecret()', () => {
+    it('should return a JWT secret', () => {
+      const jwtSecret = getJwtSecret(hash);
+
+      expect(jwtSecret).toBe(`${JWT_SECRET}${hash}`);
+    });
+  });<% } %>
+
+  describe('generateSignedJWT()', () => {
+    it('should return a signed JWT', () => {
+      const userId = uuidv4();
+      const payload = {
+        name: 'John Doe',
+        email: 'john@doe.com',<% if (sequelize) { %>
+        role: UserRoleEnum.User,<% } %>
+      };
+
+      const token = generateSignedJWT(userId, <% if (sequelize) { %>hash, <% } %>payload);
+
+      const decodedToken = jwt.decode(token, { json: true }) as { [key: string]: any };
+
+      expect(decodedToken).toStrictEqual({
+        email: payload.email,
+        iat: expect.any(Number),
+        iss: PUBLIC_HOST,
+        jti: expect.any(String),
+        name: payload.name,<% if (sequelize) { %>
+        role: UserRoleEnum.User,<% } %>
+        sub: userId,
+      });
+    });
+  });
+});

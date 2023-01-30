@@ -1,16 +1,10 @@
-import supertest from 'supertest';
-import { expectInternalServerError } from '../helpers';
-import { app } from '../jest.setup';
-
-const api = supertest(app);
+import { agent } from '../jest.setup';
 
 /**
  * GET /sentry-debug
  */
 describe('GET /sentry-debug', () => {
   it('should return 500 on sentry debug route', async () => {
-    const res = await api.get('/sentry-debug').set('Accept', 'application/json');
-
-    expectInternalServerError(res);
+    await agent.get('/sentry-debug').accept('json').expect(500);
   });
 });

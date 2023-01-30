@@ -7,10 +7,7 @@
   - [Test mode](#test-mode)<% } %>
   - [Production mode](#production-mode)<% } %><% if (sequelize || redis) { %>
 - [Services](#services)<% if (sequelize) { %>
-  - [Sequelize](#sequelize)
-    - [Models](#models)
-    - [Migrations](#migrations)
-    - [Seeders](#seeders)<% } %><% if (redis) { %>
+  - [Sequelize](#sequelize)<% } %><% if (redis) { %>
   - [Redis](#redis)<% } %><% } %>
 - [Features](#features)
   - [Dependency injection](#dependency-injection)
@@ -31,15 +28,15 @@
   - [Filenames](#filenames)
   - [Formatting](#formatting)
   - [Linting](#linting)<% if (hook) { %>
-  - [Pre-commit hook](#pre-commit-hook)<% } %><% if (openapi) { %>
-- [Version update](#version-update)<% } %><% if (winston) { %>
+  - [Pre-push hook](#pre-push-hook)<% } %><% if (openapi) { %>
+- [Version update](#version-update)<% } %><% if (winston && morgan) { %>
 - [Logs](#logs)<% } %>
 
 ## Environment variables
 
 The `.env.example` should list all the environment variables that the application needs to run.
 
-A `.env` file with the environment variable key/value pairs should reside at the root of the project. The `dotenv` package imported in `/src/config/index.ts` will make those variables available to the app.
+A `.env` file with the environment variable key/value pairs should reside at the root of the project. The `dotenv` package imported in `/src/config/app.config.ts` will make those variables available to the app.
 
 ## Project structure
 
@@ -51,23 +48,19 @@ The project is structured as follows:
 - `/docker`: Docker configuration files<% } %>
 - `/public`: public assets (<% if (openapi) { %>API documentation, <% } %>images, etc)
 - `/src`: application source files<% if (admin) { %>
-  - `/admin`: admin related files
-    - `/components`: custom React components used in the admin panel
-    - `/locale`: admin translation files
-    - `/resources`: admin resource definitions<% } %>
+  - `/admin`: admin related files<% } %>
   - `/config`: configuration files
-  - `/controllers`: controller definitions
-  - `/dto`: Data Transfer Object definitions<% if (cron) { %>
+  - `/controllers`: route handlers
+  - `/dto`: data transfer objects<% if (cron) { %>
   - `/jobs`: cron job definitions<% } %>
-  - `/loaders`: application loader definitions<% if (i18n) { %>
+  - `/loaders`: loaders for application modules<% if (i18n) { %>
   - `/locale`: i18n resources<% } %>
-  - `/middlewares`: custom middleware definitions<% if (sequelize) { %>
-  - `/models`: database model definitions<% } %>
+  - `/middlewares`: custom middlewares<% if (sequelize) { %>
+  - `/models`: ORM models<% } %>
   - `/services`: business logic (database interaction, API interactions, etc)
-  - `/types`: custom type definitions
-    - `/enums`: enum definitions
+  - `/types`: custom types
   - `/utils`: utilities and helpers<% if (jest) { %>
-- `/test`: testing files<% } %>
+- `/test`: e2e test files<% } %>
 <% if (winston) { %>
 When running the app or performing some commands, additional folders (ignored by Git) will be created such as:
 <% if (winston) { %>
@@ -75,29 +68,29 @@ When running the app or performing some commands, additional folders (ignored by
 <% } %><% if (docker) { %>
 ## Docker
 
-Docker Compose is the recommended method to run this project. This way, the project can easily run either in a development<% if (jest) { %>, test<% } %> or production environment.
+Docker Compose is the recommended method to run this project. This way, the project can easily run either in a `development`<% if (jest) { %>, `test`<% } %> or `production` environment.
 
-These configurations are defined respectively in `docker-compose.dev.yml`<% if (jest) { %>, `docker-compose.test.yml`<% } %> and `docker-compose.prod.yml`. They all inherit from the base configuration defined in `docker-compose.yml`.
+These configurations are defined respectively in `docker-compose.dev.yml`<% if (jest) { %>, `docker-compose.test.yml`<% } %> and `docker-compose.prod.yml`. <% if (jest) { %>The `development` and `production`<% } else { %>Both<% } %> configurations inherit from the base configuration defined in `docker-compose.yml`.
 
-The `start.sh` script located in the `/docker` folder allows to start docker-compose in one of these modes as follows:
+To start docker-compose in one of these modes, run the following command:
 
 ```sh
-./docker/start.sh <dev<% if (jest) { %>|test<% } %>|prod>
-```
+yarn docker:start:<dev<% if (jest) { %>|test<% } %>|prod>
+```<% if (sequelize || redis) { %>
 
-Running this command will start various containers such as:
+Running this command will start the following containers:
 
 - `<%= shortname %>`: a Node.JS web server<% if (sequelize) { %>
 - `<%= shortname %>-db`: a <%= dialect.name %> database server
 - `<%= shortname %>-migrate`: a container that starts to run the database migrations and exits immediately after (it runs right after the `<%= shortname %>` image was built)<% } %><% if (redis) { %>
-- `<%= shortname %>-redis`: a Redis server<% } %>
+- `<%= shortname %>-redis`: a Redis server<% } %><% } %>
 
 ### Development mode
 
 To start all containers in `development` mode, run:
 
 ```sh
-./docker/start.sh dev
+yarn docker:start:dev
 ```
 
 This will:
@@ -112,7 +105,7 @@ This will:
 To start all containers in `test` mode, run:
 
 ```sh
-./docker/start.sh test
+yarn docker:start:test
 ```
 
 This will:
@@ -125,13 +118,13 @@ This will:
 To start all containers in `production` mode, run:
 
 ```sh
-./docker/start.sh prod
+yarn docker:start:prod
 ```
 
 This will:
 
 - Target the `final` stage of the multi-stage [Dockerfile](/docker/node/Dockerfile)
-- Run `node ./dist/index.js` in the `<%= shortname %>` container<% if (nginx || (sequelize && dialect.value === 'mysql')) { %>
+- Run `node ./dist/server.js` in the `<%= shortname %>` container<% if (nginx || (sequelize && dialect.value === 'mysql')) { %>
 
 In production environment, some other containers are mounted:
 <% if (sequelize && dialect.value === 'mysql') { %>
@@ -147,11 +140,12 @@ In addition, all containers are configured to restart automatically unless stopp
 The project uses [sequelize](https://github.com/sequelize/sequelize) as an ORM to connect to a <%= dialect.name %> database and [sequelize-cli](https://github.com/sequelize/cli) to perform database related commands.
 
 - Database connection options are defined through the `DB_` environment variables
+- Sequelize instance options are defined in `/src/config/sequelize.config.ts`
 - Sequelize CLI options are defined in `.sequelizerc` and `/db/config.js`
 
 The sequelize instance is configured in `/src/loaders/sequelize.loader.ts` and injected in the application as the `sequelize` service.
 
-#### Models
+#### Models <!-- omit in toc -->
 
 This project uses [sequelize-typescript](https://github.com/RobinBuschmann/sequelize-typescript) which brings in decorators and some other features for Sequelize.
 
@@ -299,7 +293,7 @@ export { default as UserModel } from './user.model';
 export { default as UserAddressModel } from './user-address.model';
 ```
 
-#### Migrations
+#### Migrations <!-- omit in toc -->
 
 Migrations are defined in `/db/migrations`.
 
@@ -327,7 +321,7 @@ yarn migrations:create <migration_name>
 
 For more information about migrations and seeders, please refer to [the docs](https://sequelize.org/master/manual/migrations.html).
 
-#### Seeders
+#### Seeders <!-- omit in toc -->
 
 Seeders are defined in `/db/seeders`.
 
@@ -361,13 +355,30 @@ If you're not familiar with its usage, please refer to [the docs](https://github
 
 This project uses [typedi](https://github.com/typestack/typedi) to perform dependency injection.
 
-Services are injected in the application at launch from `/src/index.ts` with the command:
+Services are injected in the application at launch from `/src/server.ts` with the command:
 
 ```typescript
 Container.set('myService', myService);
 ```
 
-Injected services become available in the application in two ways:
+Injected services become available in the application in three ways:
+
+- By annotating class properties with the @Inject decorator:
+
+```typescript
+import { Inject, Service } from 'typedi';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
+
+@Service()
+export default class UserService {
+  @Inject('logger')
+  logger!: <%= loggerType %>;
+
+  async createUser(userDetails: Object): Promise<void> {
+    this.logger.info('Message logged by the logger instance');
+  }
+}
+```
 
 - From the constructor of a class:
 
@@ -385,7 +396,7 @@ export default class UserService {
 }
 ```
 
-- Using `Container.get`:
+- Using `Container.get()`:
 
 ```typescript
 import { Container, Service } from 'typedi';<% if (winston) { %>
@@ -434,15 +445,15 @@ export { default } from './index.d';
 import { UserModel } from '../models';
 import { User } from '../types';
 
-export const userDTO = (userDetails: UserModel): User => {
-  const user: User = {
-    id: userDetails.id,
-    fullName: userDetails.fullName,
-    email: userDetails.email,
-    createdAt: userDetails.createdAt,
+export const userDTO = (user: UserModel): User => {
+  const userDto: User = {
+    id: user.id,
+    fullName: user.fullName,
+    email: user.email,
+    createdAt: user.createdAt,
   };
 
-  return user;
+  return userDto;
 };
 ```
 
@@ -474,7 +485,8 @@ import { CreateUserDTO, User } from '../types';
 
 @Service()
 export default class UserService {<% if (i18n) { %>
-  constructor(@Inject('i18n') private i18n: I18n) {}
+  @Inject('i18n')
+  i18n!: I18n;
 <% } %>
   /**
    * Returns the details of a user or throws a `NotFound` error if not found.
@@ -530,7 +542,7 @@ const router = Router();
  *
  * Get user details
  */
-router.get<{ v: string }, User>(
+router.get<{ userId: string }, User>(
   '/:userId',<% if (celebrate) { %>
   validation.celebrate({
     params: {
@@ -576,28 +588,10 @@ export default router;
 - Finally, import the router in `/src/controllers/index.ts` and declare a new `/users` route:
 
 ```typescript
-import Router from 'express-promise-router';<% if (morgan) { %>
-import morgan from 'morgan';
-import config from '../config';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %><% } %>
+import Router from 'express-promise-router';
 import usersController from './users.controller';
 
-const router = Router();<% if (morgan) { %>
-
-/**
- * Router configuration
- */
-router.use(
-  morgan('dev', {
-    stream: {
-      write: message => {
-        const logger = Container.get<<%= loggerType %>>('logger');
-
-        logger.info(message.trim());
-      },
-    },
-  }),
-);<% } %>
+const router = Router();
 
 /**
  * API routes
@@ -666,7 +660,7 @@ const schemas = {
 export { celebrate, customJoi as Joi, schemas };
 ```
 
-- Add the validation schema to the route definition in `/src/controllers/users.ts`:
+- Add the validation schema to the route definition in `/src/controllers/users.controller.ts`:
 
 ```typescript
 import Router from 'express-promise-router';
@@ -702,13 +696,15 @@ Validation errors are handled by the `celebrateErrorHandler` middleware declared
 <% } %><% if (jest) { %>
 ### Testing
 
-Tests are run with [Jest](https://jestjs.io/) and [SuperTest](https://github.com/visionmedia/supertest).
+All tests are run with [Jest](https://jestjs.io/).
 
-Jest is configured in [`jest.config.ts`](./jest.config.ts).
+#### Unit <!-- omit in toc -->
 
-#### Running tests <!-- omit in toc -->
+Unit tests are configured in [`jest.config.ts`](./jest.config.ts).
 
-Run tests with the following command:
+##### Running unit tests <!-- omit in toc -->
+
+Run unit tests with the following command:
 
 ```sh
 yarn test
@@ -716,18 +712,35 @@ yarn test
 
 This will:
 
-- Set the `NODE_ENV` variable to `test`<% if (sequelize) { %>
-- Create/reset a test database with migrations and seeders<% } %>
-- Execute the content of `/test/setup.ts`
-- Run all tests (files ending with `test.ts`) defined in the `/test` folder
+- Set the `NODE_ENV` variable to `test`
+- Run all tests defined in `/src` (files ending with `.spec.ts`)
 
-#### Tests structure <!-- omit in toc -->
+#### E2E <!-- omit in toc -->
+
+E2E tests are configured in [`jest-e2e.config.ts`](./jest-e2e.config.ts).
+
+##### Running E2E tests <!-- omit in toc -->
+
+Run E2E tests with the following command:
+
+```sh
+yarn test:e2e
+```
+
+This will:
+
+- Set the `NODE_ENV` variable to `test`
+- Execute the content of `/test/jest.setup.ts`
+- Run all tests defined in `/test`
+
+##### E2E tests structure <!-- omit in toc -->
 
 The `/test` folder is structured as follows:
 
 - `/api`: API test files
-- `/helpers`: test helpers
-  - `/stubs`: test stub definitions
+- `/integration`: integration test files
+- `/mocks`: mock definitions
+- `/utils`: test utilities
 
 All API tests should be defined in `/test/api` with one directory per main route and inside each directory one file per endpoint.
 
@@ -763,7 +776,8 @@ To create a new job, for example a logs cleaning job:
 
 - In `/src/jobs`, create a new file `clean-logs.job.ts` with the following content:
 
-```typescript
+```typescript<% if (sentry) { %>
+import * as Sentry from '@sentry/node';<% } %>
 import moment from 'moment';
 import { JobCallback } from 'node-schedule';
 import { Container } from 'typedi';
@@ -771,50 +785,46 @@ import { Op } from 'sequelize';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import { LogModel } from '../models';
 
-export default (): JobCallback => () => {
+const cleanLogs: JobCallback = async () => {
   const logger = Container.get<<%= loggerType %>>('logger');
 
   logger.info('Running logs cleaning job');
 
-  const createdAt = moment().subtract(50, 'days').format('YYYY-MM-DD');
+  try {
+    const createdAt = moment().subtract(50, 'days').format('YYYY-MM-DD');
 
-  LogModel.destroy({
-    where: {
-      createdAt: {
-        [Op.lte]: createdAt,
+    const deletedRowsCount = await LogModel.destroy({
+      where: {
+        createdAt: {
+          [Op.lte]: createdAt,
+        },
       },
-    },
-  })
-    .then(deletedRowsCount => {
-      logger.info(`Completed logs cleaning job with ${deletedRowsCount} rows deleted`);
-    })
-    .catch(err => {
-      logger.error('Logs cleaning job failed.', err);
     });
+
+    logger.info(`Completed logs cleaning job with ${deletedRowsCount} rows deleted`);
+  } catch (err) {
+    logger.error(`Logs cleaning job failed: ${err}`);<% if (sentry) { %>
+
+    Sentry.captureException(err);<% } %>
+  }
 };
+
+export default cleanLogs;
 ```
 
-- In `/src/jobs/index.ts`, export this new job by adding:
-
-```typescript
-// Export individual jobs from here
-
-export { default as cleanLogs } from './clean-logs.job';
-```
-
-- In `/src/loaders/job-scheduler.loader.ts`, configure the execution date of this new job:
+- In `/src/jobs/index.ts`, import and configure the execution date of this new job:
 
 ```typescript
 import scheduler from 'node-schedule';
-import * as jobs from '../jobs';
+import cleanLogs from './clean-logs.job';
 
 /**
  * Job scheduler initializer
  */
-export default (): void => {
+export default function runJobs(): void {
   // Run logs cleaning job every day at 3 AM
-  scheduler.scheduleJob('0 0 3 * * *', jobs.cleanLogs());
-};
+  scheduler.scheduleJob('0 0 3 * * *', cleanLogs);
+}
 ```
 <% } %><% if (monitoring) { %>
 ### API status monitoring
@@ -826,7 +836,7 @@ Monitoring is available at [http://localhost:8080/status] configured in `/src/se
 ### Sentry
 
 This project uses [@sentry/node](https://docs.sentry.io/platforms/node/guides/express/) to report errors and perform requests tracing.
-Sentry is configured in `/src/config/index.ts`, initialized in `/src/index.ts` and enabled only in `production` mode (`NODE_ENV` set to `production`).
+Sentry is initialized in `/src/server.ts` and enabled only in `production` mode (`NODE_ENV` set to `production`).
 
 To configure Sentry:
 
@@ -854,7 +864,7 @@ The interface is generated by [ReDoc](https://github.com/Rebilly/ReDoc) and is a
 <% } %><% if (admin) { %>
 ### Admin panel
 
-The admin panel is generated with [AdminBro](https://adminbro.com/docs) and configured in `/src/admin/index.ts`.
+The admin panel is generated with [AdminJS](https://docs.adminjs.co/) and configured in `/src/admin/index.ts`.
 
 All admin-related files should reside in `/src/admin`.
 <% } %>
@@ -897,9 +907,9 @@ More info:
 - [ESlint](https://eslint.org/) for TypeScript/JavaScript linting errors (configuration file: [`.eslintrc.json`](.eslintrc.json))<% } %><% if (prettier) { %>
 - [Prettier](https://prettier.io/) for formatting errors (configuration file: [`.prettierrc`](.prettierrc))<% } %>
 <% if (hook) { %>
-### Pre-commit hook
+### Pre-push hook
 
-In addition, a git pre-commit hook is configured to run before each commit to ensure that linting and formatting are ok.
+In addition, a git pre-push hook is configured to run before each `git push` to ensure that linting and formatting are ok.
 
 The hook was created with `husky` and is configured in [`.huskyrc.json`](.huskyrc.json). It runs the `lint-staged` package which itself is configured in `package.json`.
 
@@ -922,8 +932,6 @@ When running, the application outputs some logs. Two modules are used for this:
 
 - [winston](https://github.com/winstonjs/winston): handles all application logs and writes the output to configured transports (file, console, etc)
 - [morgan](https://github.com/expressjs/morgan): logs all incoming HTTP requests
-<% if (sentry) { %>
-In production mode (`NODE_ENV` set to `production`), all `error` logs are also sent to `Sentry`.
-<% } %>
+
 Please refer to `/src/config/logger.config.ts` to see winston configuration.
 <% } %>

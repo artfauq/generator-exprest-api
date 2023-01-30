@@ -1,9 +1,7 @@
-// Export loaders from here
-<% if (i18n || cron || nodemailer || redis || sequelize || socketIo) { %><% if (i18n) { %>
-export { default as i18n } from './i18n.loader';<% } %><% if (cron) { %>
-export { default as jobScheduler } from './job-scheduler.loader';<% } %><% if (nodemailer) { %>
-export { default as mailer } from './mailer.loader';<% } %><% if (redis) { %>
-export { default as redis } from './redis.loader';<% } %><% if (sequelize) { %>
-export { default as sequelize } from './sequelize.loader';<% } %><% if (socketIo) { %>
-export { default as socketIo } from './socket-io.loader';<% } %>
-<% } %>
+// Export loaders from here<% if (i18n || nodemailer || redis || sequelize || socketIo) { %>
+<% if (i18n) { %>
+export { default as initI18n } from './i18n.loader';<% } %><% if (nodemailer) { %>
+export { default as initMailer } from './mailer.loader';<% } %><% if (redis) { %>
+export { default as initRedis } from './redis.loader';<% } %><% if (sequelize) { %>
+export { default as initSequelize } from './sequelize.loader';<% } %><% if (socketIo) { %>
+export { default as initSocketIo } from './socket-io.loader';<% } %><% } %>

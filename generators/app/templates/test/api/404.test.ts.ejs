@@ -1,22 +1,14 @@
-import supertest from 'supertest';
-import { expectNotFoundError } from '../helpers';
-import { app } from '../jest.setup';
-
-const api = supertest(app);
+import { agent } from '../jest.setup';
 
 /**
  * 404 not found
  */
 describe('404 not found', () => {
   it('should return 404 on unknown API route', async () => {
-    const res = await api.get('/fake').set('Accept', 'application/json');
-
-    expectNotFoundError(res);
+    await agent.get('/fake').accept('json').expect(404);
   });
 
   it('should return 404 on unknown API route method', async () => {
-    const res = await api.post('/health').set('Accept', 'application/json');
-
-    expectNotFoundError(res);
+    await agent.post('/health').accept('json').expect(404);
   });
 });

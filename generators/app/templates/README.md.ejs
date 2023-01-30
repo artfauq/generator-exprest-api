@@ -33,7 +33,7 @@ Fill the `.env` file according to the following table.
 | `DB_PASSWORD`        | _String_  | Database password                                 |         |                                                                                                                          |<% } %><% if (redis) { %>
 | `REDIS_HOST`         | _String_  | Redis host                                        |         | <% if (docker) { %>Not required when using `docker-compose` as it gets overriden with the `redis` container<% } else { %>                                                                                        <% } %>                                 |
 | `REDIS_PORT`         | _Number_  | Redis port                                        | `6379`  |                                                                                                                          |<% } %><% if (jwt) { %>
-| `JWT_SECRET`         | _String_  | Secret used to sign JWTs                          |         | Run `yarn generate-secret` to generate a random secret                                                                   |<% } %><% if (nodemailer) { %>
+| `JWT_SECRET`         | _String_  | Secret used to sign JWTs                          |         |                                                                                                                          |<% } %><% if (nodemailer) { %>
 | `SMTP_HOST`          | _String_  | SMTP host                                         |         |                                                                                                                          |
 | `SMTP_PORT`          | _Number_  | SMTP port                                         | `465`   |                                                                                                                          |
 | `SMTP_USER`          | _String_  | SMTP user                                         |         |                                                                                                                          |
@@ -50,7 +50,7 @@ Fill the `.env` file according to the following table.
 Start a development server by running:
 
 ```sh
-./docker/start.sh dev
+yarn docker:start:dev
 ```
 
 #### Without docker-compose <!-- omit in toc --><% } %>
@@ -76,7 +76,9 @@ yarn start:dev
 | `start`              |                                         | Start a server from compiled files                                                          |
 | `start:dev`          |                                         | Start a development server with source files change detection                               |
 | `build`              |                                         | Transpile TypeScript files into JavaScript in a `/dist` folder                              |<% if (jest) { %>
-| `test`               |                                         | Run all tests defined in the `/test` folder                                                 |<% } %><% if (sequelize) { %>
+| `test`               |                                         | Run unit tests                                                                              |
+| `test:e2e`           |                                         | Run e2e tests defined in the `/test` folder                                                 |<% } %><% if (docker) { %>
+| `docker:start:*`     |                                         | Start docker-compose services in defined mode                                               |<% } %><% if (sequelize) { %>
 | `db:create`          |                                         | Create database for the specified environment                                               |
 | `db:drop`            |                                         | Drop database for the specified environment                                                 |
 | `db:seed`            |                                         | Run seeders                                                                                 |

@@ -41,7 +41,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'sequelize',
-        message: `Use ${yellow('sequelize')} as ORM ?`,
+        message: `Use ${yellow('Sequelize')} as ORM ?`,
         default: true,
       },
       {
@@ -59,7 +59,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'jest',
-        message: `Use ${yellow('jest')} for testing ?`,
+        message: `Use ${yellow('Jest')} for testing ?`,
         default: true,
       },
       //
@@ -159,17 +159,17 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'sentry',
-        message: `Use ${yellow('sentry')} for error tracking ?`,
+        message: `Use ${yellow('Sentry')} for error tracking ?`,
         default: true,
       },
       //
-      // ─── ADMIN-BRO ───────────────────────────────────────────────────
+      // ─── ADMINJS ─────────────────────────────────────────────────────
       //
       {
         store: true,
         type: 'confirm',
         name: 'admin',
-        message: `Use ${yellow('admin-bro')} to generate an admin panel ?`,
+        message: `Use ${yellow('AdminJS')} to generate an admin panel ?`,
         default: true,
         when: ({ sequelize }) => !!sequelize,
       },
@@ -180,7 +180,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'eslint',
-        message: `Use ${yellow('eslint')} for code linting ?`,
+        message: `Use ${yellow('ESLint')} for code linting ?`,
         default: true,
       },
       //
@@ -190,17 +190,17 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'prettier',
-        message: `Use ${yellow('prettier')} for code formatting ?`,
+        message: `Use ${yellow('Prettier')} for code formatting ?`,
         default: true,
       },
       //
-      // ─── PRE-COMMIT HOOK ─────────────────────────────────────────────
+      // ─── PRE-PUSH HOOK ───────────────────────────────────────────────
       //
       {
         store: true,
         type: 'confirm',
         name: 'hook',
-        message: `Configure a ${yellow('pre-commit linting hook')} ?`,
+        message: `Configure a ${yellow('pre-push linting hook')} ?`,
         default: true,
       },
       //
@@ -210,7 +210,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'docker',
-        message: `Generate ${yellow('docker')} configuration ?`,
+        message: `Generate ${yellow('Docker')} configuration ?`,
         default: true,
       },
       ///
@@ -220,8 +220,8 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'nginx',
-        message: `Configure ${yellow('nginx')} reverse proxy with automatic ${yellow(
-          "let's encrypt"
+        message: `Configure ${yellow('Nginx')} reverse proxy with automatic ${yellow(
+          "Let's Encrypt"
         )} SSL certificate renewal ?`,
         default: true,
         when: ({ docker }) => !!docker,
@@ -233,7 +233,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'openapi',
-        message: `Generate an ${yellow('openAPI')} documentation file ?`,
+        message: `Generate an ${yellow('OpenAPI')} documentation file ?`,
         default: true,
       },
       //
@@ -244,6 +244,16 @@ module.exports = class extends Generator {
         type: 'confirm',
         name: 'monitoring',
         message: `Generate a ${yellow('status monitoring')} route ?`,
+        default: true,
+      },
+      //
+      // ─── GIT ─────────────────────────────────────────────────────────
+      //
+      {
+        store: true,
+        type: 'confirm',
+        name: 'git',
+        message: `Initialize ${yellow('Git')} repository ?`,
         default: true,
       },
     ]);
@@ -301,24 +311,26 @@ module.exports = class extends Generator {
     answers.auth = !!answers.sequelize && !!answers.jwt;
     answers.dialect = dialect;
     answers.nginx = !!answers.nginx;
-    answers.stubs = answers.nodemailer || answers.redis;
+    answers.mocks = answers.nodemailer || answers.redis;
 
     copy('.editorconfig.ejs');
     copy('.gitattributes.ejs');
     copy('src/dto/index.ts.ejs');
+    copy('src/config/app.config.ts.ejs');
     copy('src/config/index.ts.ejs');
     copy('src/config/logger.config.ts.ejs');
     copy('src/loaders/index.ts.ejs');
     copy('src/middlewares/error-handler.middleware.ts.ejs');
     copy('src/middlewares/index.ts.ejs');
     copy('public/favicon.ico');
+    copy('src/controllers/health.controller.ts.ejs');
     copy('src/controllers/index.ts.ejs');
     copy('src/services/index.ts.ejs');
     copy('src/types/enums/index.ts.ejs');
     copy('src/types/index.d.ts.ejs');
     copy('src/types/index.ts.ejs');
     copy('src/utils/index.ts.ejs');
-    copy('src/index.ts.ejs');
+    copy('src/app.ts.ejs');
     copy('src/server.ts.ejs');
     copy('.env.example.ejs');
     copy('.gitignore.ejs');
@@ -345,12 +357,14 @@ module.exports = class extends Generator {
       copy('db/migrations/1-init.js.ejs');
       copy('db/seeders/empty');
       copy('db/config.js.ejs');
+      copy('src/config/sequelize.config.ts.ejs');
       copy('src/controllers/users.controller.ts.ejs');
       copy('src/dto/user.dto.ts.ejs');
       copy('src/models/index.ts.ejs');
       copy('src/models/user.model.ts.ejs');
       copy('src/loaders/sequelize.loader.ts.ejs');
       copy('src/services/user.service.ts.ejs');
+      copy('src/types/enums/user-role.enum.ts.ejs');
       copy('src/types/user.type.ts.ejs');
       copy('.sequelizerc.ejs');
     }
@@ -429,11 +443,11 @@ module.exports = class extends Generator {
     //
 
     if (answers.jwt) {
-      this.packages.dependencies.push('jsonwebtoken@^8.5.1', 'express-jwt@^6.1.0', 'uuid@^8.3.2');
+      this.packages.dependencies.push('jsonwebtoken@^9.0.0', 'express-jwt@^6.1.0', 'uuid@^8.3.2');
       this.packages.devDependencies.push(
         '@types/express-jwt@^0.0.42',
         '@types/express-unless@^2.0.1',
-        '@types/jsonwebtoken@^8.5.8',
+        '@types/jsonwebtoken@^9.0.1',
         '@types/uuid@^8.3.4'
       );
 
@@ -463,7 +477,6 @@ module.exports = class extends Generator {
       this.packages.devDependencies.push('@types/node-schedule@^1.3.2');
 
       copy('src/jobs/index.ts.ejs');
-      copy('src/loaders/job-scheduler.loader.ts.ejs');
     }
 
     //
@@ -510,7 +523,7 @@ module.exports = class extends Generator {
     }
 
     //
-    // ─── PRE-COMMIT HOOK ─────────────────────────────────────────────
+    // ─── PRE-PUSH HOOK ───────────────────────────────────────────────
     //
 
     if (answers.hook) {
@@ -526,35 +539,42 @@ module.exports = class extends Generator {
     if (answers.jest) {
       this.packages.devDependencies.push(
         '@types/jest@^29.2.6',
-        '@types/sinon@^9.0.10',
         '@types/supertest@^2.0.11',
         'jest@^29.3.1',
-        'sinon@^9.2.4',
         'supertest@^4.0.2',
         'ts-jest@^29.0.5'
       );
 
+      copy('.env.test.ejs');
       copy('jest.config.ts.ejs');
-      copy('test/helpers/stubs/index.ts.ejs');
-      copy('test/helpers/http-responses.ts.ejs');
-      copy('test/helpers/index.ts.ejs');
+      copy('tsconfig.spec.json.ejs');
+      copy('jest-e2e.config.ts.ejs');
+      copy('test/mocks/index.ts.ejs');
+      copy('test/utils/index.ts.ejs');
+      copy('test/integration/empty');
       copy('test/api/404.test.ts.ejs');
       copy('test/api/get.health.test.ts.ejs');
+      copy('test/global.setup.ts.ejs');
       copy('test/jest.setup.ts.ejs');
 
       if (answers.sequelize) {
-        copy('test/helpers/truncate.ts.ejs');
+        copy('test/utils/database.util.ts.ejs');
         copy('test/api/users/get.user.test.ts.ejs');
       }
 
       if (answers.redis) {
         this.packages.devDependencies.push('redis-mock@^0.56.3', '@types/redis-mock@^0.17.0');
 
-        copy('test/helpers/stubs/redis.stub.ts.ejs');
+        copy('test/mocks/redis.mock.ts.ejs');
+      }
+
+      if (answers.jwt) {
+        copy('src/utils/__tests__/jwt.util.spec.ts.ejs');
       }
 
       if (answers.nodemailer) {
-        copy('test/helpers/stubs/mailer.stub.ts.ejs');
+        copy('src/services/__tests__/email.service.spec.ts.ejs');
+        copy('test/mocks/mailer.mock.ts.ejs');
       }
 
       if (answers.sentry) {
@@ -576,10 +596,6 @@ module.exports = class extends Generator {
 
     if (answers.sentry) {
       this.packages.dependencies.push('@sentry/node@^5.30.0', '@sentry/tracing@^5.30.0');
-
-      if (answers.winston) {
-        this.packages.dependencies.push('winston-transport-sentry-node@^2.3.0');
-      }
     }
 
     //
@@ -588,26 +604,26 @@ module.exports = class extends Generator {
 
     if (answers.admin) {
       this.packages.dependencies.push(
-        '@admin-bro/design-system@^1.7.3',
-        '@admin-bro/express@^3.1.0',
-        '@admin-bro/sequelize@^1.2.1',
-        'admin-bro@^3.4.0',
+        '@adminjs/design-system@^3.1.5',
+        '@adminjs/express@^5.0.1',
+        '@adminjs/sequelize@^3.0.0',
+        'adminjs@^6.7.4',
+        'connect-session-sequelize@^7.1.5',
         'express-formidable@^1.2.0',
-        'express-session@^1.17.2',
-        'tslib@^2.3.1'
+        'express-session@^1.17.3'
       );
 
-      this.packages.devDependencies.push('@types/express-session@^1.17.4');
+      this.packages.devDependencies.push('@types/express-session@^1.17.3');
 
-      copy('src/admin/components/empty');
+      copy('public/styles/admin.css.ejs');
+      copy('src/admin/components/index.ts.ejs');
       copy('src/admin/locale/en.ts.ejs');
       copy('src/admin/locale/index.ts.ejs');
-      copy('src/admin/resources/index.ts.ejs');
       copy('src/admin/index.ts.ejs');
-
-      if (answers.sequelize) {
-        copy('src/admin/resources/user.resource.ts.ejs');
-      }
+      copy('src/admin/resources/index.ts.ejs');
+      copy('src/admin/resources/user.resource.ts.ejs');
+      copy('src/models/session.model.ts.ejs');
+      copy('src/dto/admin.dto.ts.ejs');
     }
 
     //
@@ -616,7 +632,6 @@ module.exports = class extends Generator {
 
     if (answers.docker) {
       copy('docker/node/Dockerfile.ejs');
-      copy('docker/start.sh.ejs');
       copy('docker-compose.yml.ejs');
       copy('docker-compose.dev.yml.ejs');
       copy('docker-compose.prod.yml.ejs');
@@ -666,6 +681,12 @@ module.exports = class extends Generator {
 
     if (this.answers.eslint || this.answers.prettier) {
       this.spawnCommandSync('yarn', ['lint:fix']);
+    }
+
+    if (this.answers.git) {
+      this.spawnCommandSync('git', ['init', '-b', 'main']);
+      this.spawnCommandSync('git', ['add', '.']);
+      this.spawnCommandSync('git', ['commit', '-m', 'Initial commit']);
     }
   }
 

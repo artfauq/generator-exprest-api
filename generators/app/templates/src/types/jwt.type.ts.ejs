@@ -1,4 +1,6 @@
-/**
+<% if (auth) { %>import { UserRoleEnum } from './enums';
+
+<% } %>/**
  * Decoded JWT token
  */
 export type DecodedJWT = StandardJWTClaims & JWTPayload;
@@ -19,11 +21,13 @@ export type StandardJWTClaims = {
 export type JWTPayload = {<% if (auth) { %>
   name: string;
   email: string;
+  role: UserRoleEnum;
 };
 
 export type AuthUser = {
   id: string;
   email: string;
+  role: UserRoleEnum;
 };
 <% } else { %>};
 <% } %>

@@ -1,16 +1,10 @@
-import supertest from 'supertest';
-import { expectNoContent } from '../helpers';
-import { app } from '../jest.setup';
-
-const api = supertest(app);
+import { agent } from '../jest.setup';
 
 /**
  * GET /health
  */
 describe('GET /health', () => {
   it('should return 204 on health route', async () => {
-    const res = await api.get('/health').set('Accept', 'application/json');
-
-    expectNoContent(res);
+    await agent.get('/health').accept('json').expect(204);
   });
 });

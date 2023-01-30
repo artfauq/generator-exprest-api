@@ -1,3 +1,4 @@
 // Export models from here
-
+<% if (admin) { %>
+export { default as SessionModel } from './session.model';<% } %>
 export { default as UserModel } from './user.model';

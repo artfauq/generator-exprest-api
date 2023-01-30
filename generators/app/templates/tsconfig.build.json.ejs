@@ -6,5 +6,5 @@
     "sourceRoot": "/"
   },
   "files": ["./src/types/index.d.ts"],
-  "exclude": ["./node_modules", <% if (sequelize) { %>"./db", <% } %>"./public"<% if (jest) { %>, "./test", "./jest.config.ts"<% } %>]
+  "exclude": ["node_modules", <% if (sequelize) { %>"db", <% } %>"public"<% if (jest) { %>, "test", "jest*.config.ts"<% } %>]
 }

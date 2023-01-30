@@ -1,32 +1,24 @@
-import { createTestAccount, createTransport } from 'nodemailer';
+import { createTransport } from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-import config from '../config';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { Container } from 'typedi';
+import { Config } from '../config';
 
 /**
  * Mail transport initializer
  */
-export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Mail> => {
+export default async function initMailer(): Promise<Mail> {
+  const config = Container.get<Config>('config');
+
   try {
     const options: SMTPTransport.Options = {
       host: config.smtp.host,
       port: config.smtp.port,
-    };
-
-    if (config.smtp.user) {
-      options.auth = {
+      auth: {
         user: config.smtp.user,
         pass: config.smtp.password,
-      };
-    } else {
-      const testAccount = await createTestAccount();
-
-      options.auth = {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      };
-    }
+      },
+    };
 
     // Initialize SMTP transport
     const smtpTransport = createTransport(options);
@@ -34,10 +26,8 @@ export default async ({ logger }: { logger: <%= loggerType %> }): Promise<Mail> 
     // Test SMTP connection
     await smtpTransport.verify();
 
-    logger.info('Successfully connected to SMTP server');
-
     return smtpTransport;
   } catch (err) {
     throw new Error(`failed to connect to SMTP server. ${err}`);
   }
-};
+}

@@ -1,9 +1,9 @@
 import Router from 'express-promise-router';<% if (morgan) { %>
 import morgan from 'morgan';
-import { Container } from 'typedi';
-import config from '../config';<% if (winston) { %>
+import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %><% } %><% if (auth) { %>
-import authController from './auth.controller';<% } %><% if (sequelize) { %>
+import authController from './auth.controller';<% } %>
+import healthController from './health.controller';<% if (sequelize) { %>
 import usersController from './users.controller';<% } %>
 
 const router = Router();<% if (morgan) { %>
@@ -12,7 +12,7 @@ const router = Router();<% if (morgan) { %>
  * HTTP request logging configuration
  */
 router.use(
-  morgan(config.isProduction ? 'combined' : 'dev', {
+  morgan('dev', {
     stream: {
       write: message => {
         const logger = Container.get<<%= loggerType %>>('logger');
@@ -25,9 +25,9 @@ router.use(
 
 /**
  * API routes
- */
-router.get('/', (req, res) => res.sendStatus(204));<% if (auth) { %>
-router.use('/auth', authController);<% } %><% if (sequelize) { %>
+ */<% if (auth) { %>
+router.use('/auth', authController);<% } %>
+router.use('/health', healthController);<% if (sequelize) { %>
 router.use('/users', usersController);<% } %>
 
 export default router;

@@ -2,11 +2,12 @@
 <% } %><% if (celebrate) { %>import { JoiObject, ValidationError } from '@hapi/joi';
 import { isCelebrate } from 'celebrate';
 <% } %>import { ErrorRequestHandler } from 'express';
-import createHttpError from 'http-errors';<% if (i18n) { %>
-import { i18n as I18n } from 'i18next';<% } %>
+import createHttpError, { HttpError, isHttpError } from 'http-errors';<% if (i18n) { %>
+import { i18n as I18n } from 'i18next';<% } %><% if (sequelize) { %>
+import { BaseError } from 'sequelize';<% } %>
 import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-import config from '../config';<% if (celebrate) { %>
+import { Config } from '../config';<% if (celebrate) { %>
 
 interface CelebrateError extends Error, JoiObject {
   joi: ValidationError;
@@ -22,36 +23,45 @@ function isCelebrateError(err: any): err is CelebrateError {
 /**
  * Middleware used to parse `celebrate` errors.
  */
-export const celebrateErrorHandler = (): ErrorRequestHandler => (err, req, res, next) => {
-  if (!isCelebrateError(err)) {
+export function celebrateErrorHandler(): ErrorRequestHandler {
+  return (err, req, res, next) => {
+    if (isCelebrateError(err)) {
+      let { message } = err;
+
+      if (err.joi) {
+        const { details } = err.joi;
+
+        message = details ? details[0].message : err.joi.message;
+      }
+
+      return next(createHttpError(400, err, { message }));
+    }
+
     return next(err);
-  }
+  };
+}<% } %><% if (sequelize) { %>
 
-  let { message } = err;
-
-  if (err.joi) {
-    const { details } = err.joi;
-
-    message = details ? details[0].message : err.joi.message;
-  }
-
-  return next(createHttpError(400, err, { message }));
-};<% } %><% if (sequelize) { %>
+/**
+ * Returns `true` if the error originated from the `sequelize` package.
+ */
+function isSequelizeError(err: any): err is BaseError {
+  return err instanceof BaseError;
+}
 
 /**
  * Middleware used to parse `sequelize` errors.
  */
-export const sequelizeErrorHandler = (): ErrorRequestHandler => {
+export function sequelizeErrorHandler(): ErrorRequestHandler {
   return (err, req, res, next) => {
-    if (err.name !== 'SequelizeDatabaseError') {
-      return next(err);
+    if (isSequelizeError(err)) {
+      const { message } = err;
+
+      return next(createHttpError(500, err, { message }));
     }
 
-    const message = `${err.message}. Query: ${err.sql}`;
-
-    return next(createHttpError(500, err, { message }));
+    return next(err);
   };
-};<% } %>
+}<% } %>
 
 /**
  * Parses an error to retrieve its HTTP `status`.
@@ -67,13 +77,17 @@ const parseErrorStatus = (err: { status?: number | string }): number => {
 /**
  * Parses an error to retrieve its `message`.
  */
-const parseErrorMessage = (err: any): string => {
+function parseErrorMessage(err: any): string {
+  if (err instanceof Error) {
+    return err.message;
+  }
+
   if (typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
     return err.message as string;
   }
 
   return `${err}`;
-};
+}
 
 /**
  * Middleware used to handle HTTP error responses.
@@ -83,28 +97,34 @@ const parseErrorMessage = (err: any): string => {
  */
 export const errorHandler = (): ErrorRequestHandler => {<% if (i18n) { %>
   const i18n = Container.get<I18n>('i18n');<% } %>
+  const config = Container.get<Config>('config');
   const logger = Container.get<<%= loggerType %>>('logger');
 
   return (err, req, res, next) => {
-    // Parse error status
-    const status = parseErrorStatus(err);
-
-    // Parse error message
-    const message = parseErrorMessage(err);
-
-    // Log error<% if (auth && sentry) { %>
-    const { user } = req;
-<% } %>
-    if (status < 500) {
-      logger.warn(message<% if (auth && sentry) { %>, err, { user }<% } %>);
-    } else {
-      logger.error(message<% if (auth && sentry) { %>, err, { user }<% } %>);
-    }
+    let error: HttpError;
 
     // Format HTTP error
-    const error = createHttpError(status, message);
+    if (isHttpError(err)) {
+      error = err;
+    } else {
+      const status = parseErrorStatus(err);
+      const message = parseErrorMessage(err);
 
-    if (config.isProduction && !error.expose) {
+      error = createHttpError(status, message);
+
+      // Set error stack
+      error.stack = err.stack ?? error.stack;
+    }
+
+    // Log error
+    if (error.status < 500) {
+      logger.warn(error);
+    } else {
+      logger.error(error);
+    }
+
+    // Determine if error message should be hidden from client
+    if (config.env === 'production' && !error.expose) {
       error.message = <% if (i18n) { %>i18n.t('errors:internalServerError')<% } else { %>'Internal server error.'<% } %>;
     }
 
@@ -113,12 +133,24 @@ export const errorHandler = (): ErrorRequestHandler => {<% if (i18n) { %>
 
     // Set response content according to acceptable format
     res.format({
-      text: () => {
-        res.send(`Error ${status} - ${error.name}: ${message}`);
+      'text/plain': () => {
+        res.send(`Error ${error.status} - ${error.name}: ${error.message}`);
       },
 
-      json: () => {
-        res.json({ status, name: error.name, message });
+      'text/html': () => {
+        res.send(`<p>Error ${error.status} - ${error.name}: ${error.message}</p>`);
+      },
+
+      'application/json': () => {
+        res.json({
+          status: error.status,
+          name: error.name,
+          message: error.message,
+        });
+      },
+
+      'default': () => {
+        res.status(406).send('Not Acceptable');
       },
     });
   };

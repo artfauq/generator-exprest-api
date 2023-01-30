@@ -1,60 +1,60 @@
 import express from 'express';
-import { createServer } from 'http';<% if (sequelize) { %>
-import { Sequelize } from 'sequelize';<% } %>
+import { createServer, Server } from 'http';
+import request, { SuperAgentTest } from 'supertest';
 import { Container } from 'typedi';
-import logger from '../src/config/logger.config';<% if (sequelize || i18n || socketIo) { %>
-import * as loaders from '../src/loaders';<% } %>
-import startServer from '../src/server';<% if (stubs) { %>
-import { <% if (nodemailer) { %>mailerStub, <% } %><% if (redis) { %>redisStub<% } %> } from './helpers';<% } %>
+import initializeApp from '../src/app';
+import { config, logger } from '../src/config';
+import * as loaders from '../src/loaders';<% if (mocks) { %>
+import { <% if (nodemailer) { %>mailerMock<% if (redis) { %>, <% } %><% } %><% if (redis) { %>redisMock<% } %> } from './mocks';<% } %>
 
-// Create Express application and HTTP server
-export const app = express();
-export const server = createServer(app);
+let server: Server;
+
+export let agent: SuperAgentTest;
 
 beforeAll(async () => {
-  try {<% if (sequelize) { %>
-    // Initialize Sequelize instance
-    const sequelize = await loaders.sequelize({ logger });
+  // Inject config and logger
+  Container.set('config', config);
+  Container.set('logger', logger);
+
+  // Create express application
+  const app = express();
+  Container.set('app', app);
+
+  // Create HTTP server
+  server = createServer(app);
+  Container.set('server', server);<% if (sequelize) { %>
+
+  // Initialize Sequelize instance
+  const sequelize = await loaders.initSequelize();
+  Container.set('sequelize', sequelize);
 <% } %><% if (i18n) { %>
-    // Initialize i18n
-    const i18n = await loaders.i18n({ logger });
+  // Initialize i18n
+  const i18n = await loaders.initI18n();
+  Container.set('i18n', i18n);
 <% } %><% if (socketIo) { %>
-    // Initialize Socket.IO server
-    const socket = loaders.socketIo({ logger, server });
+  // Initialize Socket.IO server
+  const socket = loaders.initSocketIo();
+  Container.set('socket', socket);
+<% } %><% if (mocks) { %>
+  // Inject mocked services<% if (nodemailer) { %>
+  Container.set('mailer', mailerMock);<% } %><% if (redis) { %>
+  Container.set('redis', redisMock);<% } %>
 <% } %>
-    // Inject dependencies
-    Container.set('logger', logger);<% if (sequelize) { %>
-    Container.set('sequelize', sequelize);<% } %><% if (nodemailer) { %>
-    Container.set('mailer', mailerStub);<% } %><% if (redis) { %>
-    Container.set('redis', redisStub);<% } %><% if (i18n) { %>
-    Container.set('i18n', i18n);<% } %><% if (socketIo) { %>
-    Container.set('socket', socket);<% } %>
+  // Initialize application
+  initializeApp(app);
 
-    // Start server
-    startServer(app, server);
+  // Start server
+  await new Promise<void>(resolve => {
+    server.listen(config.port, () => {
+      agent = request.agent(app);
 
-    // Wait for server to listen
-    await new Promise<void>(resolve => {
-      if (server.listening) {
-        resolve();
-      } else {
-        server.on('listening', resolve);
-      }
+      resolve();
     });
-  } catch (err) {
-    logger.error('Tests setup failed.', err);
-
-    process.exit(1);
-  }
+  });
 });
 
-afterAll(async () => {<% if (sequelize) { %>
-  // Close database connection
-  const sequelize = Container.get<Sequelize>('sequelize');
-
-  await sequelize.close();
-<% } %>
-  // Wait for server to close
+afterAll(async () => {
+  // Close server connection
   await new Promise<void>((resolve, reject) => {
     server.close(err => {
       if (err) reject(err);

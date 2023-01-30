@@ -25,12 +25,12 @@
 - **Object validation** - Using [celebrate](https://www.npmjs.com/package/celebrate) and [Joi](https://github.com/sideway/joi)
 - **Email sending** - Using [Nodemailer](https://nodemailer.com/about/)
 - **Real-time events** - Using [Socket.IO](https://socket.io/)
-- **Admin panel** - Using [AdminBro](https://adminbro.com/)
+- **Admin panel** - Using [AdminJS](https://adminjs.co/)
 - **API status monitoring** - Using [express-status-monitor](https://www.npmjs.com/package/express-status-monitor)
 - **Cron jobs** - Using [node-schedule](https://github.com/node-schedule/node-schedule)
 - **Code formatting** - Using [Prettier](https://prettier.io/)
 - **Code linting** - Using [ESLint](https://eslint.org/)
-- **Pre-commit linting hook** - Using [husky](https://github.com/typicode/husky) and [lint-staged](https://github.com/okonet/lint-staged)
+- **Pre-push linting hook** - Using [husky](https://github.com/typicode/husky) and [lint-staged](https://github.com/okonet/lint-staged)
 
 ## Installation
 
@@ -53,12 +53,10 @@ yo exprest-api
 ## TODO
 
 - [ ] Add unit tests
-- [x] Change `morgan` to option
+- [ ] Add internationalized validation errors
 - [ ] Add supported locales / default locale option
-- [ ] Change `config` as injected dependency
-- [x] Migrate tests to `jest`
-- [ ] Migrate ORM to `MikroORM`
-- [ ] Update `admin-bro` to latest version
+- [ ] Migrate ORM to `MikroORM` ?
+- [ ] Add `user.verifiedAt` property
 
 ## License
 

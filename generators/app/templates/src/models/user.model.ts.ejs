@@ -17,7 +17,8 @@ import {
   Table,
   Unique,
 } from 'sequelize-typescript';<% if (i18n) { %>
-import Container from 'typedi';<% } %><% if (jwt) { %>
+import { Container } from 'typedi';<% } %>
+import { UserRoleEnum } from '../types/enums';<% if (jwt) { %>
 import { generateSignedJWT } from '../utils';<% } %>
 
 @DefaultScope(() => ({
@@ -26,6 +27,8 @@ import { generateSignedJWT } from '../utils';<% } %>
   },
 }))
 @Table({
+  charset: 'utf8',
+  collate: 'utf8_general_ci',
   tableName: 'user',
 })
 export default class UserModel extends Model<UserModel> {
@@ -60,6 +63,12 @@ export default class UserModel extends Model<UserModel> {
   @Comment('Password of the user')
   @Column(DataType.STRING(64))
   password!: string;
+
+  @AllowNull(false)
+  @Comment('User role')
+  @Default(UserRoleEnum.User)
+  @Column(DataType.ENUM(...Object.values(UserRoleEnum)))
+  role!: UserRoleEnum;
 
   @CreatedAt
   @AllowNull(false)
@@ -136,10 +145,22 @@ export default class UserModel extends Model<UserModel> {
   /**
    * Returns a new JWT for this user.
    */
-  generateJWT(): string {
-    return generateSignedJWT(this.id, this.password, {
-      name: this.fullName,
-      email: this.email,
+  async generateJWT(transaction?: Transaction): Promise<string> {
+    const user = await UserModel.findByPk(this.id, {
+      attributes: {
+        include: ['id', 'email', 'password', 'role', 'fullName'],
+      },
+      transaction,
+    });
+
+    if (!user) {
+      throw new Error(`User not found with id '${this.id}'`);
+    }
+
+    return generateSignedJWT(user.id, user.password, {
+      name: user.fullName,
+      email: user.email,
+      role: user.role,
     });
   }<% } %>
 }

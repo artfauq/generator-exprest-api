@@ -1,123 +1,87 @@
-import 'reflect-metadata';<% if (admin) { %>
-import AdminBroExpress from '@admin-bro/express';<% } %><% if (sentry) { %>
-import * as Sentry from '@sentry/node';<% } %>
-import bodyParser from 'body-parser';
-import compression from 'compression';
-import cors from 'cors';
-import express, { Application } from 'express';
-import rateLimit from 'express-rate-limit';<% if (monitoring) { %>
-import statusMonitor from 'express-status-monitor';<% } %>
-import helmet from 'helmet';
-import { Server } from 'http';
-import { NotFound, TooManyRequests } from 'http-errors';<% if (i18n) { %>
-import { i18n as I18n } from 'i18next';
-import i18nHttpMiddleware from 'i18next-http-middleware';<% } %>
-import { join } from 'path';<% if (admin) { %>
-import { Sequelize } from 'sequelize';<% } %>
-import favicon from 'serve-favicon';<% if (monitoring && socketIo) { %>
-import SocketIO from 'socket.io';<% } %>
-import { Container } from 'typedi';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %><% if (admin) { %>
-import setupAdminBro from './admin';<% } %>
-import config from './config';
-import router from './controllers';
-import {<% if (celebrate) { %> celebrateErrorHandler,<% } %> errorHandler<% if (jwt) { %>, jwtErrorHandler<% } %><% if (sequelize) { %>, sequelizeErrorHandler<% } %> } from './middlewares';
+<% if (sentry) { %>import * as Sentry from '@sentry/node';
+import * as Tracing from '@sentry/tracing';
+<% } %>import express from 'express';
+import { createServer } from 'http';
+import { Container } from 'typedi';
+import initializeApp from './app';
+import { config, logger } from './config';<% if (cron) { %>
+import runJobs from './jobs';<% } %>
+import * as loaders from './loaders';
 
-export default (app: Application, server: Server): void => {<% if (i18n) { %>
-  const i18n = Container.get<I18n>('i18n');<% } %>
-  const logger = Container.get<<%= loggerType %>>('logger');<% if (admin) { %>
-  const sequelize = Container.get<Sequelize>('sequelize');<% } %>
+(async () => {
+  // Inject config and logger
+  Container.set('config', config);
+  Container.set('logger', logger);
 
-  app.enable('trust proxy');
-  app.use(bodyParser.json());
-  app.use(compression());
-  app.use(cors());
-  app.use(favicon(join(config.publicPath, 'favicon.ico')));
-  app.use(helmet());
+  // Create Express application
+  const app = express();
+  Container.set('app', app);
 
-  // Rate limiting configuration
-  app.use(
-    rateLimit({
-      windowMs: 10 * 60 * 1000, // 10 minutes
-      max: 100, // limit each IP to 100 requests per windowMs
-      message: <% if (i18n) { %>i18n.t('errors:tooManyRequests')<% } else { %>'Too many requests, please try again later.'<% } %>,
-      statusCode: new TooManyRequests().statusCode,
-      skip: () => !config.isProduction,
-    }),
-  );<% if (monitoring) { %>
+  // Create HTTP server
+  const server = createServer(app);
+  Container.set('server', server);<% if (sequelize) { %>
 
-  // Status monitoring configuration
-  app.use(
-    statusMonitor({
-      path: '/status',
-      title: '<%= name %> | Monitoring',<% if (socketIo) { %>
-      websocket: Container.get<SocketIO.Server>('socket'),<% } %>
-    }),
-  );<% } %><% if (admin) { %>
-
-  // AdminBro panel configuration
-  const adminBro = setupAdminBro(sequelize);
-  const adminRouter = AdminBroExpress.buildRouter(adminBro);
-
-  app.use(adminBro.options.rootPath, adminRouter);<% } %><% if (sentry) { %>
-
-  // Sentry middleware configuration
-  app.use(
-    Sentry.Handlers.requestHandler({
-      user: ['id', 'email'],
-    }),
+  // Initialize Sequelize instance
+  const sequelize = await loaders.initSequelize();
+  Container.set('sequelize', sequelize);
+  const { options } = sequelize;
+  logger.info(
+    `Successfully connected to database '${options.database}' at '${options.host}:${options.port}'`,
   );
-  app.use(Sentry.Handlers.tracingHandler());<% } %><% if (i18n) { %>
+<% } %><% if (nodemailer) { %>
+  // Initialize mailer instance
+  const mailer = await loaders.initMailer();
+  Container.set('mailer', mailer);
+  logger.info('Successfully connected to SMTP server');
+<% } %><% if (redis) { %>
+  // Initialize Redis client
+  const redis = await loaders.initRedis();
+  Container.set('redis', redis);
+  logger.info('Successfully connected to Redis server');
+<% } %><% if (i18n) { %>
+  // Initialize i18n
+  const i18n = await loaders.initI18n();
+  Container.set('i18n', i18n);
+  logger.info('Successfully initialized i18n resources');
+<% } %><% if (socketIo) { %>
+  // Initialize Socket.IO server
+  const socket = loaders.initSocketIo();
+  Container.set('socket', socket);
+  logger.info('Successfully initialized Socket.IO server');
+<% } %><% if (cron) { %>
+  // Initialize job scheduler
+  runJobs();
+<% } %>
+  // Initialize application
+  initializeApp(app);<% if (sentry) { %>
 
-  // i18n middleware configuration
-  app.use(i18nHttpMiddleware.handle(i18n));
-  app.use((req, res, next) => {
-    if (req.i18n) {
-      Container.set('i18n', req.i18n);
-    }
-
-    next();
-  });<% } %><% if (openapi) { %>
-
-  // API documentation
-  app.use('/doc', express.static(join(config.publicPath, '/doc')));<% } %>
-
-  // Public assets
-  app.use('/public', express.static(config.publicPath));<% if (sentry) { %>
-
-  // Sentry debug route
-  app.get('/sentry-debug', () => {
-    throw new Error('Sentry error');
+  // Initialize Sentry
+  Sentry.init({
+    enabled: config.env === 'production',
+    integrations: [
+      // Enable HTTP calls tracing
+      new Sentry.Integrations.Http({ tracing: true }),
+      // Enable Express.js middleware tracing
+      new Tracing.Integrations.Express({ app }),<% if (sequelize) { %>
+      // Enable MySQL requests tracing
+      new Tracing.Integrations.Mysql(),<% } %>
+      // Enable uncaught exceptions tracing
+      new Sentry.Integrations.OnUncaughtException(),
+      // Enable unhandled rejections tracing
+      new Sentry.Integrations.OnUnhandledRejection(),
+    ],
   });<% } %>
 
-  // Health route
-  app.get('/health', (req, res) => res.sendStatus(204));
-
-  // Routing configuration
-  app.use(router);
-
-  // 404 error handling
-  app.use((req, res, next) => {
-    const { baseUrl, url, method } = req;
-
-    next(new NotFound(<% if (i18n) { %>req.i18n.t('errors:routeNotFound', { method, baseUrl, url })<% } else { %>`The route '${method} ${baseUrl}${url}' doesn't exist.`<% } %>));
-  });
-
-  // Error handling<% if (jwt) { %>
-  app.use(jwtErrorHandler());<% } %><% if (celebrate) { %>
-  app.use(celebrateErrorHandler());<% } %><% if (sequelize) { %>
-  app.use(sequelizeErrorHandler());<% } %><% if (sentry) { %>
-  app.use(Sentry.Handlers.errorHandler());<% } %>
-  app.use(errorHandler());
-
-  // Start listening on configured port
-  server
-    .listen(config.port, () => {
+  // Start server
+  await new Promise<void>(resolve => {
+    server.listen(config.port, () => {
       logger.info(`App is running on port ${config.port} in ${config.env} mode`);
-    })
-    .on('error', err => {
-      logger.error(err.message, err);
 
-      process.exit(1);
+      resolve();
     });
-};
+  });
+})().catch(err => {
+  logger.error('Application initialization failed.', err);
+
+  process.exit(1);
+});
