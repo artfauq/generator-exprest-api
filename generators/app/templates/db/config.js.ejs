@@ -1,15 +1,19 @@
 const dotenv = require('dotenv');
 
-dotenv.config(<% if (jest) { %>{ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' }<% } %>);
+const isTest = process.env.NODE_ENV === 'test';
+
+if (!isTest) {
+  dotenv.config();
+}
 
 const debug = process.env.DEBUG === 'true';
 
 const options = {
-  host: process.env.DB_HOST || 'localhost',
+  host: isTest ? '127.0.0.1' : process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT || '<%= dialect.port %>', 10),
-  database: process.env.DB_NAME,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  database: isTest ? '<%= shortname %>_test' : process.env.DB_NAME,
+  username: isTest ? '<%= shortname %>-test' : process.env.DB_USER,
+  password: isTest ? '<%= shortname %>-test' : process.env.DB_PASSWORD,
   dialect: '<%= dialect.value %>',
   dialectOptions: {
     charset: 'utf8_general_ci',

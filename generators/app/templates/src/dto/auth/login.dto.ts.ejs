@@ -1,0 +1,16 @@
+<% if (validation) { %>import { Expose } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+
+export class LoginDTO {
+  @Expose()
+  @IsEmail()
+  email!: string;
+
+  @Expose()
+  @IsString()
+  @IsNotEmpty()
+  password!: string;
+}<% } else { %>export type LoginDTO = {
+  email: string;
+  password: string;
+}<% } %>

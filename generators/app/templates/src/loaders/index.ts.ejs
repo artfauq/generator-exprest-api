@@ -1,7 +1,0 @@
-// Export loaders from here<% if (i18n || nodemailer || redis || sequelize || socketIo) { %>
-<% if (i18n) { %>
-export { default as initI18n } from './i18n.loader';<% } %><% if (nodemailer) { %>
-export { default as initMailer } from './mailer.loader';<% } %><% if (redis) { %>
-export { default as initRedis } from './redis.loader';<% } %><% if (sequelize) { %>
-export { default as initSequelize } from './sequelize.loader';<% } %><% if (socketIo) { %>
-export { default as initSocketIo } from './socket-io.loader';<% } %><% } %>

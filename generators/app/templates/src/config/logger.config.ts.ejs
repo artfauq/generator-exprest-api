@@ -1,12 +1,13 @@
-<% if (winston) { %>import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import moment from 'moment';
-import { createLogger, format, Logform, transports } from 'winston';
+import { format, Logform, LoggerOptions, transports } from 'winston';
 import { config } from './app.config';
 
-const { colorize, combine, errors, printf, timestamp } = format;
+const { colorize, combine, errors, printf, splat, timestamp } = format;
 
 const customFormat: Logform.Format = combine(
-  errors({ stack: config.env === 'development' || config.debug }),
+  errors({ stack: config.isDevelopment || config.debug }),
+  splat(),
   timestamp({ format: () => moment().format('YYYY-MM-DD HH:mm:ss') }),
 );
 
@@ -14,7 +15,7 @@ if (!existsSync(config.logsDir)) {
   mkdirSync(config.logsDir);
 }
 
-export const logger = createLogger({
+export const loggerOptions: LoggerOptions = {
   format: customFormat,
   transports: [
     new transports.Console({
@@ -35,5 +36,4 @@ export const logger = createLogger({
     }),
   ],
   exitOnError: false,
-});<% } else { -%>
-export const logger = console;<% } %>
+};

@@ -1,0 +1,31 @@
+import AdminJSSequelize from '@adminjs/sequelize';
+import AdminJS from 'adminjs';
+import { componentLoader, resources, translations } from '../admin';
+import { config } from './app.config';
+
+AdminJS.registerAdapter(AdminJSSequelize);
+
+export const setupAdminJs = () => {
+  const adminJs = new AdminJS({
+    assets: {
+      styles: ['/public/styles/admin.css'],
+    },
+    branding: {
+      companyName: '<%= name %> | Admin',
+      favicon: '/public/favicon.ico',
+    },
+    componentLoader,
+    locale: translations.<%= defaultLocale %>,
+    resources: Object.values(resources).map(createResource => createResource()),
+    rootPath: '/admin',
+    settings: {
+      defaultPerPage: 20,
+    },
+    version: {
+      admin: true,
+      app: config.version,
+    },
+  });
+
+  return adminJs;
+};

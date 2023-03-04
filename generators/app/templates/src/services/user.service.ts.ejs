@@ -1,40 +1,53 @@
-import { BadRequest, NotFound } from 'http-errors';<% if (i18n) { %>
+import { NotFound } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';<% } %>
-import { <% if (i18n) { %>Inject, <% } %>Service } from 'typedi';
-import { userDTO } from '../dto';
-import { UserModel } from '../models';
-import { CreateUserDTO, User } from '../types';
+import { <% if (i18n || redis) { %>Container, <% } %>Service } from 'typedi';
+import { CreateUserDTO } from '../dto';
+import { User, UserAttributes } from '../models';<% if (redis) { %>
+import { SecondEnum } from '../types/enums';
+import { RedisService } from '.';<% } %>
 
 @Service()
-export default class UserService {<% if (i18n) { %>
-  @Inject('i18n')
-  i18n!: I18n;
+export class UserService {<% if (redis) { %>
+  private redisService: RedisService;
+
+  constructor() {
+    this.redisService = Container.get(RedisService);
+  }
 <% } %>
   /**
    * Returns the details of a user or throws a `NotFound` error if not found.
    */
-  async getUserById(userId: string): Promise<User> {
-    const user = await UserModel.findByPk(userId);
+  async getUser(userId: string): Promise<UserAttributes> {<% if (redis) { %>
+    return this.redisService.fetch<UserAttributes>(
+      `user_${userId}`,
+      SecondEnum.OneWeek,
+      async () => {<% if (i18n) { %>
+        const i18n = Container.get<I18n>('i18n');<% } %>
+        const user = await User.findByPk(userId);
+
+        if (!user) {
+          throw new NotFound(<% if (i18n) { %>i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
+        }
+
+        return user.get({ plain: true });
+      },
+    );<% } else { %><% if (i18n) { %>
+    const i18n = Container.get<I18n>('i18n');<% } %>
+    const user = await User.findByPk(userId);
 
     if (!user) {
-      throw new NotFound(<% if (i18n) { %>this.i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
+      throw new NotFound(<% if (i18n) { %>i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
     }
 
-    return userDTO(user);
+    return user.get({ plain: true });<% } %>
   }
 
   /**
-   * Creates a new user or throws a `BadRequest` error if a user with the same email address already exists.
+   * Creates a new user.
    */
-  async createUser(userDetails: CreateUserDTO): Promise<User> {
-    const existingUser = await UserModel.findOne({ where: { email: userDetails.email } });
+  async createUser(userDetails: CreateUserDTO): Promise<UserAttributes> {
+    const user = await User.create(userDetails);
 
-    if (existingUser) {
-      throw new BadRequest(<% if (i18n) { %>this.i18n.t('errors:emailAlreadyUsed')<% } else { %>'An account with this email address already exists.'<% } %>);
-    }
-
-    const user = await UserModel.create(userDetails);
-
-    return userDTO(user);
+    return user.get({ plain: true });
   }
 }

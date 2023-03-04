@@ -1,14 +1,12 @@
-import Router from 'express-promise-router';
+import { Get, HttpCode, JsonController } from 'routing-controllers';
+import { Service } from 'typedi';
 
-const router = Router();
-
-/**
- * GET /health
- *
- * Check server health
- */
-router.get('/', (req, res) => {
-  res.sendStatus(204);
-});
-
-export default router;
+@JsonController('/health')
+@Service()
+export class HealthController {
+  @Get('/')
+  @HttpCode(204)
+  checkHealth() {
+    return undefined;
+  }
+}

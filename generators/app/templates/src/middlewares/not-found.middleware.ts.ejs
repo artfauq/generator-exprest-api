@@ -1,0 +1,14 @@
+import { RequestHandler } from 'express';<% if (i18n) { %>
+import { i18n as I18n } from 'i18next';<% } %>
+import { NotFoundError } from 'routing-controllers';
+import { Container } from 'typedi';
+
+export const routeNotFoundHandler = (): RequestHandler => (req, res, next) => {<% if (i18n) { %>
+  const i18n = Container.get<I18n>('i18n');
+<% } %>
+  if (!res.headersSent) {
+    const { method, baseUrl, url } = req;
+
+    next(new NotFoundError(<% if (i18n) { %>i18n.t('errors:routeNotFound', { method, baseUrl, url })<% } else { %>`The route '${method} ${baseUrl}${url}' doesn't exist.`<% } %>));
+  }
+};

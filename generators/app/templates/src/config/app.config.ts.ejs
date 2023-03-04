@@ -6,31 +6,26 @@ import 'moment/locale/<%= defaultLocale %>';
 
 type NodeEnv = 'development' | 'production' | 'test';
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+const isProduction = process.env.NODE_ENV === 'production';
+const isTest = process.env.NODE_ENV === 'test';
+
 /**
  * Load environment variables
  */
-dotenv.config(<% if (jest) { %>{ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' }<% } %>);
+if (!isTest) {
+  dotenv.config();
+}
 
 /**
  * Configure moment
  */
 moment.locale('<%= defaultLocale %>');
 
-/**
- * Configure error stack trace limit
- */
-Error.stackTraceLimit = 10;
-
 const configSchema = convict({
   /**
    * Server config
    */
-  env: {
-    doc: 'Application environment',
-    format: ['development', 'production', 'test'],
-    env: 'NODE_ENV',
-    default: 'development' as NodeEnv,
-  },
   port: {
     doc: 'Server port',
     format: 'port',
@@ -41,37 +36,50 @@ const configSchema = convict({
   /**
    * Environment config
    */
+  env: {
+    doc: 'Application environment',
+    format: ['development', 'production', 'test'],
+    env: 'NODE_ENV',
+    default: 'development' as NodeEnv,
+  },
   debug: {
     doc: 'Debug mode',
     format: Boolean,
     env: 'DEBUG',
     default: false,
   },
+  
+  /**
+   * Application config
+   */
+  assetsPath: {
+    doc: 'Public assets path',
+    format: String,
+    default: resolve(process.cwd(), './public'),
+  },<% if (winston) { %>
+  logsDir: {
+    doc: 'Application logs directory',
+    format: String,
+    default: resolve(process.cwd(), './logs'),
+  },<% } %>
   publicHost: {
     doc: 'Public host of the server',
     format: 'url',
     env: 'PUBLIC_HOST',
     default: 'http://localhost:8080',
   },
+  secret: {
+    doc: 'App secret',
+    format: String,
+    env: 'SECRET',
+    sensitive: true,
+    default: isTest ? 'TEST_SECRET' : '',
+  },
   version: {
     doc: 'Package version',
     format: String,
     env: 'npm_package_version',
     default: '',
-  },
-
-  /**
-   * Application config
-   */<% if (winston) { %>
-  logsDir: {
-    doc: 'Application logs directory',
-    format: String,
-    default: resolve(process.cwd(), './logs'),
-  },<% } %>
-  publicPath: {
-    doc: 'Public assets path',
-    format: String,
-    default: resolve(process.cwd(), './public'),
   },<% if (sequelize) { %>
 
   /**
@@ -82,7 +90,7 @@ const configSchema = convict({
       doc: 'Database host name / IP',
       format: String,
       env: 'DB_HOST',
-      default: 'localhost',
+      default: '127.0.0.1',
     },
     port: {
       doc: 'Database port',
@@ -94,19 +102,19 @@ const configSchema = convict({
       doc: 'Database username',
       format: String,
       env: 'DB_USER',
-      default: '',
+      default: isTest ? '<%= shortname %>-test' : '',
     },
     password: {
       doc: 'Database password',
       format: String,
       env: 'DB_PASSWORD',
-      default: '',
+      default: isTest ? '<%= shortname %>-test' : '',
     },
     database: {
       doc: 'Database name',
       format: String,
       env: 'DB_NAME',
-      default: '',
+      default: isTest ? '<%= shortname %>_test' : '',
     },
   },<% } %><% if (redis) { %>
 
@@ -118,7 +126,7 @@ const configSchema = convict({
       doc: 'Redis host',
       format: String,
       env: 'REDIS_HOST',
-      default: '',
+      default: '127.0.0.1',
     },
     port: {
       doc: 'Redis port',
@@ -126,20 +134,13 @@ const configSchema = convict({
       env: 'REDIS_PORT',
       default: 6379,
     },
-  },<% } %><% if (jwt) { %>
-
-  /**
-   * JWT config
-   */
-  jwt: {
-    secret: {
-      doc: 'JWT secret',
+    password: {
+      doc: 'Redis password',
       format: String,
-      env: 'JWT_SECRET',
-      sensitive: true,
-      default: '',
+      env: 'REDIS_PASSWORD',
+      default: isTest ? '<%= shortname %>-test' : undefined,
     },
-  },<% } %><% if (nodemailer) { %>
+  },<% } %><% if (smtp) { %>
 
   /**
    * SMTP config
@@ -149,7 +150,7 @@ const configSchema = convict({
       doc: 'SMTP host',
       format: String,
       env: 'SMTP_HOST',
-      default: '',
+      default: isTest ? 'TEST_SMTP_HOST' : '',
     },
     port: {
       doc: 'SMTP port',
@@ -161,13 +162,13 @@ const configSchema = convict({
       doc: 'SMTP user',
       format: String,
       env: 'SMTP_USER',
-      default: '',
+      default: isTest ? 'TEST_SMTP_USER' : '',
     },
     password: {
       doc: 'SMTP password',
       format: String,
       env: 'SMTP_PASSWORD',
-      default: '',
+      default: isTest ? 'TEST_SMTP_PASSWORD' : '',
     },
   },<% } %>
 });
@@ -175,6 +176,13 @@ const configSchema = convict({
 // Validate current config
 configSchema.validate({ allowed: 'strict' });
 
-export const config = configSchema.getProperties();
+export const config = {
+  ...configSchema.getProperties(),
+
+  // Export computed config properties
+  isDevelopment,
+  isProduction,
+  isTest,
+};
 
 export type Config = typeof config;

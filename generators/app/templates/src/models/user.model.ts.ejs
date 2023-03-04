@@ -1,7 +1,14 @@
-import bcrypt from 'bcryptjs';
+import { compare } from 'bcryptjs';
 import { BadRequest } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';<% } %>
-import { Op, Transaction } from 'sequelize';
+import {
+  Attributes,
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  Op,
+  Transaction,
+} from 'sequelize';
 import {
   AllowNull,
   BeforeCreate,
@@ -18,8 +25,10 @@ import {
   Unique,
 } from 'sequelize-typescript';<% if (i18n) { %>
 import { Container } from 'typedi';<% } %>
-import { UserRoleEnum } from '../types/enums';<% if (jwt) { %>
-import { generateSignedJWT } from '../utils';<% } %>
+import { UserRoleEnum } from '../types/enums';
+import { generateHash<% if (auth) { %>, generateSignedJWT<% } %> } from '../utils';
+
+export type UserAttributes = Omit<Attributes<User>, 'password'>;
 
 @DefaultScope(() => ({
   attributes: {
@@ -31,17 +40,18 @@ import { generateSignedJWT } from '../utils';<% } %>
   collate: 'utf8_general_ci',
   tableName: 'user',
 })
-export default class UserModel extends Model<UserModel> {
-  //
-  // ─── MODEL ATTRIBUTES ───────────────────────────────────────────────────────────
-  //
+export class User extends Model<
+  InferAttributes<User>,
+  InferCreationAttributes<User, { omit: 'fullName' }>
+> {
+  // ─── Model attributes ────────────────────────────────────────────────
 
   @PrimaryKey
   @AllowNull(false)
   @Comment('ID of the user')
   @Default(DataType.UUIDV4)
   @Column(DataType.UUID)
-  id!: string;
+  id!: CreationOptional<string>;
 
   @AllowNull(false)
   @Comment('First name of the user')
@@ -52,6 +62,11 @@ export default class UserModel extends Model<UserModel> {
   @Comment('Last name of the user')
   @Column(DataType.STRING(64))
   lastName!: string;
+
+  @Column(DataType.VIRTUAL)
+  get fullName(): string {
+    return `${this.getDataValue('firstName')} ${this.getDataValue('lastName')}`;
+  }
 
   @Unique
   @AllowNull(false)
@@ -68,38 +83,27 @@ export default class UserModel extends Model<UserModel> {
   @Comment('User role')
   @Default(UserRoleEnum.User)
   @Column(DataType.ENUM(...Object.values(UserRoleEnum)))
-  role!: UserRoleEnum;
+  role!: CreationOptional<UserRoleEnum>;
 
   @CreatedAt
   @AllowNull(false)
-  @Comment("Date and time of the user's creation date")
+  @Comment("Date and time of the user's profile creation")
   @Column(DataType.DATE)
-  createdAt!: string;
+  createdAt!: CreationOptional<Date>;
 
-  //
-  // ─── VIRTUAL ATTRIBUTES ─────────────────────────────────────────────────────────
-  //
-
-  @Column(DataType.VIRTUAL)
-  get fullName(): string {
-    return `${this.getDataValue('firstName')} ${this.getDataValue('lastName')}`;
-  }
-
-  //
-  // ─── MODEL HOOKS ────────────────────────────────────────────────────────────────
-  //
+  // ─── Model hooks ─────────────────────────────────────────────────────
 
   @BeforeCreate
   @BeforeUpdate
   static async checkEmailUniqueness(
-    user: UserModel,
+    user: User,
     options?: { transaction?: Transaction },
   ): Promise<void> {<% if (i18n) { %>
     const i18n = Container.get<I18n>('i18n');
 <% } %>
     if (user.changed('email')) {
       const email = user.getDataValue('email');
-      const emailCount = await UserModel.count({
+      const emailCount = await User.count({
         where: {
           id: { [Op.ne]: user.id },
           email,
@@ -115,42 +119,31 @@ export default class UserModel extends Model<UserModel> {
 
   @BeforeCreate
   @BeforeUpdate
-  static async hashPassword(user: UserModel): Promise<void> {
+  static async hashPassword(user: User): Promise<void> {
     if (user.changed('password')) {
-      const password = user.getDataValue('password');
-      const hash = await UserModel.generateHash(password);
+      const hash = await generateHash(user.password);
 
       user.password = hash;
     }
   }
 
-  //
-  // ─── CUSTOM METHODS ─────────────────────────────────────────────────────────────
-  //
-
-  /**
-   * Returns a hashed version of the given `password`.
-   */
-  static async generateHash(password: string): Promise<string> {
-    return bcrypt.hash(password, 10);
-  }
+  // ─── Model hooks ─────────────────────────────────────────────────────
 
   /**
    * Returns `true` if `password` matches the user's password, `false` otherwise.
    */
   async comparePassword(password: string): Promise<boolean> {
-    return bcrypt.compare(password, this.password);
-  }<% if (jwt) { %>
+    return compare(password, this.password);
+  }<% if (auth) { %>
 
   /**
    * Returns a new JWT for this user.
    */
-  async generateJWT(transaction?: Transaction): Promise<string> {
-    const user = await UserModel.findByPk(this.id, {
+  async generateJWT(): Promise<string> {
+    const user = await User.findByPk(this.id, {
       attributes: {
-        include: ['id', 'email', 'password', 'role', 'fullName'],
+        include: ['password'],
       },
-      transaction,
     });
 
     if (!user) {

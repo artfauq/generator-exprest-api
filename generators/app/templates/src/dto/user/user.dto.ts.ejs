@@ -1,0 +1,21 @@
+import { UserAttributes } from '../../models';
+
+export class UserDTO {
+  constructor(user: UserAttributes) {
+    this.id = user.id;
+    this.firstName = user.firstName;
+    this.lastName = user.lastName;
+    this.email = user.email;
+    this.createdAt = user.createdAt;
+  }
+
+  id: string;
+
+  firstName: string;
+
+  lastName: string;
+
+  email: string;
+
+  createdAt: Date;
+}

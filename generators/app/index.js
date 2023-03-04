@@ -35,9 +35,7 @@ module.exports = class extends Generator {
         message: `App ${yellow('description')} [ex: ${gray('A REST API for cats and dogs')}]`,
         validate: input => input.trim() !== '',
       },
-      //
-      // ─── LOCALE ──────────────────────────────────────────────────────
-      //
+      // ─── Locale ──────────────────────────────────────────
       {
         store: true,
         type: 'checkbox',
@@ -57,9 +55,7 @@ module.exports = class extends Generator {
           Object.values(LOCALE_ENUM).filter(locale => supportedLocales.includes(locale.value)),
         when: ({ supportedLocales }) => supportedLocales.length > 1,
       },
-      //
-      // ─── SEQUELIZE ───────────────────────────────────────────────────
-      //
+      // ─── Sequelize ───────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -75,9 +71,7 @@ module.exports = class extends Generator {
         choices: Object.values(SEQUELIZE_DIALECT_ENUM),
         when: ({ sequelize }) => !!sequelize,
       },
-      //
-      // ─── JEST ────────────────────────────────────────────────────────
-      //
+      // ─── Jest ────────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -85,9 +79,7 @@ module.exports = class extends Generator {
         message: `Use ${yellow('Jest')} for testing ?`,
         default: true,
       },
-      //
-      // ─── WINSTON ─────────────────────────────────────────────────────
-      //
+      // ─── Winston ─────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -95,9 +87,7 @@ module.exports = class extends Generator {
         message: `Use ${yellow('winston')} for logging ?`,
         default: true,
       },
-      //
-      // ─── MORGAN ──────────────────────────────────────────────────────
-      //
+      // ─── Morgan ──────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -105,49 +95,42 @@ module.exports = class extends Generator {
         message: `Use ${yellow('morgan')} for HTTP requests logging ?`,
         default: true,
       },
-      //
-      // ─── CELEBRATE ───────────────────────────────────────────────────
-      //
+      // ─── Object validation ───────────────────────────────
       {
         store: true,
         type: 'confirm',
-        name: 'celebrate',
-        message: `Use ${yellow('celebrate')} and ${yellow('Joi')} for object validation ?`,
+        name: 'validation',
+        message: `Use ${yellow('class-validator')} and ${yellow(
+          'class-transformer'
+        )} for object validation ?`,
         default: true,
       },
-      //
-      // ─── JWT ─────────────────────────────────────────────────────────
-      //
+      // ─── JWT ─────────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
-        name: 'jwt',
+        name: 'auth',
         message: `Use ${yellow('JWT')} for user authentication ?`,
         default: true,
+        when: ({ sequelize }) => !!sequelize,
       },
-      //
-      // ─── SOCKETIO ────────────────────────────────────────────────────
-      //
+      // ─── SocketIO ────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
         name: 'socketIo',
-        message: `Use ${yellow('socket.io')} for real-time events ?`,
+        message: `Use ${yellow('Socket.IO')} for real-time events ?`,
         default: true,
       },
-      //
-      // ─── REDIS ───────────────────────────────────────────────────────
-      //
+      // ─── Redis ───────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
         name: 'redis',
-        message: `Use ${yellow('redis')} for caching ?`,
+        message: `Use ${yellow('Redis')} for caching ?`,
         default: true,
       },
-      //
-      // ─── I18N ────────────────────────────────────────────────────────
-      //
+      // ─── I18n ────────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -155,29 +138,15 @@ module.exports = class extends Generator {
         message: `Use ${yellow('i18next')} for internationalization ?`,
         default: true,
       },
-      //
-      // ─── NODEMAILER ──────────────────────────────────────────────────
-      //
+      // ─── Nodemailer ──────────────────────────────────────
       {
         store: true,
         type: 'confirm',
-        name: 'nodemailer',
+        name: 'smtp',
         message: `Use ${yellow('nodemailer')} to send emails ?`,
         default: true,
       },
-      //
-      // ─── CRON ────────────────────────────────────────────────────────
-      //
-      {
-        store: true,
-        type: 'confirm',
-        name: 'cron',
-        message: `Use ${yellow('node-schedule')} to handle cron jobs ?`,
-        default: true,
-      },
-      //
-      // ─── SENTRY ──────────────────────────────────────────────────────
-      //
+      // ─── Sentry ──────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -185,9 +154,7 @@ module.exports = class extends Generator {
         message: `Use ${yellow('Sentry')} for error tracking ?`,
         default: true,
       },
-      //
-      // ─── ADMINJS ─────────────────────────────────────────────────────
-      //
+      // ─── AdminJS ─────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -196,9 +163,7 @@ module.exports = class extends Generator {
         default: true,
         when: ({ sequelize }) => !!sequelize,
       },
-      //
-      // ─── ESLINT ──────────────────────────────────────────────────────
-      //
+      // ─── ESlint ──────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -206,9 +171,7 @@ module.exports = class extends Generator {
         message: `Use ${yellow('ESLint')} for code linting ?`,
         default: true,
       },
-      //
-      // ─── PRETTIER ────────────────────────────────────────────────────
-      //
+      // ─── Prettier ────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -216,19 +179,16 @@ module.exports = class extends Generator {
         message: `Use ${yellow('Prettier')} for code formatting ?`,
         default: true,
       },
-      //
-      // ─── PRE-PUSH HOOK ───────────────────────────────────────────────
-      //
+      // ─── Pre-commit hook ─────────────────────────────────
+
       {
         store: true,
         type: 'confirm',
         name: 'hook',
-        message: `Configure a ${yellow('pre-push linting hook')} ?`,
+        message: `Configure a ${yellow('pre-commit linting hook')} ?`,
         default: true,
       },
-      //
-      // ─── DOCKER ──────────────────────────────────────────────────────
-      //
+      // ─── Docker ──────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -236,22 +196,7 @@ module.exports = class extends Generator {
         message: `Generate ${yellow('Docker')} configuration ?`,
         default: true,
       },
-      ///
-      // ─── NGINX ───────────────────────────────────────────────────────
-      //
-      {
-        store: true,
-        type: 'confirm',
-        name: 'nginx',
-        message: `Configure ${yellow('Nginx')} reverse proxy with automatic ${yellow(
-          "Let's Encrypt"
-        )} SSL certificate renewal ?`,
-        default: true,
-        when: ({ docker }) => !!docker,
-      },
-      //
-      // ─── OPENAPI ─────────────────────────────────────────────────────
-      //
+      // ─── OpenAPI ─────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -259,9 +204,7 @@ module.exports = class extends Generator {
         message: `Generate an ${yellow('OpenAPI')} documentation file ?`,
         default: true,
       },
-      //
-      // ─── MONITORING ──────────────────────────────────────────────────
-      //
+      // ─── Monitoring ──────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -269,9 +212,7 @@ module.exports = class extends Generator {
         message: `Generate a ${yellow('status monitoring')} route ?`,
         default: true,
       },
-      //
-      // ─── GIT ─────────────────────────────────────────────────────────
-      //
+      // ─── Git ─────────────────────────────────────────────
       {
         store: true,
         type: 'confirm',
@@ -293,6 +234,8 @@ module.exports = class extends Generator {
     this.packages = {
       dependencies: [
         'body-parser@^1.19.1',
+        'class-transformer@^0.5.1',
+        'class-validator@^0.14.0',
         'compression@^1.7.4',
         'convict@^5.2.1',
         'cors@^2.8.5',
@@ -303,7 +246,9 @@ module.exports = class extends Generator {
         'helmet@^4.6.0',
         'http-errors@^1.8.1',
         'moment@^2.29.1',
+        'multer@^1.4.2',
         'reflect-metadata@^0.1.13',
+        'routing-controllers@^0.10.1',
         'serve-favicon@^2.5.0',
         'typedi@^0.10.0',
       ],
@@ -314,6 +259,7 @@ module.exports = class extends Generator {
         '@types/express@^4.17.13',
         '@types/express-rate-limit@^5.1.3',
         '@types/http-errors@^1',
+        '@types/multer@^1.4.2',
         '@types/node@^12.12.9',
         '@types/serve-favicon@^2.5.0',
         'cpx@^1.5.0',
@@ -331,29 +277,30 @@ module.exports = class extends Generator {
     );
 
     answers.admin = !!answers.admin;
-    answers.auth = !!answers.sequelize && !!answers.jwt;
+    answers.auth = !!answers.auth;
     answers.defaultLocale = answers.defaultLocale || answers.supportedLocales[0];
     answers.dialect = dialect;
-    answers.nginx = !!answers.nginx;
-    answers.mocks = answers.nodemailer || answers.redis;
 
     copy('.editorconfig.ejs');
     copy('.gitattributes.ejs');
+    copy('public/favicon.ico');
     copy('src/dto/index.ts.ejs');
     copy('src/config/app.config.ts.ejs');
     copy('src/config/index.ts.ejs');
-    copy('src/config/logger.config.ts.ejs');
-    copy('src/loaders/index.ts.ejs');
+    copy('src/decorators/index.ts.ejs');
+    copy('src/decorators/trim.decorator.ts.ejs');
     copy('src/middlewares/error-handler.middleware.ts.ejs');
+    copy('src/middlewares/not-found.middleware.ts.ejs');
     copy('src/middlewares/index.ts.ejs');
-    copy('public/favicon.ico');
     copy('src/controllers/health.controller.ts.ejs');
     copy('src/controllers/index.ts.ejs');
     copy('src/services/index.ts.ejs');
     copy('src/types/enums/index.ts.ejs');
+    copy('src/types/enums/time.enum.ts.ejs');
     copy('src/types/index.d.ts.ejs');
     copy('src/types/index.ts.ejs');
     copy('src/utils/index.ts.ejs');
+    copy('src/utils/string.util.ts.ejs');
     copy('src/app.ts.ejs');
     copy('src/server.ts.ejs');
     copy('.env.example.ejs');
@@ -364,110 +311,82 @@ module.exports = class extends Generator {
     copy('tsconfig.json.ejs');
     copy('tsconfig.build.json.ejs');
 
-    //
-    // ─── SEQUELIZE ───────────────────────────────────────────────────
-    //
+    // ─── Sequelize ───────────────────────────────────────────────
 
     if (answers.sequelize) {
       this.packages.dependencies.push(
         'bcryptjs@^2.4.3',
-        'sequelize@^5.22.5',
-        'sequelize-cli@^5.5.1',
-        'sequelize-typescript@^1.1.0',
+        'sequelize@^6.28.0',
+        'sequelize-cli@^6.6.0',
+        'sequelize-typescript@^2.1.5',
         ...dialect.packages
       );
-      this.packages.devDependencies.push('@types/bcryptjs@^2.4.2', '@types/bluebird@^3.5.36');
+      this.packages.devDependencies.push('@types/bcryptjs@^2.4.2');
 
       copy('db/migrations/1-init.js.ejs');
       copy('db/seeders/empty');
       copy('db/config.js.ejs');
       copy('src/config/sequelize.config.ts.ejs');
       copy('src/controllers/users.controller.ts.ejs');
-      copy('src/dto/user.dto.ts.ejs');
+      copy('src/dto/user/create-user.dto.ts.ejs');
+      copy('src/dto/user/index.ts.ejs');
+      copy('src/dto/user/user.dto.ts.ejs');
       copy('src/models/index.ts.ejs');
       copy('src/models/user.model.ts.ejs');
-      copy('src/loaders/sequelize.loader.ts.ejs');
       copy('src/services/user.service.ts.ejs');
       copy('src/types/enums/user-role.enum.ts.ejs');
-      copy('src/types/user.type.ts.ejs');
       copy('.sequelizerc.ejs');
     }
 
-    //
-    // ─── REDIS ───────────────────────────────────────────────────────
-    //
+    // ─── Redis ───────────────────────────────────────────────────
 
     if (answers.redis) {
-      this.packages.dependencies.push('redis@^3.1.2');
-      this.packages.devDependencies.push('@types/redis@^2.8.32');
+      this.packages.dependencies.push('ioredis@^5.3.1');
 
-      copy('src/loaders/redis.loader.ts.ejs');
+      copy('src/services/redis.service.ts.ejs');
     }
 
-    //
-    // ─── SOCKETIO ────────────────────────────────────────────────────
-    //
+    // ─── SocketIO ────────────────────────────────────────────────
 
     if (answers.socketIo) {
-      this.packages.dependencies.push(
-        '@ssnxd/socketio-jwt@^4.5.3',
-        'socket.io@^2.4.1',
-        'socket.io-client@^2.3.0'
-      );
+      this.packages.dependencies.push('socket.io@^2.4.1', 'socket.io-client@^2.3.0');
       this.packages.devDependencies.push(
         '@types/socket.io@^2.1.13',
         '@types/socket.io-client@^1.4.36'
       );
-
-      copy('src/loaders/socket-io.loader.ts.ejs');
     }
 
-    //
-    // ─── I18N ────────────────────────────────────────────────────────
-    //
+    // ─── I18n ────────────────────────────────────────────────────
 
     if (answers.i18n) {
       this.packages.dependencies.push('i18next@^19.9.2', 'i18next-http-middleware@^3.2.0');
 
+      copy('src/config/i18n.config.ts.ejs');
       copy('src/locale/en.locale.json.ejs');
       copy('src/locale/fr.locale.json.ejs');
       copy('src/locale/index.ts.ejs');
-      copy('src/loaders/i18n.loader.ts.ejs');
     }
 
-    //
-    // ─── WINSTON ─────────────────────────────────────────────────────
-    //
+    // ─── Winston ─────────────────────────────────────────────────
 
     if (answers.winston) {
+      copy('src/config/logger.config.ts.ejs');
+
       this.packages.dependencies.push('winston@^3.6.0');
     }
 
-    //
-    // ─── MORGAN ──────────────────────────────────────────────────────
-    //
+    // ─── Morgan ──────────────────────────────────────────────────
 
     if (answers.morgan) {
       this.packages.dependencies.push('morgan@^1.10.0');
       this.packages.devDependencies.push('@types/morgan@^1.9.3');
+
+      copy('src/middlewares/http-request-logging.middleware.ts.ejs');
     }
 
-    //
-    // ─── CELEBRATE ───────────────────────────────────────────────────
-    //
+    // ─── Auth ────────────────────────────────────────────────────
 
-    if (answers.celebrate) {
-      this.packages.dependencies.push('@hapi/joi@^15.1.1', 'celebrate@^10.1.0');
-      this.packages.devDependencies.push('@types/hapi__joi@^15.0.4');
-
-      copy('src/middlewares/validation.middleware.ts.ejs');
-    }
-
-    //
-    // ─── JWT ─────────────────────────────────────────────────────────
-    //
-
-    if (answers.jwt) {
+    if (answers.auth) {
       this.packages.dependencies.push('jsonwebtoken@^9.0.0', 'express-jwt@^6.1.0', 'uuid@^8.3.2');
       this.packages.devDependencies.push(
         '@types/express-jwt@^0.0.42',
@@ -476,37 +395,22 @@ module.exports = class extends Generator {
         '@types/uuid@^8.3.4'
       );
 
-      copy('src/utils/jwt.util.ts.ejs');
-      copy('src/middlewares/jwt.middleware.ts.ejs');
+      copy('src/decorators/protected.decorator.ts.ejs');
+      copy('src/middlewares/auth.middleware.ts.ejs');
       copy('src/types/jwt.type.ts.ejs');
+      copy('src/utils/jwt.util.ts.ejs');
     }
 
-    //
-    // ─── NODEMAILER ──────────────────────────────────────────────────
-    //
+    // ─── Nodemailer ──────────────────────────────────────────────
 
-    if (answers.nodemailer) {
+    if (answers.smtp) {
       this.packages.dependencies.push('nodemailer@^6.7.2');
       this.packages.devDependencies.push('@types/nodemailer@^6.4.4');
 
-      copy('src/loaders/mailer.loader.ts.ejs');
       copy('src/services/email.service.ts.ejs');
     }
 
-    //
-    // ─── CRON ────────────────────────────────────────────────────────
-    //
-
-    if (answers.cron) {
-      this.packages.dependencies.push('node-schedule@^1.3.3');
-      this.packages.devDependencies.push('@types/node-schedule@^1.3.2');
-
-      copy('src/jobs/index.ts.ejs');
-    }
-
-    //
-    // ─── ESLINT ──────────────────────────────────────────────────────
-    //
+    // ─── ESlint ──────────────────────────────────────────────────
 
     if (answers.eslint) {
       this.packages.devDependencies.push(
@@ -536,9 +440,7 @@ module.exports = class extends Generator {
       }
     }
 
-    //
-    // ─── PRETTIER ────────────────────────────────────────────────────
-    //
+    // ─── Prettier ────────────────────────────────────────────────
 
     if (answers.prettier) {
       this.packages.devDependencies.push('prettier@^2.8.2');
@@ -547,19 +449,17 @@ module.exports = class extends Generator {
       copy('.prettierignore.ejs');
     }
 
-    //
-    // ─── PRE-PUSH HOOK ───────────────────────────────────────────────
-    //
+    // ─── Pre-commit hook ─────────────────────────────────────────
 
     if (answers.hook) {
-      this.packages.devDependencies.push('husky@^4.3.8', 'lint-staged@^10.5.4');
+      this.packages.devDependencies.push('husky@^8.0.0', 'lint-staged@^10.5.4');
 
-      copy('.huskyrc.json.ejs');
+      copy('.husky/_/.gitignore');
+      copy('.husky/_/husky.sh');
+      copy('.husky/pre-commit');
     }
 
-    //
-    // ─── JEST ────────────────────────────────────────────────────────
-    //
+    // ─── Jest ────────────────────────────────────────────────────
 
     if (answers.jest) {
       this.packages.devDependencies.push(
@@ -570,15 +470,13 @@ module.exports = class extends Generator {
         'ts-jest@^29.0.5'
       );
 
-      copy('.env.test.ejs');
       copy('jest.config.ts.ejs');
       copy('tsconfig.spec.json.ejs');
       copy('jest-e2e.config.ts.ejs');
       copy('test/mocks/index.ts.ejs');
       copy('test/utils/index.ts.ejs');
-      copy('test/integration/empty');
-      copy('test/api/404.test.ts.ejs');
-      copy('test/api/get.health.test.ts.ejs');
+      copy('test/api/404/404.test.ts.ejs');
+      copy('test/api/health/get.health.test.ts.ejs');
       copy('test/global.setup.ts.ejs');
       copy('test/jest.setup.ts.ejs');
 
@@ -587,23 +485,13 @@ module.exports = class extends Generator {
         copy('test/api/users/get.user.test.ts.ejs');
       }
 
-      if (answers.redis) {
-        this.packages.devDependencies.push('redis-mock@^0.56.3', '@types/redis-mock@^0.17.0');
-
-        copy('test/mocks/redis.mock.ts.ejs');
-      }
-
-      if (answers.jwt) {
+      if (answers.auth) {
         copy('src/utils/__tests__/jwt.util.spec.ts.ejs');
       }
 
-      if (answers.nodemailer) {
+      if (answers.smtp) {
         copy('src/services/__tests__/email.service.spec.ts.ejs');
         copy('test/mocks/mailer.mock.ts.ejs');
-      }
-
-      if (answers.sentry) {
-        copy('test/api/get.sentry-debug.test.ts.ejs');
       }
 
       if (answers.docker) {
@@ -615,17 +503,15 @@ module.exports = class extends Generator {
       }
     }
 
-    //
-    // ─── SENTRY ──────────────────────────────────────────────────────
-    //
+    // ─── Sentry ──────────────────────────────────────────────────
 
     if (answers.sentry) {
-      this.packages.dependencies.push('@sentry/node@^5.30.0', '@sentry/tracing@^5.30.0');
+      this.packages.dependencies.push('@sentry/node@^7.38.0', '@sentry/tracing@^7.38.0');
+
+      copy('src/config/sentry.config.ts.ejs');
     }
 
-    //
-    // ─── ADMIN-BRO ───────────────────────────────────────────────────
-    //
+    // ─── Admin ───────────────────────────────────────────────────
 
     if (answers.admin) {
       this.packages.dependencies.push(
@@ -642,58 +528,56 @@ module.exports = class extends Generator {
 
       copy('public/styles/admin.css.ejs');
       copy('src/admin/components/index.ts.ejs');
+      copy('src/admin/components/index.ts.ejs');
       copy('src/admin/locale/en.ts.ejs');
       copy('src/admin/locale/fr.ts.ejs');
       copy('src/admin/locale/index.ts.ejs');
       copy('src/admin/index.ts.ejs');
       copy('src/admin/resources/index.ts.ejs');
       copy('src/admin/resources/user.resource.ts.ejs');
-      copy('src/models/session.model.ts.ejs');
-      copy('src/dto/admin.dto.ts.ejs');
+      copy('src/config/adminjs.config.ts.ejs');
+      copy('src/dto/admin/admin.dto.ts.ejs');
+      copy('src/dto/admin/index.ts.ejs');
+      copy('src/services/admin.service.ts.ejs');
     }
 
-    //
-    // ─── DOCKER ──────────────────────────────────────────────────────
-    //
+    // ─── Docker ──────────────────────────────────────────────────
 
     if (answers.docker) {
-      copy('docker/node/Dockerfile.ejs');
+      copy('Dockerfile.ejs');
       copy('docker-compose.yml.ejs');
       copy('docker-compose.dev.yml.ejs');
       copy('docker-compose.prod.yml.ejs');
       copy('.dockerignore.ejs');
-
-      if (answers.nginx) {
-        copy('docker/nginx/nginx.tmpl.ejs');
-      }
     }
 
-    //
-    // ─── OPENAPI ─────────────────────────────────────────────────────
-    //
+    // ─── OpenAPI ─────────────────────────────────────────────────
 
     if (answers.openapi) {
       copy('public/doc/index.html.ejs');
       copy('public/doc/openapi.yml.ejs');
     }
 
-    //
-    // ─── MONITORING ──────────────────────────────────────────────────
-    //
+    // ─── Monitoring ──────────────────────────────────────────────
 
     if (answers.monitoring) {
       this.packages.dependencies.push('express-status-monitor@^1.3.3');
       this.packages.devDependencies.push('@types/express-status-monitor@^1.2.4');
     }
 
-    //
-    // ─── AUTH ────────────────────────────────────────────────────────
-    //
+    // ─── Auth ────────────────────────────────────────────────────
 
     if (answers.auth) {
       copy('src/controllers/auth.controller.ts.ejs');
+      copy('src/dto/auth/index.ts.ejs');
+      copy('src/dto/auth/login.dto.ts.ejs');
       copy('src/services/auth.service.ts.ejs');
-      copy('src/types/auth.type.ts.ejs');
+    }
+
+    // ─── Git ─────────────────────────────────────────────────────
+
+    if (answers.git) {
+      copy('.github/workflows/ci.yml.ejs');
     }
   }
 
@@ -705,9 +589,9 @@ module.exports = class extends Generator {
     this.spawnCommandSync('yarn', ['add', ...this.packages.dependencies]);
     this.spawnCommandSync('yarn', ['add', '-D', ...this.packages.devDependencies]);
 
-    if (this.answers.eslint || this.answers.prettier) {
-      this.spawnCommandSync('yarn', ['lint:fix']);
-    }
+    // if (this.answers.eslint || this.answers.prettier) {
+    //   this.spawnCommandSync('yarn', ['lint:fix']);
+    // }
 
     if (this.answers.git) {
       this.spawnCommandSync('git', ['init', '-b', 'main']);

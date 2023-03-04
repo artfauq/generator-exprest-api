@@ -1,74 +1,62 @@
-<% if (sentry) { %>import * as Sentry from '@sentry/node';
-import * as Tracing from '@sentry/tracing';
-<% } %>import express from 'express';
-import { createServer } from 'http';
-import { Container } from 'typedi';
+import 'reflect-metadata';<% if (sentry) { %>
+import * as Sentry from '@sentry/node';
+import * as Tracing from '@sentry/tracing';<% } %>
+import express from 'express';
+import { createServer } from 'http';<% if (sequelize) { %>
+import { Sequelize } from 'sequelize-typescript';<% } %>
+import { Container } from 'typedi';<% if (winston) { %>
+import { createLogger } from 'winston';<% } %>
 import initializeApp from './app';
-import { config, logger } from './config';<% if (cron) { %>
-import runJobs from './jobs';<% } %>
-import * as loaders from './loaders';
+import { config<% if (winston) { %>, loggerOptions<% } %><% if (sentry) { %>, sentryOptions<% } %><% if (sequelize) { %>, sequelizeOptions<% } %> } from './config';<% if (smtp || redis) { %>
+import { <% if (smtp) { %>EmailService<% } %><% if (redis) { %>, RedisService<% } %> } from './services';<% } %>
 
 (async () => {
-  // Inject config and logger
-  Container.set('config', config);
-  Container.set('logger', logger);
-
-  // Create Express application
   const app = express();
-  Container.set('app', app);
-
-  // Create HTTP server
   const server = createServer(app);
-  Container.set('server', server);<% if (sequelize) { %>
 
-  // Initialize Sequelize instance
-  const sequelize = await loaders.initSequelize();
+  const logger = <% if (winston) { %>createLogger(loggerOptions)<% } else { %>console<% } %>;<% if (sequelize) { %>
+  const sequelize = new Sequelize(sequelizeOptions);<% } %>
+
+  Container.set('logger', logger);
+  Container.set('server', server);<% if (sequelize) { %>
   Container.set('sequelize', sequelize);
-  const { options } = sequelize;
-  logger.info(
-    `Successfully connected to database '${options.database}' at '${options.host}:${options.port}'`,
-  );
-<% } %><% if (nodemailer) { %>
-  // Initialize mailer instance
-  const mailer = await loaders.initMailer();
-  Container.set('mailer', mailer);
-  logger.info('Successfully connected to SMTP server');
-<% } %><% if (redis) { %>
-  // Initialize Redis client
-  const redis = await loaders.initRedis();
-  Container.set('redis', redis);
-  logger.info('Successfully connected to Redis server');
-<% } %><% if (i18n) { %>
-  // Initialize i18n
-  const i18n = await loaders.initI18n();
-  Container.set('i18n', i18n);
-  logger.info('Successfully initialized i18n resources');
-<% } %><% if (socketIo) { %>
-  // Initialize Socket.IO server
-  const socket = loaders.initSocketIo();
-  Container.set('socket', socket);
-  logger.info('Successfully initialized Socket.IO server');
-<% } %><% if (cron) { %>
-  // Initialize job scheduler
-  runJobs();
-<% } %>
-  // Initialize application
-  initializeApp(app);<% if (sentry) { %>
+
+  // Test database connection
+  await sequelize
+    .authenticate()
+    .then(() =>
+      logger.info(
+        `Successfully connected to database '${config.db.database}' at '${config.db.host}:${config.db.port}'`,
+      ),
+    );<% } %><% if (smtp) { %>
+
+  // Test SMTP connection
+  const emailService = Container.get(EmailService);
+
+  await emailService
+    .testConnection()
+    .then(() => logger.info('Successfully connected to SMTP server'));<% } %><% if (redis) { %>
+
+  // Test Redis connection
+  const redisService = Container.get(RedisService);
+
+  await redisService
+    .testConnection()
+    .then(() => logger.info('Successfully connected to Redis server'));<% } %>
+
+  // Initialize app
+  await initializeApp(app);<% if (sentry) { %>
 
   // Initialize Sentry
   Sentry.init({
-    enabled: config.env === 'production',
+    ...sentryOptions,
     integrations: [
-      // Enable HTTP calls tracing
       new Sentry.Integrations.Http({ tracing: true }),
-      // Enable Express.js middleware tracing
-      new Tracing.Integrations.Express({ app }),<% if (sequelize) { %>
-      // Enable MySQL requests tracing
-      new Tracing.Integrations.Mysql(),<% } %>
-      // Enable uncaught exceptions tracing
+      new Sentry.Integrations.ContextLines(),
       new Sentry.Integrations.OnUncaughtException(),
-      // Enable unhandled rejections tracing
       new Sentry.Integrations.OnUnhandledRejection(),
+      new Sentry.Integrations.RequestData(),
+      new Tracing.Integrations.Express({ app }),
     ],
   });<% } %>
 
@@ -81,7 +69,7 @@ import * as loaders from './loaders';
     });
   });
 })().catch(err => {
-  logger.error('Application initialization failed.', err);
+  console.error('Application initialization failed:', err);
 
   process.exit(1);
 });

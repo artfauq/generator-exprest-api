@@ -1,19 +1,18 @@
 import { Unauthorized } from 'http-errors';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';<% } %>
-import { <% if (i18n) { %>Inject, <% } %>Service } from 'typedi';
-import { UserModel } from '../models';
+import { <% if (i18n) { %>Container, <% } %>Service } from 'typedi';
+import { LoginDTO } from '../dto';
+import { User } from '../models';
 
 @Service()
-export default class AuthService {<% if (i18n) { %>
-  @Inject('i18n')
-  i18n!: I18n;
-<% } %>
+export class AuthService {
   /**
    * Authenticates a user and returns a JWT token.
    */
-  async login(email: string, password: string): Promise<string> {
-    // Check if a user with this email exists
-    const user = await UserModel.findOne({
+  async login({ email, password }: LoginDTO): Promise<string> {<% if (i18n) { %>
+    const i18n = Container.get<I18n>('i18n');
+<% } %>
+    const user = await User.findOne({
       attributes: {
         include: ['password'],
       },
@@ -21,17 +20,15 @@ export default class AuthService {<% if (i18n) { %>
     });
 
     if (!user) {
-      throw new Unauthorized(<% if (i18n) { %>this.i18n.t('errors:invalidCredentials')<% } else { %>'Invalid credentials.'<% } %>);
+      throw new Unauthorized(<% if (i18n) { %>i18n.t('errors:invalidCredentials')<% } else { %>'Invalid credentials.'<% } %>);
     }
 
-    // Check if passwords match
     const passwordMatch = await user.comparePassword(password);
 
     if (!passwordMatch) {
-      throw new Unauthorized(<% if (i18n) { %>this.i18n.t('errors:invalidCredentials')<% } else { %>'Invalid credentials.'<% } %>);
+      throw new Unauthorized(<% if (i18n) { %>i18n.t('errors:invalidCredentials')<% } else { %>'Invalid credentials.'<% } %>);
     }
 
-    // Generate JWT
     const token = await user.generateJWT();
 
     return token;

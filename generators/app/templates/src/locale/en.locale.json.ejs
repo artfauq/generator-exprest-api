@@ -1,7 +1,7 @@
 {
-  "errors": {<% if (jwt) { %>
-    "emailAlreadyUsed": "An account with this email address already exists.",
-    "internalServerError": "Internal server error.",
+  "errors": {<% if (auth) { %>
+    "emailAlreadyUsed": "An account with this email address already exists.",<% } %>
+    "internalServerError": "Internal server error.",<% if (auth) { %>
     "invalidAuthentication": "Invalid authentication.",<% } %><% if (auth) { %>
     "invalidCredentials": "Invalid credentials.",<% } %>
     "routeNotFound": "The route '{{method}} {{baseUrl}}{{url}}' doesn't exist.",

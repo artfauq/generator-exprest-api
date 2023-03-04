@@ -1,31 +1,22 @@
-import Router from 'express-promise-router';
-import { Container } from 'typedi';<% if (celebrate) { %>
-import { validation } from '../middlewares';<% } %>
+import { Body, HttpCode, JsonController, Post } from 'routing-controllers';
+import { Container, Service } from 'typedi';
+import { LoginDTO } from '../dto';
 import { AuthService } from '../services';
-import { LoginDTO } from '../types';
 
-const router = Router();
+@JsonController('/auth')
+@Service()
+export class AuthController {
+  private authService: AuthService;
 
-/**
- * POST /auth/login
- *
- * Authenticate user
- */
-router.post<{}, { token: string }, LoginDTO>(
-  '/login',<% if (celebrate) { %>
-  validation.celebrate({
-    body: {
-      email: validation.schemas.email.required(),
-      password: validation.schemas.password.required(),
-    },
-  }),<% } %>
-  async (req, res) => {
-    const { email, password } = req.body;
+  constructor() {
+    this.authService = Container.get(AuthService);
+  }
 
-    const token = await Container.get(AuthService).login(email, password);
+  @Post('/login')
+  @HttpCode(200)
+  async login(@Body() body: LoginDTO) {
+    const token = await this.authService.login(body);
 
-    res.status(200).json({ token });
-  },
-);
-
-export default router;
+    return { token };
+  }
+}

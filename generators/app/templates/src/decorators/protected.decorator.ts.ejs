@@ -1,0 +1,6 @@
+import { UseBefore } from 'routing-controllers';
+import { auth } from '../middlewares';
+
+export const Protected = () => {
+  return UseBefore(auth.required);
+};

@@ -23,21 +23,24 @@
     "migrations:create": "sequelize migration:generate --name",
     "seeders:create": "sequelize seed:generate --name",<% } %>
     "lint": "tsc --noEmit<% if (eslint) { %> && eslint \"**/*.{js,ts<% if (admin) { %>,tsx<% } %>}\"<% } %><% if (prettier) { %> && prettier --check --ignore-unknown .<% } %>"<% if (eslint || prettier) { %>,
-    "lint:fix": "tsc --noEmit<% if (eslint) { %> && eslint \"**/*.{js,ts<% if (admin) { %>,tsx<% } %>}\" --fix<% } %><% if (prettier) { %> && prettier --write --ignore-unknown .<% } %>"<% } %>
+    "lint:fix": "tsc --noEmit<% if (eslint) { %> && eslint \"**/*.{js,ts<% if (admin) { %>,tsx<% } %>}\" --fix<% } %><% if (prettier) { %> && prettier --write --ignore-unknown .<% } %>"<% } %><% if (hook) { %>,
+    "prepare": "husky install"<% } %>
   },<% if (hook) { %>
   "lint-staged": {
     "*.{js,ts<% if (admin) { %>,tsx<% } %>}": [
-      "bash -c tsc --noEmit"<% if (eslint) { %>,
+      "bash -c tsc -p ./tsconfig.spec.json"<% if (eslint) { %>,
       "eslint --fix"<% } %><% if (prettier) { %>,
-      "prettier --write"<% } %>
+      "prettier --write"<% } %>,
+      "git add"
     ]<% if (prettier) { %>,
     "*.{json,md,html,yml,yaml,css}": [
-      "prettier --write"
+      "prettier --write",
+      "git add"
     ]<% } %>
   },<% } %>
   "dependencies": {},
   "devDependencies": {},
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   }
 }

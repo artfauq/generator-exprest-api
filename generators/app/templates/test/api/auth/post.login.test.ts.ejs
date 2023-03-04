@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Container } from 'typedi';
 import { Config } from '../../../src/config';
-import { UserModel } from '../../../src/models';
+import { User } from '../../../src/models';
 import { UserRoleEnum } from '../../../src/types/enums';
 import { agent } from '../../jest.setup';
 import { cleanDatabase } from '../../utils';
@@ -10,12 +10,12 @@ import { cleanDatabase } from '../../utils';
  * POST /auth/login
  */
 describe('POST /auth/login', () => {
-  let user: UserModel;
+  let user: User;
 
   beforeAll(async () => {
     await cleanDatabase();
 
-    user = await UserModel.create({
+    user = await User.create({
       firstName: 'John',
       lastName: 'Doe',
       email: 'john.doe@gmail.com',
@@ -53,7 +53,7 @@ describe('POST /auth/login', () => {
       role: UserRoleEnum.User,
       sub: user.id,
     });
-  });<% if (celebrate) { %>
+  });<% if (validation) { %>
 
   it('should return 400 on missing email field', async () => {
     const requestData = { password: 'p4ssW0rd' };

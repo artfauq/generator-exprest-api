@@ -1,5 +1,6 @@
 // Export DTO methods from here
-<% if (admin || sequelize) { %><% if (admin) { %>
-export * from './admin.dto';<% } %><% if (sequelize) { %>
-export * from './user.dto';<% } %>
+<% if (admin || auth || sequelize) { %><% if (admin) { %>
+export * from './admin';<% } %><% if (auth) { %>
+export * from './auth';<% } %><% if (sequelize) { %>
+export * from './user';<% } %>
 <% } %>

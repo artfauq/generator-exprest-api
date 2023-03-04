@@ -23,11 +23,5 @@ export type JWTPayload = {<% if (auth) { %>
   email: string;
   role: UserRoleEnum;
 };
-
-export type AuthUser = {
-  id: string;
-  email: string;
-  role: UserRoleEnum;
-};
 <% } else { %>};
 <% } %>

@@ -1,0 +1,14 @@
+import * as Sentry from '@sentry/node';
+import { config } from './app.config';
+
+export const sentryOptions: Pick<
+  Sentry.NodeOptions,
+  'dsn' | 'enabled' | 'environment' | 'release' | 'sampleRate' | 'tracesSampleRate'
+> = {
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.SENTRY_ENVIRONMENT,
+  enabled: config.isProduction,
+  release: config.version ? `<%= shortname %>@${config.version}` : undefined,
+  sampleRate: 1.0,
+  tracesSampleRate: 1.0,
+};

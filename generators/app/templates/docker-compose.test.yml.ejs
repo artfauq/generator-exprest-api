@@ -3,8 +3,8 @@ version: '3'
 services:
   node:
     build:
-      context: ./
-      dockerfile: docker/node/Dockerfile
+      context: .
+      dockerfile: Dockerfile
       target: development
     container_name: <%= shortname %>-test
     entrypoint: <% if (sequelize) { %>dockerize -wait tcp://db:<%= dialect.port %> -timeout 30s <% } %>yarn test:e2e<% if (sequelize) { %>
@@ -31,4 +31,11 @@ services:
       MYSQL_ROOT_PASSWORD: <%= shortname %>-test<% } %>
       <%= dialect.docker.database %>: <%= shortname %>_test
     ports:
-      - <%= dialect.port %>:<%= dialect.port %><% } %>
+      - <%= dialect.port %>:<%= dialect.port %><% } %><% if (redis) { %>
+
+  redis:
+    image: redis:alpine
+    container_name: <%= shortname %>-redis-test
+    command: 'redis-server --appendonly yes --requirepass <%= shortname %>-test'
+    ports:
+      - 6379:6379<% } %>

@@ -1,0 +1,19 @@
+import { InitOptions } from 'i18next';
+import * as resources from '../locale';
+
+export const i18nOptions: InitOptions = {
+  detection: {
+    order: ['cookie', 'header'],
+    lookupCookie: 'i18next',
+    lookupHeader: 'accept-language',
+    caches: ['cookie'],
+  },
+  fallbackLng: '<%= defaultLocale %>',
+  interpolation: {
+    escapeValue: false,
+  },
+  ns: [],
+  preload: ['<%= defaultLocale %>'],
+  resources,
+  supportedLngs: [<%- supportedLocales.map(locale => `'${locale}'`).join(', ') %>],
+};

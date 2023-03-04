@@ -13,14 +13,13 @@
   - [Dependency injection](#dependency-injection)
   - [DTO and types](#dto-and-types)
   - [Routing](#routing)
-  - [Error handling](#error-handling)<% if (celebrate) { %>
+  - [Error handling](#error-handling)<% if (validation) { %>
   - [Object validation](#object-validation)<% } %><% if (jest) { %>
   - [Testing](#testing)<% } %><% if (i18n) { %>
-  - [i18n](#i18n)<% } %><% if (cron) { %>
-  - [Job scheduler](#job-scheduler)<% } %><% if (monitoring) { %>
+  - [i18n](#i18n)<% } %><% if (monitoring) { %>
   - [API status monitoring](#api-status-monitoring)<% } %><% if (sentry) { %>
   - [Sentry](#sentry)<% } %><% if (socketIo) { %>
-  - [Socket IO](#socket-io)<% } %><% if (nodemailer) { %>
+  - [Socket IO](#socket-io)<% } %><% if (smtp) { %>
   - [Nodemailer](#nodemailer)<% } %><% if (openapi) { %>
   - [API documentation](#api-documentation)<% } %><% if (admin) { %>
   - [Admin panel](#admin-panel)<% } %>
@@ -28,7 +27,7 @@
   - [Filenames](#filenames)
   - [Formatting](#formatting)
   - [Linting](#linting)<% if (hook) { %>
-  - [Pre-push hook](#pre-push-hook)<% } %><% if (openapi) { %>
+  - [Pre-commit hook](#pre-commit-hook)<% } %><% if (openapi) { %>
 - [Version update](#version-update)<% } %><% if (winston && morgan) { %>
 - [Logs](#logs)<% } %>
 
@@ -44,16 +43,13 @@ The project is structured as follows:
 <% if (sequelize) { %>
 - `/db`: database related files
   - `/migrations`: database migrations
-  - `/seeders`: database seeders<% } %><% if (docker) { %>
-- `/docker`: Docker configuration files<% } %>
+  - `/seeders`: database seeders<% } %>
 - `/public`: public assets (<% if (openapi) { %>API documentation, <% } %>images, etc)
 - `/src`: application source files<% if (admin) { %>
   - `/admin`: admin related files<% } %>
   - `/config`: configuration files
   - `/controllers`: route handlers
-  - `/dto`: data transfer objects<% if (cron) { %>
-  - `/jobs`: cron job definitions<% } %>
-  - `/loaders`: loaders for application modules<% if (i18n) { %>
+  - `/dto`: data transfer objects<% if (i18n) { %>
   - `/locale`: i18n resources<% } %>
   - `/middlewares`: custom middlewares<% if (sequelize) { %>
   - `/models`: ORM models<% } %>
@@ -124,12 +120,11 @@ yarn docker:start:prod
 This will:
 
 - Target the `final` stage of the multi-stage [Dockerfile](/docker/node/Dockerfile)
-- Run `node ./dist/server.js` in the `<%= shortname %>` container<% if (nginx || (sequelize && dialect.value === 'mysql')) { %>
+- Run `node ./dist/server.js` in the `<%= shortname %>` container<% if (sequelize && dialect.value === 'mysql') { %>
 
 In production environment, some other containers are mounted:
-<% if (sequelize && dialect.value === 'mysql') { %>
-- `<%= shortname %>-db-backup`: a container that runs a database backup script as a cron job and outputs the resulting SQL file in a `/backup` folder<% } %><% if (nginx) { %>
-- `nginx-proxy`, `nginx-proxy-gen` and `nginx-proxy-le`: these containers enable a reverse Nginx proxy with automatic Let's Encrypt SSL certificate renewal<% } %><% } %>
+
+- `<%= shortname %>-db-backup`: a container that runs a database backup script as a cron job and outputs the resulting SQL file in a `/backup` folder<% } %>
 
 In addition, all containers are configured to restart automatically unless stopped manually.
 <% } %><% if (sequelize || redis) { %>
@@ -143,155 +138,13 @@ The project uses [sequelize](https://github.com/sequelize/sequelize) as an ORM t
 - Sequelize instance options are defined in `/src/config/sequelize.config.ts`
 - Sequelize CLI options are defined in `.sequelizerc` and `/db/config.js`
 
-The sequelize instance is configured in `/src/loaders/sequelize.loader.ts` and injected in the application as the `sequelize` service.
+The sequelize instance is injected in the application as the `sequelize` service.
 
 #### Models <!-- omit in toc -->
 
 This project uses [sequelize-typescript](https://github.com/RobinBuschmann/sequelize-typescript) which brings in decorators and some other features for Sequelize.
 
 Sequelize models should be defined in `/src/models`. Each model should be declared in a separate file and imported in `/src/models/index.ts`.
-
-For example, to declare two new models `User` and `UserAddress`:
-
-- Create a new file `user.model.ts` in `/src/models`:
-
-```typescript
-import {
-  AllowNull,
-  Column,
-  Comment,
-  CreatedAt,
-  DataType,
-  Default,
-  Model,
-  PrimaryKey,
-  Table,
-  Unique,
-} from 'sequelize-typescript';
-import UserAddressModel from './user-address.model';
-
-@Table({
-  tableName: 'user',
-})
-export default class UserModel extends Model<UserModel> {
-  //
-  // ─── MODEL ATTRIBUTES ───────────────────────────────────────────────────────────
-  //
-
-  @PrimaryKey
-  @AllowNull(false)
-  @Comment('ID of the user')
-  @Default(DataType.UUIDV4)
-  @Column(DataType.UUID)
-  id!: string;
-
-  @AllowNull(false)
-  @Comment('First name of the user')
-  @Column(DataType.STRING(64))
-  firstName!: string;
-
-  @AllowNull(false)
-  @Comment('Last name of the user')
-  @Column(DataType.STRING(64))
-  lastName!: string;
-
-  @Unique
-  @AllowNull(false)
-  @Comment('Email of the user')
-  @Column(DataType.STRING(128))
-  email!: string;
-
-  @AllowNull(false)
-  @Comment('Password of the user')
-  @Column(DataType.STRING(64))
-  password!: string;
-
-  @CreatedAt
-  @AllowNull(false)
-  @Comment("Date and time of the user's creation date")
-  @Column(DataType.DATE)
-  createdAt!: string;
-
-  //
-  // ─── MODEL ASSOCIATIONS ─────────────────────────────────────────────────────────
-  //
-
-  @HasOne(() => UserAddressModel)
-  address!: UserAddressModel;
-}
-```
-
-- Create a new file `user-address.model.ts` in `/src/models`:
-
-```typescript
-import {
-  AllowNull,
-  BelongsTo,
-  Column,
-  Comment,
-  DataType,
-  ForeignKey,
-  Model,
-  PrimaryKey,
-  Table,
-} from 'sequelize-typescript';
-import UserModel from './user.model';
-
-@Table({
-  tableName: 'user_address',
-})
-export default class UserAddressModel extends Model<UserAddressModel> {
-  //
-  // ─── MODEL ATTRIBUTES ───────────────────────────────────────────────────────────
-  //
-
-  @PrimaryKey
-  @ForeignKey(() => UserModel)
-  @AllowNull(false)
-  @Comment('ID of the user')
-  @Column(DataType.UUID)
-  userId!: string;
-
-  @AllowNull(false)
-  @Comment('Street address of the user')
-  @Column(DataType.STRING(60))
-  streetAddress!: string;
-
-  @AllowNull(false)
-  @Comment('Zip code of the user')
-  @Column(DataType.STRING(5))
-  zip!: string;
-
-  @AllowNull(false)
-  @Comment('City of the user')
-  @Column(DataType.STRING(60))
-  city!: string;
-
-  @AllowNull(false)
-  @Comment('Country code of the user')
-  @Column(DataType.STRING(2))
-  countryCode!: string;
-
-  //
-  // ─── MODEL ASSOCIATIONS ─────────────────────────────────────────────────────────
-  //
-
-  @BelongsTo(() => UserModel, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  user!: UserModel;
-}
-```
-
-- Export the models from `/src/models/index.ts`
-
-```typescript
-// Export models from here
-
-export { default as UserModel } from './user.model';
-export { default as UserAddressModel } from './user-address.model';
-```
 
 #### Migrations <!-- omit in toc -->
 
@@ -345,7 +198,7 @@ For more information about migrations and seeders, please refer to [the docs](ht
 <% } %><% if (redis) { %>
 ### Redis
 
-The redis client is configured in `/src/loaders/redis.loader.ts` and injected in the application as the `redis` service.
+The redis client is configured in `/src/services/redis.service.ts` and injected in the application as the `redis` service.
 
 If you're not familiar with its usage, please refer to [the docs](https://github.com/NodeRedis/node-redis).
 <% } %><% } %>
@@ -355,345 +208,12 @@ If you're not familiar with its usage, please refer to [the docs](https://github
 
 This project uses [typedi](https://github.com/typestack/typedi) to perform dependency injection.
 
-Services are injected in the application at launch from `/src/server.ts` with the command:
-
-```typescript
-Container.set('myService', myService);
-```
-
-Injected services become available in the application in three ways:
-
-- By annotating class properties with the @Inject decorator:
-
-```typescript
-import { Inject, Service } from 'typedi';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-
-@Service()
-export default class UserService {
-  @Inject('logger')
-  logger!: <%= loggerType %>;
-
-  async createUser(userDetails: Object): Promise<void> {
-    this.logger.info('Message logged by the logger instance');
-  }
-}
-```
-
-- From the constructor of a class:
-
-```typescript
-import { Inject, Service } from 'typedi';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-
-@Service()
-export default class UserService {
-  constructor(@Inject('logger') private logger: <%= loggerType %>) {}
-
-  async createUser(userDetails: Object): Promise<void> {
-    this.logger.info('Message logged by the logger instance');
-  }
-}
-```
-
-- Using `Container.get()`:
-
-```typescript
-import { Container, Service } from 'typedi';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-
-@Service()
-export default class UserService {
-  async createUser(userDetails: Object): Promise<void> {
-    const logger = Container.get<<%= loggerType %>>('logger');
-
-    logger.info('Message logged by the logger instance');
-  }
-}
-```
-
-### DTO and types
-
-Data Transfer Object methods ensure the data you send back to your API's clients are formatted as needed.
-
-For example, to create a new `User` type and a new `userDTO` method, follow these steps:
-
-- Create a new file `/src/types/user.type.ts` to declare the `User` type:
-
-```typescript
-export type User = {
-  id: string;
-  fullName: string;
-  email: string;
-  createdAt: string;
-};
-```
-
-- Export this new type from `/src/types/index.ts`:
-
-```typescript
-// Export types from here
-
-export * from './user.type';
-
-export { default } from './index.d';
-```
-
-- Create a new DTO file `/src/dto/user.dto.ts`:
-
-```typescript
-import { UserModel } from '../models';
-import { User } from '../types';
-
-export const userDTO = (user: UserModel): User => {
-  const userDto: User = {
-    id: user.id,
-    fullName: user.fullName,
-    email: user.email,
-    createdAt: user.createdAt,
-  };
-
-  return userDto;
-};
-```
-
-- Export the DTO method from `/src/dto/index.ts`:
-
-```typescript
-// Export DTO methods from here
-
-export * from './user.dto';
-```
-
 ### Routing
 
 - All routes should be defined in `/src/controllers`
 - For each main route endpoint, a new file with the route endpoint as filename should be added to the `/controllers` folder
 - All the business logic (retrieving, creating or updating data, etc) should be defined in the `/services` folder
-
-For example, to define a new `/users` endpoint and two routes `POST /users` and `GET /users/:userId`, follow these steps:
-
-- Create a new service `/src/services/user.service.ts` to handle the business logic of creating and retrieving a user:
-
-```typescript<% if (i18n) { %>
-import { i18n as I18n } from 'i18next';
-import { Inject, Service } from 'typedi';<% } %>
-import { BadRequest, NotFound } from 'http-errors';
-import { userDTO } from '../dto';
-import { UserModel } from '../models';
-import { CreateUserDTO, User } from '../types';
-
-@Service()
-export default class UserService {<% if (i18n) { %>
-  @Inject('i18n')
-  i18n!: I18n;
-<% } %>
-  /**
-   * Returns the details of a user or throws a `NotFound` error if not found.
-   */
-  async getUserById(userId: string): Promise<User> {
-    const user = await UserModel.findByPk(userId);
-
-    if (!user) {
-      throw new NotFound(<% if (i18n) { %>this.i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
-    }
-
-    return userDTO(user);
-  }
-
-  /**
-   * Creates a new user or throws a `BadRequest` error if a user with the same email address already exists.
-   */
-  async createUser(userDetails: CreateUserDTO): Promise<User> {
-    const existingUser = await UserModel.findOne({ where: { email: userDetails.email } });
-
-    if (existingUser) {
-      throw new BadRequest(<% if (i18n) { %>this.i18n.t('errors:emailAlreadyUsed')<% } else { %>'An account with this email address already exists.'<% } %>);
-    }
-
-    const user = await UserModel.create(userDetails);
-
-    return userDTO(user);
-  }
-}
-```
-
-- Export the new service from `/src/services/index.ts`:
-
-```typescript
-// Export services from here
-
-export { default as UserService } from './user';
-```
-
-- Create a new route file `/src/controllers/users.controller.ts` with the request handlers:
-
-```typescript
-import Router from 'express-promise-router';
-import { Container } from 'typedi';<% if (celebrate) { %>
-import { validation } from '../middlewares';<% } %>
-import { UserService } from '../services';
-import { CreateUserDTO, User } from '../types';
-
-const router = Router();
-
-/**
- * GET /users/:userId
- *
- * Get user details
- */
-router.get<{ userId: string }, User>(
-  '/:userId',<% if (celebrate) { %>
-  validation.celebrate({
-    params: {
-      userId: validation.schemas.uuid.required(),
-    },
-  }),<% } %>
-  async (req, res) => {
-    const { userId } = req.params;
-
-    const user = await Container.get(UserService).getUserById(userId);
-
-    res.status(201).json(user);
-  },
-);
-
-/**
- * POST /users
- *
- * Create new user
- */
-router.post<{}, User, CreateUserDTO>(
-  '/',<% if (celebrate) { %>
-  validation.celebrate({
-    body: validation.Joi.object({
-      firstName: validation.schemas.firstName.required(),
-      lastName: validation.schemas.lastName.required(),
-      email: validation.schemas.email.required(),
-      password: validation.schemas.password.required(),
-    }).required(),
-  }),<% } %>
-  async (req, res) => {
-    const userDetails = req.body;
-
-    const user = await Container.get(UserService).createUser(userDetails);
-
-    res.status(201).json(user);
-  },
-);
-
-export default router;
-```
-
-- Finally, import the router in `/src/controllers/index.ts` and declare a new `/users` route:
-
-```typescript
-import Router from 'express-promise-router';
-import usersController from './users.controller';
-
-const router = Router();
-
-/**
- * API routes
- */
-router.get('/', (req, res) => res.sendStatus(204));
-router.use('/users', usersController);
-
-export default router;
-```
-
-### Error handling
-
-HTTP error responses are handled by the `errorHandler` middleware declared in `/src/server.ts`.
-
-When an error is thrown inside of a route controller with `next()` or inside a service with `throw`, the middleware will try to parse the error into a standard HTTP error, log the error and send back the formatted error to the client.
-
-To throw custom HTTP errors, use the `http-errors` library.
-
-For example, to throw a `NotFound` error:
-
-```typescript
-import { NotFound } from 'http-errors';<% if (i18n) { %>
-import { i18n as I18n } from 'i18next';
-import { Inject, Service } from 'typedi';<% } %>
-import { UserModel } from '../models';
-import { User } from '../types';
-
-@Service()
-export default class UserService {<% if (i18n) { %>
-  constructor(@Inject('i18n') private i18n: I18n) {}
-<% } %>
-  async getUserById(userId: string): Promise<User> {
-    const user = await UserModel.findByPk(userId);
-
-    if (!user) {
-      throw new NotFound(<% if (i18n) { %>this.i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
-    }
-
-    return user;
-  }
-}
-```
-
-In addition, the routes defined in `/src/controllers` should use the `Router` from the [express-promise-router](https://github.com/express-promise-router/express-promise-router) package (instead of the `Router` from `express`) as it provides a convenient way to write async request controllers.
-<% if (celebrate) { %>
-### Object validation
-
-To validate HTTP request parameters and body, use [celebrate](https://www.npmjs.com/package/celebrate).
-
-Custom validation schemas should be defined in `/src/middlewares/validation.middleware.ts`.
-
-For example, to add validation to the `userId` parameter of the `GET /users/:userId` route:
-
-- Define a new validation schema in `/src/middlewares/validation.middleware.ts`:
-
-```typescript
-import { celebrate } from 'celebrate';
-import Joi from '@hapi/joi';
-
-const uuid = Joi.string().guid();
-
-const schemas = {
-  uuid,
-};
-
-export { celebrate, customJoi as Joi, schemas };
-```
-
-- Add the validation schema to the route definition in `/src/controllers/users.controller.ts`:
-
-```typescript
-import Router from 'express-promise-router';
-import { Container } from 'typedi';
-import { validation } from '../middlewares';
-import { UserService } from '../services';
-
-const router = Router();
-
-/**
- * GET /users/:userId
- */
-router.get(
-  '/:userId',
-  celebrate({
-    params: {
-      userId: validation.schemas.uuid
-        .required()
-        .error(() => 'User ID is required and must be a valid UUID.'),
-    },
-  }),
-  async (req, res) => {
-    const { userId } = req.params;
-
-    const user = await Container.get(UserService).getUserById(userId);
-
-    res.status(200).json(user);
-  },
-);
-```
-
-Validation errors are handled by the `celebrateErrorHandler` middleware declared in `/src/server.ts`:
-<% } %><% if (jest) { %>
+<% if (jest) { %>
 ### Testing
 
 All tests are run with [Jest](https://jestjs.io/).
@@ -738,7 +258,6 @@ This will:
 The `/test` folder is structured as follows:
 
 - `/api`: API test files
-- `/integration`: integration test files
 - `/mocks`: mock definitions
 - `/utils`: test utilities
 
@@ -748,84 +267,11 @@ For example: if a `POST /users` route is defined, the associated test file would
 <% } %><% if (i18n) { %>
 ### i18n
 
-i18n is configured with [i18next](https://www.i18next.com/) in `/src/loaders/i18n.loader.ts` and injected in the application as the `i18n` service.
+i18n is configured with [i18next](https://www.i18next.com/) in `/src/config/i18n.loader.ts` and injected in the application as the `i18n` service.
 
 Translations are located in `/src/locale`.
 
 All incoming requests are parsed by `i18next-http-middleware` to retrieve the request's accepted language. The i18n instance and accepted language are then available respectively in `req.i18n` and `req.language`.
-
-To add a new language, for example Spanish:
-
-- In `/src/locale`, create a new file `es.locale.json`
-- In `/src/locale/index.ts`, export this new language by adding:
-
-```typescript
-// Export translations files from here
-
-export { default as en } from './en.locale.json';
-export { default as es } from './es.locale.json';
-```
-
-- In `/src/loaders/i18n.loader.ts`, add `'es'` to the `supportedLngs` property
-<% } %><% if (cron) { %>
-### Job scheduler
-
-Cron jobs are handled by the [node-schedule](https://github.com/node-schedule/node-schedule) library.
-
-To create a new job, for example a logs cleaning job:
-
-- In `/src/jobs`, create a new file `clean-logs.job.ts` with the following content:
-
-```typescript<% if (sentry) { %>
-import * as Sentry from '@sentry/node';<% } %>
-import moment from 'moment';
-import { JobCallback } from 'node-schedule';
-import { Container } from 'typedi';
-import { Op } from 'sequelize';<% if (winston) { %>
-import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-import { LogModel } from '../models';
-
-const cleanLogs: JobCallback = async () => {
-  const logger = Container.get<<%= loggerType %>>('logger');
-
-  logger.info('Running logs cleaning job');
-
-  try {
-    const createdAt = moment().subtract(50, 'days').format('YYYY-MM-DD');
-
-    const deletedRowsCount = await LogModel.destroy({
-      where: {
-        createdAt: {
-          [Op.lte]: createdAt,
-        },
-      },
-    });
-
-    logger.info(`Completed logs cleaning job with ${deletedRowsCount} rows deleted`);
-  } catch (err) {
-    logger.error(`Logs cleaning job failed: ${err}`);<% if (sentry) { %>
-
-    Sentry.captureException(err);<% } %>
-  }
-};
-
-export default cleanLogs;
-```
-
-- In `/src/jobs/index.ts`, import and configure the execution date of this new job:
-
-```typescript
-import scheduler from 'node-schedule';
-import cleanLogs from './clean-logs.job';
-
-/**
- * Job scheduler initializer
- */
-export default function runJobs(): void {
-  // Run logs cleaning job every day at 3 AM
-  scheduler.scheduleJob('0 0 3 * * *', cleanLogs);
-}
-```
 <% } %><% if (monitoring) { %>
 ### API status monitoring
 
@@ -846,13 +292,13 @@ To configure Sentry:
 <% } %><% if (socketIo) { %>
 ### Socket IO
 
-This project uses [Socket.IO](https://socket.io/docs/v2/) for real-time events which is configured in `/src/loaders/socket-io.loader.ts` and injected in the application as the `socket` service.
-<% } %><% if (nodemailer) { %>
+This project uses [Socket.IO](https://socket.io/docs/v2/) for real-time events which is configured in `/src/app.ts` and injected in the application as the `socket` service.
+<% } %><% if (smtp) { %>
 ### Nodemailer
 
 To send emails, this project uses [Nodemailer](https://github.com/nodemailer/nodemailer).
 
-The SMTP transport is configured in `/src/loaders/mailer.loader.ts` and injected in the application as the `mailer` service.
+The SMTP transport is configured in `/src/services/email.service.ts`.
 
 To configure the SMTP connection options, change the `SMTP_` environment variables in `.env`.
 <% } %><% if (openapi) { %>
@@ -907,7 +353,7 @@ More info:
 - [ESlint](https://eslint.org/) for TypeScript/JavaScript linting errors (configuration file: [`.eslintrc.json`](.eslintrc.json))<% } %><% if (prettier) { %>
 - [Prettier](https://prettier.io/) for formatting errors (configuration file: [`.prettierrc`](.prettierrc))<% } %>
 <% if (hook) { %>
-### Pre-push hook
+### Pre-commit hook
 
 In addition, a git pre-push hook is configured to run before each `git push` to ensure that linting and formatting are ok.
 

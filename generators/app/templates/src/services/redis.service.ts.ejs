@@ -1,0 +1,54 @@
+import { Redis } from 'ioredis';
+import { Service } from 'typedi';
+import { config } from '../config';
+
+type RedisKey = string;
+
+@Service()
+export class RedisService {
+  public redis: Redis;
+
+  constructor() {
+    const { host, port, password } = config.redis;
+
+    this.redis = new Redis(`redis://:${password}@${host}:${port}`);
+  }
+
+  async testConnection() {
+    return this.redis.ping();
+  }
+
+  async flushAll() {
+    await this.redis.flushall();
+  }
+
+  async get<T>(key: RedisKey): Promise<T | null> {
+    const value = await this.redis.get(key);
+
+    return value ? (JSON.parse(value) as T) : null;
+  }
+
+  async set(key: RedisKey, value: any, seconds?: number): Promise<void> {
+    if (seconds) {
+      await this.redis.setex(key, seconds, JSON.stringify(value));
+    } else {
+      await this.redis.set(key, JSON.stringify(value));
+    }
+  }
+
+  async fetch<T>(key: RedisKey, seconds: number, getValueCallback: () => Promise<T>): Promise<T> {
+    const cacheResult = await this.get<T>(key);
+
+    if (cacheResult) return cacheResult;
+
+    const value = await getValueCallback();
+
+    await this.set(key, value, seconds);
+
+    return value;
+  }
+
+  async remove(key: RedisKey): Promise<void> {
+    await this.redis.del(key);
+  }
+}

@@ -67,9 +67,7 @@ RUN mkdir -p /home/node/app && chown -R node:node /home/node/app
 WORKDIR /home/node/app
 
 # Copy compiled files and change ownership to user node
-COPY --chown=node:node --from=build /home/node/app/.env .<% if (sequelize) { %>
-COPY --chown=node:node --from=build /home/node/app/.sequelizerc .<% } %>
-COPY --chown=node:node --from=build /home/node/app/db ./db
+COPY --chown=node:node --from=build /home/node/app/.env .
 COPY --chown=node:node --from=build /home/node/app/dist ./dist
 COPY --chown=node:node --from=build /home/node/app/public ./public
 COPY --chown=node:node --from=build /home/node/app/package.json ./
@@ -79,4 +77,4 @@ COPY --chown=node:node --from=build /home/node/app/yarn.lock ./
 RUN yarn install --production
 
 # Run server
-ENTRYPOINT ["node", "./dist/server.js"]
+ENTRYPOINT ["yarn", "start"]

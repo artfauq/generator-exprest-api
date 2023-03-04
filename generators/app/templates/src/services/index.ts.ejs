@@ -1,6 +1,8 @@
 // Export services from here
-<% if (auth || nodemailer || sequelize) { %><% if (auth) { %>
-export { default as AuthService } from './auth.service';<% } %><% if (nodemailer) { %>
-export { default as EmailService } from './email.service';<% } %><% if (sequelize) { %>
-export { default as UserService } from './user.service';<% } %>
+<% if (admin || auth || redis || sequelize || smtp) { %><% if (admin) { %>
+export * from './admin.service';<% } %><% if (auth) { %>
+export * from './auth.service';<% } %><% if (smtp) { %>
+export * from './email.service';<% } %><% if (redis) { %>
+export * from './redis.service';<% } %><% if (sequelize) { %>
+export * from './user.service';<% } %>
 <% } %>

@@ -1,110 +1,107 @@
-import 'reflect-metadata';<% if (admin) { %>
-import AdminJSExpress from '@adminjs/express';<% } %><% if (sentry) { %>
-import * as Sentry from '@sentry/node';<% } %>
-import bodyParser from 'body-parser';
+<% if (admin) { %>import AdminJSExpress from '@adminjs/express';
+<% } %><% if (sentry) { %>import * as Sentry from '@sentry/node';
+<% } %>import { json, urlencoded } from 'body-parser';
 import compression from 'compression';<% if (admin) { %>
 import connectSequelize from 'connect-session-sequelize';<% } %>
 import cors from 'cors';
-import express, { Application } from 'express';
+import express, { Application<% if (auth) { %>, Request<% } %> } from 'express';
 import rateLimit from 'express-rate-limit';<% if (admin) { %>
 import session, { SessionOptions } from 'express-session';<% } %><% if (monitoring) { %>
 import statusMonitor from 'express-status-monitor';<% } %>
-import helmet from 'helmet';
-import { NotFound, TooManyRequests } from 'http-errors';<% if (i18n) { %>
-import { i18n as I18n } from 'i18next';
+import helmet from 'helmet';<% if (socketIo) { %>
+import { Server } from 'http';<% } %><% if (i18n) { %>
+import i18next, { i18n as I18n } from 'i18next';
 import i18nHttpMiddleware from 'i18next-http-middleware';<% } %>
-import { join } from 'path';<% if (admin) { %>
-import { Sequelize } from 'sequelize';<% } %>
-import favicon from 'serve-favicon';<% if (monitoring && socketIo) { %>
-import SocketIO from 'socket.io';<% } %>
-import { Container } from 'typedi';<% if (admin) { %>
-import setupAdminJs, { authenticateAdmin } from './admin';<% } %>
-import { Config } from './config';
-import router from './controllers';
-import {<% if (celebrate) { %> celebrateErrorHandler,<% } %> errorHandler<% if (jwt) { %>, jwtErrorHandler<% } %><% if (sequelize) { %>, sequelizeErrorHandler<% } %> } from './middlewares';<% if (admin) { %>
-import { SessionModel } from './models';<% } %>
+import { join } from 'path';
+import { <% if (auth) { %>Action, <% } %>useExpressServer } from 'routing-controllers';<% if (sequelize) { %>
+import { Sequelize } from 'sequelize-typescript';<% } %>
+import favicon from 'serve-favicon';<% if (socketIo) { %>
+import SocketIO from 'socket.io';<% } %><% if (admin || i18n || socketIo) { %>
+import { Container } from 'typedi';<% } %>
+import { config<% if (i18n) { %>, i18nOptions<% } %><% if (admin) { %>, setupAdminJs<% } %> } from './config';
+import { errorHandler<% if (morgan) { %>, httpRequestLogging<% } %>, routeNotFoundHandler } from './middlewares';<% if (admin) { %>
+import { AdminService } from './services';<% } %>
+import { MillisecondEnum } from './types/enums';<% if (admin) { %>
+
+const SequelizeStore = connectSequelize(session.Store);<% } %>
 
 /**
  * Method used to setup middlewares and routing for the `app` instance.
  */
-export default function initializeApp(app: Application) {
-  const config = Container.get<Config>('config');<% if (i18n) { %>
-  const i18n = Container.get<I18n>('i18n');<% } %><% if (admin) { %>
-  const sequelize = Container.get<Sequelize>('sequelize');<% } %>
-
-  app.enable('trust proxy');
-  app.use(bodyParser.json());
-  app.use(compression());
-  app.use(cors());
-  app.use(favicon(join(config.publicPath, 'favicon.ico')));
-  app.use(helmet());
-
-  // Rate limiting configuration
-  app.use(
-    rateLimit({
-      windowMs: 10 * 60 * 1000, // 10 minutes
-      max: 100, // limit each IP to 100 requests per windowMs
-      message: <% if (i18n) { %>i18n.t('errors:tooManyRequests')<% } else { %>'Too many requests, please try again later.'<% } %>,
-      statusCode: new TooManyRequests().statusCode,
-      skip: () => !(config.env === 'production'),
+export default async function initializeApp(app: Application) {<% if (i18n) { %>
+  // Initialize i18n resources
+  const i18n = await new Promise<I18n>((resolve, reject) =>
+    i18next.use(i18nHttpMiddleware.LanguageDetector).init(i18nOptions, err => {
+      if (err) reject(new Error(`failed to initialize i18n instance. ${err}`));
+      else resolve(i18next);
     }),
-  );<% if (monitoring) { %>
+  );
 
-  // Status monitoring configuration
-  app.use(
-    statusMonitor({
-      path: '/status',
-      title: '<%= name %> | Monitoring',<% if (socketIo) { %>
-      websocket: Container.get<SocketIO.Server>('socket'),<% } %>
-    }),
-  );<% } %><% if (admin) { %>
+  Container.set('i18n', i18n);<% } %><% if (admin) { %>
 
-  // Session store configuration
-  const SequelizeStore = connectSequelize(session.Store);
+  // Initialize admin panel
+  const adminJs = setupAdminJs();
+
+  const sequelize = Container.get<Sequelize>('sequelize');
   const store = new SequelizeStore({
     db: sequelize,
-    checkExpirationInterval: 15 * 60 * 1000, // Remove expired session every 15 minutes
-    expiration: 24 * 60 * 60 * 1000, // Set session expiry time to 24 hours
-    tableName: SessionModel.options.tableName,
+    checkExpirationInterval: MillisecondEnum.FifteenMinutes,
+    expiration: MillisecondEnum.OneDay,
   });
 
-  // AdminJS panel configuration
-  const adminJs = setupAdminJs(sequelize);
+  await store.sync();
 
-  const sessionOptions: SessionOptions = {
+  const adminSessionOptions: SessionOptions = {
     cookie: {
       httpOnly: true,
-      secure: config.env === 'production',
+      secure: config.isProduction,
     },
     name: 'adminjs',
     resave: true,
     saveUninitialized: true,
-    secret: <% if (jwt) { %>config.jwt.secret<% } else { %>'sessionsecret'<% } %>,
+    secret: config.secret,
     store,
   };
 
   const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
     adminJs,
     {
-      authenticate: authenticateAdmin,
-      cookieName: sessionOptions.name,
-      cookiePassword: sessionOptions.secret as string,
+      authenticate: Container.get(AdminService).authenticateAdmin,
+      cookieName: adminSessionOptions.name,
+      cookiePassword: adminSessionOptions.secret as string,
     },
     null,
-    sessionOptions,
+    adminSessionOptions,
   );
 
-  app.use(adminJs.options.rootPath, adminRouter);<% } %><% if (sentry) { %>
+  app.use(adminJs.options.rootPath, adminRouter);<% } %><% if (socketIo) { %>
 
-  // Sentry middleware configuration
+  // Initialize SocketIO
+  const server = Container.get<Server>('server');
+
+  const socket = SocketIO(server, { path: '/socket.io' });
+
+  Container.set('socket', socket);<% } %><% if (sentry) { %>
+
+  // Setup Sentry
   app.use(
     Sentry.Handlers.requestHandler({
       user: ['id', 'email'],
     }),
   );
-  app.use(Sentry.Handlers.tracingHandler());<% } %><% if (i18n) { %>
+  app.use(Sentry.Handlers.tracingHandler());<% } %><% if (monitoring) { %>
 
-  // i18n middleware configuration
+  // Setup status monitoring
+  app.use(
+    statusMonitor({
+      path: '/status',
+      title: '<%= name %>  | Monitoring',<% if (socketIo) { %>
+      websocket: socket,<% } %>
+    }),
+  );<% } %>
+
+  // Setup app middlewares
+  app.enable('trust proxy');<% if (i18n) { %>
   app.use(i18nHttpMiddleware.handle(i18n));
   app.use((req, res, next) => {
     if (req.i18n) {
@@ -112,33 +109,39 @@ export default function initializeApp(app: Application) {
     }
 
     next();
-  });<% } %><% if (openapi) { %>
-
-  // API documentation
-  app.use('/doc', express.static(join(config.publicPath, '/doc')));<% } %>
-
-  // Public assets
-  app.use('/public', express.static(config.publicPath));<% if (sentry) { %>
-
-  // Sentry debug route
-  app.get('/sentry-debug', () => {
-    throw new Error('Sentry error');
   });<% } %>
+  app.use(compression());
+  app.use(cors());
+  app.use(favicon(join(config.assetsPath, 'favicon.ico')));
+  app.use(helmet());<% if (morgan) { %>
+  app.use(httpRequestLogging(app));<% } %>
+  app.use(json());
+  app.use(
+    rateLimit({
+      windowMs: MillisecondEnum.FiveMinutes,
+      max: 100,
+      message: <% if (i18n) { %>i18n.t('errors:tooManyRequests')<% } else { %>'Too many requests, please try again later.'<% } %>,
+      skip: () => !config.isProduction,
+    }),
+  );
+  app.use(urlencoded({ extended: true }));
 
-  // Routing configuration
-  app.use(router);
-
-  // 404 error handling
-  app.use((req, res, next) => {
-    const { baseUrl, url, method } = req;
-
-    next(new NotFound(<% if (i18n) { %>req.i18n.t('errors:routeNotFound', { method, baseUrl, url })<% } else { %>`The route '${method} ${baseUrl}${url}' doesn't exist.`<% } %>));
+  // Register controllers
+  useExpressServer<Application>(app, {
+    classTransformer: true,
+    controllers: [join(__dirname, `./controllers/*.controller.${config.isTest ? 'ts' : 'js'}`)],<% if (auth) { %>
+    currentUserChecker: (action: Action) => (action.request as Request).user,<% } %>
+    defaultErrorHandler: false,
+    defaults: {
+      undefinedResultCode: 204,
+    },
   });
 
-  // Error handling<% if (jwt) { %>
-  app.use(jwtErrorHandler());<% } %><% if (celebrate) { %>
-  app.use(celebrateErrorHandler());<% } %><% if (sequelize) { %>
-  app.use(sequelizeErrorHandler());<% } %><% if (sentry) { %>
+  // Setup routes<% if (openapi) { %>
+  app.use('/doc', express.static(join(config.assetsPath, '/doc')));<% } %>
+  app.use('/public', express.static(config.assetsPath));
+<% if (sentry) { %>
   app.use(Sentry.Handlers.errorHandler());<% } %>
+  app.use(routeNotFoundHandler());
   app.use(errorHandler());
 }

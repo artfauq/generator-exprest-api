@@ -1,0 +1,15 @@
+{
+  "admin": true,
+  "auth": true,
+  "morgan": false,
+  "name": "Test",
+  "openapi": true,
+  "sequelize": false,
+  "i18n": true,
+  "mailer": true,
+  "redis": true,
+  "sentry": false,
+  "smtp": true,
+  "socketIo": false,
+  "winston": false
+}

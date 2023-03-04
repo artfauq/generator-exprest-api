@@ -1,0 +1,31 @@
+import { CurrentAdmin } from 'adminjs';
+import { Service } from 'typedi';
+import { adminDTO } from '../dto';
+import { User } from '../models';
+import { UserRoleEnum } from '../types/enums';
+
+@Service()
+export class AdminService {
+  /**
+   * Authenticates an admin user to access admin panel.
+   */
+  async authenticateAdmin(email: string, password: string): Promise<CurrentAdmin | null> {
+    const user = await User.findOne({
+      attributes: {
+        include: ['password'],
+      },
+      where: {
+        email,
+        role: UserRoleEnum.Admin,
+      },
+    });
+
+    if (!user) return null;
+
+    const passwordMatch = await user.comparePassword(password);
+
+    if (!passwordMatch) return null;
+
+    return adminDTO(user);
+  }
+}

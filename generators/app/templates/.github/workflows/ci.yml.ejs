@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  # Lint job
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js v14
+        uses: actions/setup-node@v3
+        with:
+          cache: 'yarn'
+          node-version: 14.19
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run lint
+        run: yarn lint<% if (jest) { %>
+
+  # Test job
+  test:
+    name: Test
+    runs-on: ubuntu-latest<% if (sequelize || redis) { %>
+
+    services:<% if (sequelize) { %>
+      db:
+        image: <%= dialect.docker.image %>
+        environment:
+          <%= dialect.docker.user %>: <%= shortname %>-test
+          <%= dialect.docker.password %>: <%= shortname %>-test<% if (dialect.value === 'mysql') { %>
+          MYSQL_ROOT_PASSWORD: <%= shortname %>-test<% } %>
+          <%= dialect.docker.database %>: <%= shortname %>_test
+        options: >-
+          --health-cmd="<% if (dialect.value === 'mysql') { %>mysqladmin ping<% } else { %>pg_isready<% } %>"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 3306:3306<% } %><% if (redis) { %>
+
+      redis:
+        image: redis:alpine
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+        ports:
+          - 6379:6379<% } %><% } %>
+
+    steps:
+      - name: Run unit tests
+        run: yarn test
+
+      - name: Run e2e tests
+        run: yarn test:e2e<% } %>

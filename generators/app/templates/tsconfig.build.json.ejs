@@ -1,9 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "inlineSources": true,
     "rootDir": "./src",
-    "sourceRoot": "/"
+    "sourceMap": true
   },
   "files": ["./src/types/index.d.ts"],
   "exclude": ["node_modules", <% if (sequelize) { %>"db", <% } %>"public"<% if (jest) { %>, "test", "jest*.config.ts"<% } %>]

@@ -1,7 +1,7 @@
 import { CurrentAdmin } from 'adminjs';
-import { UserModel } from '../models';
+import { User } from '../../models';
 
-export const adminDTO = (user: UserModel): CurrentAdmin => {
+export const adminDTO = (user: User): CurrentAdmin => {
   const adminDto: CurrentAdmin = {
     id: user.id,
     email: user.email,

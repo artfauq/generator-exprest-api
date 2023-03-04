@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0 (March 04, 2023)
+
+- Added `routing-controllers`
+- Added `Github Actions` CI workflow
+- Added `redis` service
+- Changed back `pre-push hook` to `pre-commit hook`
+- Replaced `redis` library with `ioredis`
+- Renamed `UserModel` to `User`
+- Removed `loaders`
+- Removed `cron job` option
+- Removed `nginx` as option
+
 ## 4.6.1 (January 30, 2023)
 
 - Added `supported locales` and `default locale` options

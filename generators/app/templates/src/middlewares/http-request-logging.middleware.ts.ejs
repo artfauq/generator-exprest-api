@@ -1,0 +1,29 @@
+import { Application, RequestHandler } from 'express';
+import morgan from 'morgan';
+import { Container } from 'typedi';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
+
+interface Layer {
+  regexp: RegExp;
+  route?: {
+    path: string;
+  };
+}
+
+export const httpRequestLogging = (app: Application): RequestHandler =>
+  morgan('dev', {
+    skip: req => {
+      const registeredRoutes = (app._router.stack as Layer[]).filter(
+        ({ route }) => typeof route?.path !== 'undefined',
+      );
+
+      return registeredRoutes.findIndex(({ regexp }) => regexp.test(req.url)) === -1;
+    },
+    stream: {
+      write: message => {
+        const logger = Container.get<<%= loggerType %>>('logger');
+
+        logger.info(message.trim());
+      },
+    },
+  });

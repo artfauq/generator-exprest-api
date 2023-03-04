@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import { UserModel } from '../../../src/models';
+import { User } from '../../../src/models';
 import { agent } from '../../jest.setup';
 import { cleanDatabase } from '../../utils';
 
@@ -7,18 +7,18 @@ import { cleanDatabase } from '../../utils';
  * GET /users/:userId
  */
 describe('GET /users/:userId', () => {
-  let user: UserModel;<% if (jwt) { %>
+  let user: User;<% if (auth) { %>
   let token: string;<% } %>
 
   beforeAll(async () => {
     await cleanDatabase();
 
-    user = await UserModel.create({
+    user = await User.create({
       firstName: 'John',
       lastName: 'Doe',
       email: 'john.doe@gmail.com',
       password: 'p4ssW0rd',
-    });<% if (jwt) { %>
+    });<% if (auth) { %>
     token = await user.generateJWT();<% } %>
   });
 
@@ -27,7 +27,7 @@ describe('GET /users/:userId', () => {
 
     const res = await agent
       .get(`/users/${userId}`)
-      .accept('json')<% if (jwt) { %>
+      .accept('json')<% if (auth) { %>
       .auth(token, { type: 'bearer' })<% } %>
       .type('json')
       .expect(200);
@@ -45,11 +45,11 @@ describe('GET /users/:userId', () => {
 
     await agent
       .get(`/users/${userId}`)
-      .accept('json')<% if (jwt) { %>
+      .accept('json')<% if (auth) { %>
       .auth(token, { type: 'bearer' })<% } %>
       .type('json')
       .expect(404);
-  });<% if (jwt) { %>
+  });<% if (auth) { %>
 
   it('should return 401 on user not authenticated', async () => {
     const userId = user.id;

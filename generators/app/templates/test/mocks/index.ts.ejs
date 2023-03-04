@@ -1,4 +1,1 @@
-// Export mocks from here<% if (mocks) { %>
-<% if (nodemailer) { %>
-export * from './mailer.mock';<% } %><% if (redis) { %>
-export * from './redis.mock';<% } %><% } %>
+<% if (smtp) { -%>export * from './mailer.mock';<% } %>

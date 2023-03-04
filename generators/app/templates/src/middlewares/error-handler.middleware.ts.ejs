@@ -1,92 +1,39 @@
-<% if (eslint) { %>/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-<% } %><% if (celebrate) { %>import { JoiObject, ValidationError } from '@hapi/joi';
-import { isCelebrate } from 'celebrate';
-<% } %>import { ErrorRequestHandler } from 'express';
-import createHttpError, { HttpError, isHttpError } from 'http-errors';<% if (i18n) { %>
-import { i18n as I18n } from 'i18next';<% } %><% if (sequelize) { %>
-import { BaseError } from 'sequelize';<% } %>
+<% if (validation) { -%>import { ValidationError as ClassValidationError } from 'class-validator';
+<% } %>import { ErrorRequestHandler } from 'express';<% if (auth) { %>
+import { UnauthorizedError as JWTUnauthorizedError } from 'express-jwt';<% } %><% if (i18n) { %>
+import { i18n as I18n } from 'i18next';<% } %>
+import { BadRequestError, HttpError<% if (auth) { %>, UnauthorizedError<% } %> } from 'routing-controllers';
 import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
-import { Config } from '../config';<% if (celebrate) { %>
-
-interface CelebrateError extends Error, JoiObject {
-  joi: ValidationError;
-}
+import { config } from '../config';<% if (validation) { %>
 
 /**
- * Returns `true` if the error originated from the `celebrate` middleware.
+ * Returns `true` if the error originated from the `class-validator` library.
  */
-function isCelebrateError(err: any): err is CelebrateError {
-  return isCelebrate(err) || (<CelebrateError>err).joi != null || (<CelebrateError>err).isJoi;
-}
-
-/**
- * Middleware used to parse `celebrate` errors.
- */
-export function celebrateErrorHandler(): ErrorRequestHandler {
-  return (err, req, res, next) => {
-    if (isCelebrateError(err)) {
-      let { message } = err;
-
-      if (err.joi) {
-        const { details } = err.joi;
-
-        message = details ? details[0].message : err.joi.message;
-      }
-
-      return next(createHttpError(400, err, { message }));
-    }
-
-    return next(err);
-  };
-}<% } %><% if (sequelize) { %>
-
-/**
- * Returns `true` if the error originated from the `sequelize` package.
- */
-function isSequelizeError(err: any): err is BaseError {
-  return err instanceof BaseError;
-}
-
-/**
- * Middleware used to parse `sequelize` errors.
- */
-export function sequelizeErrorHandler(): ErrorRequestHandler {
-  return (err, req, res, next) => {
-    if (isSequelizeError(err)) {
-      const { message } = err;
-
-      return next(createHttpError(500, err, { message }));
-    }
-
-    return next(err);
-  };
+function isClassValidatorError(err: any): err is ClassValidationError {
+  return err instanceof ClassValidationError;
 }<% } %>
 
 /**
- * Parses an error to retrieve its HTTP `status`.
+ * Parses the `err` object and returns a standard HTTP error.
  */
-const parseErrorStatus = (err: { status?: number | string }): number => {
-  if (!err.status) {
-    return 500;
+function parseHttpError(err: any): HttpError {<% if (validation) { %>
+  if (Array.isArray(err.errors) && isClassValidatorError(err.errors[0])) {
+    const error = err.errors[0];
+    const message = error.constraints ? Object.values(error.constraints)[0] : error.toString();
+
+    return new BadRequestError(message);
   }
+<% } %>
+  if (err instanceof HttpError) {
+    return err;
+  }<% if (auth) { %>
 
-  return typeof err.status === 'number' ? err.status : parseInt(err.status, 10);
-};
+  if (err instanceof JWTUnauthorizedError) {
+    return new UnauthorizedError(err.message);
+  }<% } %>
 
-/**
- * Parses an error to retrieve its `message`.
- */
-function parseErrorMessage(err: any): string {
-  if (err instanceof Error) {
-    return err.message;
-  }
-
-  if (typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
-    return err.message as string;
-  }
-
-  return `${err}`;
+  return new HttpError(err.status || err.statusCode || 500, err.message || `${err}`);
 }
 
 /**
@@ -97,53 +44,39 @@ function parseErrorMessage(err: any): string {
  */
 export const errorHandler = (): ErrorRequestHandler => {<% if (i18n) { %>
   const i18n = Container.get<I18n>('i18n');<% } %>
-  const config = Container.get<Config>('config');
   const logger = Container.get<<%= loggerType %>>('logger');
 
   return (err, req, res, next) => {
-    let error: HttpError;
+    if (res.headersSent) return;
 
-    // Format HTTP error
-    if (isHttpError(err)) {
-      error = err;
+    const error = parseHttpError(err);
+
+    if (error.httpCode < 500) {
+      logger.warn('%o', err);
     } else {
-      const status = parseErrorStatus(err);
-      const message = parseErrorMessage(err);
-
-      error = createHttpError(status, message);
-
-      // Set error stack
-      error.stack = err.stack ?? error.stack;
+      logger.error('%o', err);
     }
 
-    // Log error
-    if (error.status < 500) {
-      logger.warn(error);
-    } else {
-      logger.error(error);
-    }
-
-    // Determine if error message should be hidden from client
-    if (config.env === 'production' && !error.expose) {
+    if (config.isProduction && error.httpCode >= 500) {
       error.message = <% if (i18n) { %>i18n.t('errors:internalServerError')<% } else { %>'Internal server error.'<% } %>;
     }
 
-    // Set response status
-    res.status(error.status);
-
-    // Set response content according to acceptable format
     res.format({
       'text/plain': () => {
-        res.send(`Error ${error.status} - ${error.name}: ${error.message}`);
+        res
+          .status(error.httpCode)
+          .send(`Error ${error.httpCode} - ${error.name}: ${error.message}`);
       },
 
       'text/html': () => {
-        res.send(`<p>Error ${error.status} - ${error.name}: ${error.message}</p>`);
+        res
+          .status(error.httpCode)
+          .send(`<p>Error ${error.httpCode} - ${error.name}: ${error.message}</p>`);
       },
 
       'application/json': () => {
-        res.json({
-          status: error.status,
+        res.status(error.httpCode).json({
+          status: error.httpCode,
           name: error.name,
           message: error.message,
         });

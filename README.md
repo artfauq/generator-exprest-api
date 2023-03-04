@@ -20,14 +20,13 @@
 - **HTTP requests logging** - Using [morgan](https://github.com/expressjs/morgan#readme)
 - **Internationalization** - Using [i18next](https://www.i18next.com/)
 - **Error tracking** - Using [Sentry](https://docs.sentry.io/platforms/node/)
-- **Caching** - Using [Redis](https://github.com/NodeRedis/node-redis)
+- **Caching** - Using [Redis](https://github.com/luin/ioredis)
 - **API documentation** - Using [OpenAPI](https://swagger.io/specification/) and [ReDoc](https://github.com/Redocly/redoc)
-- **Object validation** - Using [celebrate](https://www.npmjs.com/package/celebrate) and [Joi](https://github.com/sideway/joi)
+- **Object validation** - Using [class-validator](https://www.npmjs.com/package/class-validator)
 - **Email sending** - Using [Nodemailer](https://nodemailer.com/about/)
 - **Real-time events** - Using [Socket.IO](https://socket.io/)
 - **Admin panel** - Using [AdminJS](https://adminjs.co/)
 - **API status monitoring** - Using [express-status-monitor](https://www.npmjs.com/package/express-status-monitor)
-- **Cron jobs** - Using [node-schedule](https://github.com/node-schedule/node-schedule)
 - **Code formatting** - Using [Prettier](https://prettier.io/)
 - **Code linting** - Using [ESLint](https://eslint.org/)
 - **Pre-push linting hook** - Using [husky](https://github.com/typicode/husky) and [lint-staged](https://github.com/okonet/lint-staged)
@@ -52,7 +51,6 @@ yo exprest-api
 
 ## TODO
 
-- [ ] Add internationalized validation errors
 - [ ] Add multer for file upload support
 - [ ] Migrate ORM to `MikroORM` ?
 - [ ] Add `user.verifiedAt` property

@@ -1,0 +1,34 @@
+<% if (validation) { %>import { Expose } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { Trim } from '../../decorators';
+
+export class CreateUserDTO {
+  @Expose()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(64)
+  @Trim()
+  firstName!: string;
+
+  @Expose()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(64)
+  @Trim()
+  lastName!: string;
+
+  @Expose()
+  @IsEmail()
+  email!: string;
+
+  @Expose()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(64)
+  password!: string;
+}<% } else { %>export type CreateUserDTO = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}<% } %>

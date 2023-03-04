@@ -1,15 +1,16 @@
+import { resolve } from 'path';
 import { SequelizeOptions } from 'sequelize-typescript';
-import * as models from '../models';
+import { Container } from 'typedi';<% if (winston) { %>
+import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import { config } from './app.config';
-import { logger } from './logger.config';
 
 export const sequelizeOptions: SequelizeOptions = {
+  dialect: '<%= dialect.value %>',
   host: config.db.host,
   port: config.db.port,
-  database: config.db.database,
   username: config.db.username,
   password: config.db.password,
-  dialect: '<%= dialect.value %>',
+  database: config.db.database,
   define: {
     charset: 'utf8',
     collate: 'utf8_general_ci',
@@ -17,8 +18,13 @@ export const sequelizeOptions: SequelizeOptions = {
     updatedAt: false,
     underscored: true,
   },
-  models: Object.values(models),
   benchmark: true,
   logQueryParameters: config.debug,
-  logging: (sql, timing) => (config.debug ? logger.debug(`${timing}ms - ${sql}`) : false),
+  models: [resolve(__dirname, '../models/*.model.ts')],
+  modelMatch: (filename, member) => filename.replace('.model.ts', '') === member.toLowerCase(),
+  logging: (sql, timing) => {
+    const logger = Container.get<<%= loggerType %>>('logger');
+
+    logger.debug(`${timing}ms - ${sql}`);
+  },
 };

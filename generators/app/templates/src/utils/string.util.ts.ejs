@@ -1,0 +1,22 @@
+<% if (sequelize) { -%>import { hash } from 'bcryptjs';
+<% } %>import { randomBytes } from 'crypto';<% if (auth) { %>
+import { v4 as uuidv4 } from 'uuid';<% } %>
+
+/**
+ * Generates a random string token
+ *
+ * @param length Bytes size
+ */
+export const randomToken = (length: number): string => randomBytes(length).toString('hex');<% if (sequelize) { %>
+
+/**
+ * Returns a hash for the given `string`.
+ *
+ * @param value String to hash
+ */
+export const generateHash = (value: string): Promise<string> => hash(value, 10);<% } %><% if (auth) { %>
+
+/**
+ * Generates a UUID.
+ */
+export const generateUUID = (): string => uuidv4();<% } %>
