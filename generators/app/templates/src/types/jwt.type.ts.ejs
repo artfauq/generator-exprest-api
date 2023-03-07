@@ -1,4 +1,4 @@
-<% if (auth) { %>import { UserRoleEnum } from './enums';
+<% if (sequelize) { %>import { UserRoleEnum } from './enums';
 
 <% } %>/**
  * Decoded JWT token
@@ -18,10 +18,13 @@ export type StandardJWTClaims = {
 /**
  * Custom JWT claims
  */
-export type JWTPayload = {<% if (auth) { %>
-  name: string;
+export type JWTPayload = <% if (sequelize) { %>AuthUser;
+
+export type AuthUser = {
+  id: string;
   email: string;
+  fullName: string;
   role: UserRoleEnum;
 };
-<% } else { %>};
+<% } else { %>{};
 <% } %>

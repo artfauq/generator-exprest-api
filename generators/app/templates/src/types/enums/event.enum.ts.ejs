@@ -1,0 +1,7 @@
+export enum AppEvent {
+  UserCreated = 'user.created',
+  UserDeleted = 'user.deleted',<% if (auth) { %>
+  UserLogin = 'user.login',
+  UserPasswordForgot = 'user.password-forgot',
+  UserVerified = 'user.verified',<% } %>
+}

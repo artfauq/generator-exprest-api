@@ -1,0 +1,38 @@
+import { CurrentUser, Delete, Get, HttpCode, JsonController } from 'routing-controllers';
+import { Container, Service } from 'typedi';
+import { AuthRequired } from '../decorators';
+import { UserDTO } from '../dto';
+import { EventService, UserService } from '../services';
+import { AuthUser } from '../types';
+import { AppEvent } from '../types/enums';
+
+@JsonController('/me')
+@Service()
+export class MeController {
+  private eventService: EventService;
+
+  private userService: UserService;
+
+  constructor() {
+    this.eventService = Container.get(EventService);
+    this.userService = Container.get(UserService);
+  }
+
+  @Get('/')
+  @HttpCode(200)
+  @AuthRequired()
+  async getUser(@CurrentUser({ required: true }) { id: userId }: AuthUser): Promise<UserDTO> {
+    const user = await this.userService.getUser(userId);
+
+    return new UserDTO(user);
+  }
+
+  @Delete('/')
+  @HttpCode(204)
+  @AuthRequired()
+  async deleteUser(@CurrentUser({ required: true }) { id: userId }: AuthUser): Promise<void> {
+    const user = await this.userService.deleteUser(userId);
+
+    this.eventService.emit(AppEvent.UserDeleted, user);
+  }
+}

@@ -1,4 +1,5 @@
 // Export enums from here
-
+<% if (sequelize) { %>
+export * from './event.enum';<% } %>
 export * from './time.enum';<% if (sequelize) { %>
 export * from './user-role.enum';<% } %>

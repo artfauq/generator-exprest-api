@@ -1,21 +1,28 @@
 import { Body, HttpCode, JsonController, Post } from 'routing-controllers';
 import { Container, Service } from 'typedi';
 import { LoginDTO } from '../dto';
-import { AuthService } from '../services';
+import { AuthService, EventService } from '../services';
+import { AppEvent } from '../types/enums';
 
 @JsonController('/auth')
 @Service()
 export class AuthController {
   private authService: AuthService;
 
+  private eventService: EventService;
+
   constructor() {
     this.authService = Container.get(AuthService);
+    this.eventService = Container.get(EventService);
   }
 
   @Post('/login')
   @HttpCode(200)
   async login(@Body() body: LoginDTO) {
-    const token = await this.authService.login(body);
+    const user = await this.authService.login(body);
+    const token = user.generateJWT();
+
+    this.eventService.emit(AppEvent.UserLogin, user.get({ plain: true }));
 
     return { token };
   }

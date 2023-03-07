@@ -1,31 +1,27 @@
-import { Body, Get, HttpCode, JsonController, Param, Post } from 'routing-controllers';
-import { Container, Service } from 'typedi';<% if (auth) { %>
-import { Protected } from '../decorators';<% } %>
+import { Body, HttpCode, JsonController, Post } from 'routing-controllers';
+import { Container, Service } from 'typedi';
 import { CreateUserDTO, UserDTO } from '../dto';
-import { UserService } from '../services';
+import { EventService, UserService } from '../services';
+import { AppEvent } from '../types/enums';
 
 @JsonController('/users')
 @Service()
 export class UsersController {
+  private eventService: EventService;
+
   private userService: UserService;
 
   constructor() {
+    this.eventService = Container.get(EventService);
     this.userService = Container.get(UserService);
-  }
-
-  @Get('/:userId')
-  @HttpCode(200)<% if (auth) { %>
-  @Protected()<% } %>
-  async getUser(@Param('userId') userId: string): Promise<UserDTO> {
-    const user = await this.userService.getUser(userId);
-
-    return new UserDTO(user);
   }
 
   @Post('/')
   @HttpCode(201)
   async createUser(@Body({ required: true }) body: CreateUserDTO): Promise<UserDTO> {
     const user = await this.userService.createUser(body);
+
+    this.eventService.emit(AppEvent.UserCreated, user.get({ plain: true }));
 
     return new UserDTO(user);
   }

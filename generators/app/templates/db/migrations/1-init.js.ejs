@@ -20,45 +20,43 @@ module.exports = {
             allowNull: false,
             defaultValue: Sequelize.UUIDV4,
             field: 'id',
-            comment: 'ID of the user',
           },
           firstName: {
             type: Sequelize.STRING(64),
             allowNull: false,
             field: 'first_name',
-            comment: 'First name of the user',
           },
           lastName: {
             type: Sequelize.STRING(64),
             allowNull: false,
             field: 'last_name',
-            comment: 'Last name of the user',
           },
           email: {
             type: Sequelize.STRING(128),
             allowNull: false,
             unique: true,
             field: 'email',
-            comment: 'Email of the user',
           },
           password: {
             type: Sequelize.STRING(64),
             allowNull: false,
             field: 'password',
-            comment: 'Password of the user',
           },
           role: {
             type: Sequelize.ENUM('user', 'admin'),
             allowNull: false,
             defaultValue: 'user',
             field: 'role',
-            comment: 'User role',
-          },
+          },<% if (auth) { %>
+          lastLoginAt: {
+            type: Sequelize.DATE,
+            allowNull: true,
+            field: 'last_login_at',
+          },<% } %>
           createdAt: {
             type: Sequelize.DATE,
             allowNull: false,
             field: 'created_at',
-            comment: "Date and time of the user's profile creation",
           },
         },
         {

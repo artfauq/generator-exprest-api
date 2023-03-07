@@ -1,12 +1,14 @@
 import { exec } from 'child_process';
-import { ModelType, Sequelize, Transaction } from 'sequelize';
+import { Model, ModelStatic, Sequelize, Transaction } from 'sequelize';
 import { Container } from 'typedi';
-import { sequelizeOptions } from '../../src/config';
 
 /**
  * Truncates the table associated to `model`.
  */
-export const truncateModel = async (model: ModelType, transaction?: Transaction): Promise<void> => {
+export const truncateModel = async (
+  model: ModelStatic<Model>,
+  transaction?: Transaction,
+): Promise<void> => {
   await model.destroy({ where: {}, force: true, transaction });
 };
 
@@ -34,11 +36,25 @@ export const cleanDatabase = async (): Promise<void> => {
  * Initializes a test database by recreating it and running all migrations and seeders.
  */
 export const initializeTestDatabase = async () => {
-  const sequelize = new Sequelize(sequelizeOptions);
+  // Drop database
+  await new Promise<void>((resolve, reject) => {
+    const migrate = exec('sequelize db:drop', { env: process.env }, err =>
+      err ? reject(err) : resolve(),
+    );
 
-  // Recreate database
-  await sequelize.query(`DROP DATABASE IF EXISTS ${sequelize.config.database};`);
-  await sequelize.query(`CREATE DATABASE ${sequelize.config.database};`);
+    migrate.stdout?.pipe(process.stdout);
+    migrate.stderr?.pipe(process.stderr);
+  });
+
+  // Create database
+  await new Promise<void>((resolve, reject) => {
+    const migrate = exec('sequelize db:create', { env: process.env }, err =>
+      err ? reject(err) : resolve(),
+    );
+
+    migrate.stdout?.pipe(process.stdout);
+    migrate.stderr?.pipe(process.stderr);
+  });
 
   // Run migrations
   await new Promise<void>((resolve, reject) => {

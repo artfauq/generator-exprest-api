@@ -1,0 +1,8 @@
+import { format } from 'date-fns';<% if (defaultLocale !== 'en') { %>
+import { <%= defaultLocale %> } from 'date-fns/locale';<% } %>
+
+export const formatDate = (date: number | Date, formatStr = 'PPpp'): string => {
+  return format(date, formatStr<% if (defaultLocale !== 'en') { %>, {
+    locale: <%= defaultLocale %>,
+  }<% } %>);
+};

@@ -1,4 +1,5 @@
 // Export utility methods from here
-<% if (auth) { %>
+
+export * from './date.util';<% if (jwt) { %>
 export * from './jwt.util';<% } %>
 export * from './string.util';

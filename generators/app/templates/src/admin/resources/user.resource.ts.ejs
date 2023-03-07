@@ -29,15 +29,11 @@ export const createUserResource = (): ResourceWithOptions => ({
       },
     },
     navigation: menu.users,
-    listProperties: ['id', 'email', 'firstName', 'lastName', 'role', 'createdAt'],
-    showProperties: ['id', 'email', 'firstName', 'lastName', 'role', 'createdAt'],
+    listProperties: ['id', 'email', 'firstName', 'lastName', 'role', 'lastLoginAt', 'createdAt'],
+    showProperties: ['id', 'email', 'firstName', 'lastName', 'role', 'lastLoginAt', 'createdAt'],
     editProperties: ['email', 'firstName', 'lastName'],
     filterProperties: ['email', 'firstName', 'lastName', 'role', 'createdAt'],
-    properties: {
-      password: {
-        type: 'password',
-      },
-    },
+    properties: {},
     sort: {
       direction: 'asc',
       sortBy: 'lastName',

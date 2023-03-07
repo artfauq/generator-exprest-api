@@ -1,12 +1,13 @@
 # Changelog
 
-## 5.0.0 (March 04, 2023)
+## 5.0.0 (March 06, 2023)
 
 - Added `routing-controllers`
 - Added `Github Actions` CI workflow
 - Added `redis` service
 - Changed back `pre-push hook` to `pre-commit hook`
 - Replaced `redis` library with `ioredis`
+- Replaced `moment` with `date-fns`
 - Renamed `UserModel` to `User`
 - Removed `loaders`
 - Removed `cron job` option

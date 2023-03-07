@@ -51,9 +51,9 @@ yo exprest-api
 
 ## TODO
 
-- [ ] Add multer for file upload support
-- [ ] Migrate ORM to `MikroORM` ?
-- [ ] Add `user.verifiedAt` property
+- [ ] Add missing `e2e` tests
+- [ ] Migrate ORM to `MikroORM`
+- [ ] Complete auth endpoints
 
 ## License
 

@@ -4,16 +4,16 @@
 import compression from 'compression';<% if (admin) { %>
 import connectSequelize from 'connect-session-sequelize';<% } %>
 import cors from 'cors';
-import express, { Application<% if (auth) { %>, Request<% } %> } from 'express';
+import express, { Application<% if (jwt) { %>, Request<% } %> } from 'express';
 import rateLimit from 'express-rate-limit';<% if (admin) { %>
 import session, { SessionOptions } from 'express-session';<% } %><% if (monitoring) { %>
 import statusMonitor from 'express-status-monitor';<% } %>
 import helmet from 'helmet';<% if (socketIo) { %>
 import { Server } from 'http';<% } %><% if (i18n) { %>
-import i18next, { i18n as I18n } from 'i18next';
+import i18n from 'i18next';
 import i18nHttpMiddleware from 'i18next-http-middleware';<% } %>
 import { join } from 'path';
-import { <% if (auth) { %>Action, <% } %>useExpressServer } from 'routing-controllers';<% if (sequelize) { %>
+import { <% if (jwt) { %>Action, <% } %>useExpressServer } from 'routing-controllers';<% if (admin) { %>
 import { Sequelize } from 'sequelize-typescript';<% } %>
 import favicon from 'serve-favicon';<% if (socketIo) { %>
 import SocketIO from 'socket.io';<% } %><% if (admin || i18n || socketIo) { %>
@@ -28,17 +28,12 @@ const SequelizeStore = connectSequelize(session.Store);<% } %>
 /**
  * Method used to setup middlewares and routing for the `app` instance.
  */
-export default async function initializeApp(app: Application) {<% if (i18n) { %>
+export default function initializeApp(app: Application) {<% if (i18n) { %>
   // Initialize i18n resources
-  const i18n = await new Promise<I18n>((resolve, reject) =>
-    i18next.use(i18nHttpMiddleware.LanguageDetector).init(i18nOptions, err => {
-      if (err) reject(new Error(`failed to initialize i18n instance. ${err}`));
-      else resolve(i18next);
-    }),
-  );
+  void i18n.use(i18nHttpMiddleware.LanguageDetector).init(i18nOptions);
 
-  Container.set('i18n', i18n);<% } %><% if (admin) { %>
-
+  Container.set('i18n', i18n);
+<% } %><% if (admin) { %>
   // Initialize admin panel
   const adminJs = setupAdminJs();
 
@@ -49,7 +44,7 @@ export default async function initializeApp(app: Application) {<% if (i18n) { %>
     expiration: MillisecondEnum.OneDay,
   });
 
-  await store.sync();
+  store.sync();
 
   const adminSessionOptions: SessionOptions = {
     cookie: {
@@ -66,7 +61,8 @@ export default async function initializeApp(app: Application) {<% if (i18n) { %>
   const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
     adminJs,
     {
-      authenticate: Container.get(AdminService).authenticateAdmin,
+      authenticate: (email, password) =>
+        Container.get(AdminService).authenticateAdmin(email, password),
       cookieName: adminSessionOptions.name,
       cookiePassword: adminSessionOptions.secret as string,
     },
@@ -74,23 +70,23 @@ export default async function initializeApp(app: Application) {<% if (i18n) { %>
     adminSessionOptions,
   );
 
-  app.use(adminJs.options.rootPath, adminRouter);<% } %><% if (socketIo) { %>
-
+  app.use(adminJs.options.rootPath, adminRouter);
+<% } %><% if (socketIo) { %>
   // Initialize SocketIO
   const server = Container.get<Server>('server');
 
   const socket = SocketIO(server, { path: '/socket.io' });
 
-  Container.set('socket', socket);<% } %><% if (sentry) { %>
-
+  Container.set('socket', socket);
+<% } %><% if (sentry) { %>
   // Setup Sentry
   app.use(
     Sentry.Handlers.requestHandler({
       user: ['id', 'email'],
     }),
   );
-  app.use(Sentry.Handlers.tracingHandler());<% } %><% if (monitoring) { %>
-
+  app.use(Sentry.Handlers.tracingHandler());
+<% } %><% if (monitoring) { %>
   // Setup status monitoring
   app.use(
     statusMonitor({
@@ -98,8 +94,8 @@ export default async function initializeApp(app: Application) {<% if (i18n) { %>
       title: '<%= name %>  | Monitoring',<% if (socketIo) { %>
       websocket: socket,<% } %>
     }),
-  );<% } %>
-
+  );
+<% } %>
   // Setup app middlewares
   app.enable('trust proxy');<% if (i18n) { %>
   app.use(i18nHttpMiddleware.handle(i18n));
@@ -129,7 +125,7 @@ export default async function initializeApp(app: Application) {<% if (i18n) { %>
   // Register controllers
   useExpressServer<Application>(app, {
     classTransformer: true,
-    controllers: [join(__dirname, `./controllers/*.controller.${config.isTest ? 'ts' : 'js'}`)],<% if (auth) { %>
+    controllers: [join(__dirname, `./controllers/*.controller.${config.isTest ? 'ts' : 'js'}`)],<% if (jwt) { %>
     currentUserChecker: (action: Action) => (action.request as Request).user,<% } %>
     defaultErrorHandler: false,
     defaults: {

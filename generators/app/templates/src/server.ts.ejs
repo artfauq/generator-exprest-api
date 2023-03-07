@@ -8,7 +8,7 @@ import { Container } from 'typedi';<% if (winston) { %>
 import { createLogger } from 'winston';<% } %>
 import initializeApp from './app';
 import { config<% if (winston) { %>, loggerOptions<% } %><% if (sentry) { %>, sentryOptions<% } %><% if (sequelize) { %>, sequelizeOptions<% } %> } from './config';<% if (smtp || redis) { %>
-import { <% if (smtp) { %>EmailService<% } %><% if (redis) { %>, RedisService<% } %> } from './services';<% } %>
+import { <% if (smtp) { %>EmailService<% if (redis) { %>, <% } %><% } %><% if (redis) { %>RedisService<% } %> } from './services';<% } %>
 
 (async () => {
   const app = express();
@@ -45,7 +45,7 @@ import { <% if (smtp) { %>EmailService<% } %><% if (redis) { %>, RedisService<% 
     .then(() => logger.info('Successfully connected to Redis server'));<% } %>
 
   // Initialize app
-  await initializeApp(app);<% if (sentry) { %>
+  initializeApp(app);<% if (sentry) { %>
 
   // Initialize Sentry
   Sentry.init({

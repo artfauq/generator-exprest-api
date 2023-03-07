@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from 'fs';
-import moment from 'moment';
 import { format, Logform, LoggerOptions, transports } from 'winston';
+import { formatDate } from '../utils';
 import { config } from './app.config';
 
 const { colorize, combine, errors, printf, splat, timestamp } = format;
@@ -8,7 +8,7 @@ const { colorize, combine, errors, printf, splat, timestamp } = format;
 const customFormat: Logform.Format = combine(
   errors({ stack: config.isDevelopment || config.debug }),
   splat(),
-  timestamp({ format: () => moment().format('YYYY-MM-DD HH:mm:ss') }),
+  timestamp({ format: () => formatDate(new Date()) }),
 );
 
 if (!existsSync(config.logsDir)) {
@@ -32,7 +32,7 @@ export const loggerOptions: LoggerOptions = {
     new transports.File({
       level: 'error',
       dirname: config.logsDir,
-      filename: `${moment().format('YYYY-MM-DD')}-errors.log`,
+      filename: `${formatDate(new Date(), 'YYYY-MM-dd')}-errors.log`,
     }),
   ],
   exitOnError: false,

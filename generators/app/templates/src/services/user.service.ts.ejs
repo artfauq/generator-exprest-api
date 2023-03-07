@@ -1,5 +1,5 @@
-import { NotFound } from 'http-errors';<% if (i18n) { %>
-import { i18n as I18n } from 'i18next';<% } %>
+<% if (i18n) { -%>import { i18n as I18n } from 'i18next';
+<% } %>import { NotFoundError } from 'routing-controllers';
 import { <% if (i18n || redis) { %>Container, <% } %>Service } from 'typedi';
 import { CreateUserDTO } from '../dto';
 import { User, UserAttributes } from '../models';<% if (redis) { %>
@@ -14,9 +14,6 @@ export class UserService {<% if (redis) { %>
     this.redisService = Container.get(RedisService);
   }
 <% } %>
-  /**
-   * Returns the details of a user or throws a `NotFound` error if not found.
-   */
   async getUser(userId: string): Promise<UserAttributes> {<% if (redis) { %>
     return this.redisService.fetch<UserAttributes>(
       `user_${userId}`,
@@ -26,7 +23,7 @@ export class UserService {<% if (redis) { %>
         const user = await User.findByPk(userId);
 
         if (!user) {
-          throw new NotFound(<% if (i18n) { %>i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
+          throw new NotFoundError(<% if (i18n) { %>i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
         }
 
         return user.get({ plain: true });
@@ -36,18 +33,28 @@ export class UserService {<% if (redis) { %>
     const user = await User.findByPk(userId);
 
     if (!user) {
-      throw new NotFound(<% if (i18n) { %>i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
+      throw new NotFoundError(<% if (i18n) { %>i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
     }
 
     return user.get({ plain: true });<% } %>
   }
 
-  /**
-   * Creates a new user.
-   */
-  async createUser(userDetails: CreateUserDTO): Promise<UserAttributes> {
+  async createUser(userDetails: CreateUserDTO): Promise<User> {
     const user = await User.create(userDetails);
 
-    return user.get({ plain: true });
+    return user;
+  }
+
+  async deleteUser(userId: string): Promise<User> {<% if (i18n) { %>
+    const i18n = Container.get<I18n>('i18n');<% } %>
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      throw new NotFoundError(<% if (i18n) { %>i18n.t('errors:userNotFound')<% } else { %>'User not found.'<% } %>);
+    }
+
+    await user.destroy();
+
+    return user;
   }
 }

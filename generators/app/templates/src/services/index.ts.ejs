@@ -2,7 +2,8 @@
 <% if (admin || auth || redis || sequelize || smtp) { %><% if (admin) { %>
 export * from './admin.service';<% } %><% if (auth) { %>
 export * from './auth.service';<% } %><% if (smtp) { %>
-export * from './email.service';<% } %><% if (redis) { %>
+export * from './email.service';<% } %><% if (sequelize) { %>
+export * from './event.service';<% } %><% if (redis) { %>
 export * from './redis.service';<% } %><% if (sequelize) { %>
 export * from './user.service';<% } %>
 <% } %>

@@ -7,7 +7,7 @@ import { cleanDatabase } from '../../utils';
  * GET /users/:userId
  */
 describe('GET /users/:userId', () => {
-  let user: User;<% if (auth) { %>
+  let user: User;<% if (jwt) { %>
   let token: string;<% } %>
 
   beforeAll(async () => {
@@ -18,8 +18,8 @@ describe('GET /users/:userId', () => {
       lastName: 'Doe',
       email: 'john.doe@gmail.com',
       password: 'p4ssW0rd',
-    });<% if (auth) { %>
-    token = await user.generateJWT();<% } %>
+    });<% if (jwt) { %>
+    token = user.generateJWT();<% } %>
   });
 
   it('should return 200 and the details of the user', async () => {
@@ -27,7 +27,7 @@ describe('GET /users/:userId', () => {
 
     const res = await agent
       .get(`/users/${userId}`)
-      .accept('json')<% if (auth) { %>
+      .accept('json')<% if (jwt) { %>
       .auth(token, { type: 'bearer' })<% } %>
       .type('json')
       .expect(200);
@@ -45,16 +45,14 @@ describe('GET /users/:userId', () => {
 
     await agent
       .get(`/users/${userId}`)
-      .accept('json')<% if (auth) { %>
+      .accept('json')<% if (jwt) { %>
       .auth(token, { type: 'bearer' })<% } %>
       .type('json')
       .expect(404);
-  });<% if (auth) { %>
+  });<% if (jwt) { %>
 
   it('should return 401 on user not authenticated', async () => {
     const userId = user.id;
-
-    await user.destroy();
 
     await agent.get(`/users/${userId}`).accept('json').type('json').expect(401);
   });<% } %>

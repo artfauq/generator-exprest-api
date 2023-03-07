@@ -1,8 +1,8 @@
 {
-  "errors": {<% if (auth) { %>
+  "errors": {<% if (sequelize) { %>
     "emailAlreadyUsed": "An account with this email address already exists.",<% } %>
+    "forbidden": "You are not allowed to perform this action.",
     "internalServerError": "Internal server error.",<% if (auth) { %>
-    "invalidAuthentication": "Invalid authentication.",<% } %><% if (auth) { %>
     "invalidCredentials": "Invalid credentials.",<% } %>
     "routeNotFound": "The route '{{method}} {{baseUrl}}{{url}}' doesn't exist.",
     "tooManyRequests": "Too many requests, please try again later."<% if (sequelize) { %>,

@@ -21,7 +21,7 @@ export const sequelizeOptions: SequelizeOptions = {
   benchmark: true,
   logQueryParameters: config.debug,
   models: [resolve(__dirname, '../models/*.model.ts')],
-  modelMatch: (filename, member) => filename.replace('.model.ts', '') === member.toLowerCase(),
+  modelMatch: (filename, member) => filename.replace('.model', '') === member.toLowerCase(),
   logging: (sql, timing) => {
     const logger = Container.get<<%= loggerType %>>('logger');
 

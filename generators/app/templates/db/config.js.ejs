@@ -9,7 +9,7 @@ if (!isTest) {
 const debug = process.env.DEBUG === 'true';
 
 const options = {
-  host: isTest ? '127.0.0.1' : process.env.DB_HOST,
+  host: process.env.DB_HOST || '127.0.0.1',
   port: parseInt(process.env.DB_PORT || '<%= dialect.port %>', 10),
   database: isTest ? '<%= shortname %>_test' : process.env.DB_NAME,
   username: isTest ? '<%= shortname %>-test' : process.env.DB_USER,

@@ -1,5 +1,5 @@
 <% if (sequelize) { -%>import { hash } from 'bcryptjs';
-<% } %>import { randomBytes } from 'crypto';<% if (auth) { %>
+<% } %>import { randomBytes } from 'crypto';<% if (jwt) { %>
 import { v4 as uuidv4 } from 'uuid';<% } %>
 
 /**
@@ -14,7 +14,7 @@ export const randomToken = (length: number): string => randomBytes(length).toStr
  *
  * @param value String to hash
  */
-export const generateHash = (value: string): Promise<string> => hash(value, 10);<% } %><% if (auth) { %>
+export const generateHash = (value: string): Promise<string> => hash(value, 10);<% } %><% if (jwt) { %>
 
 /**
  * Generates a UUID.

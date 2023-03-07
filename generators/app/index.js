@@ -71,6 +71,23 @@ module.exports = class extends Generator {
         choices: Object.values(SEQUELIZE_DIALECT_ENUM),
         when: ({ sequelize }) => !!sequelize,
       },
+      // ─── JWT ─────────────────────────────────────────────
+      {
+        store: true,
+        type: 'confirm',
+        name: 'jwt',
+        message: `Use ${yellow('JWT')} for user authentication ?`,
+        default: true,
+      },
+      // ─── Auth ────────────────────────────────────────────
+      {
+        store: true,
+        type: 'confirm',
+        name: 'auth',
+        message: `Create basic ${yellow('authentication')} API endpoints ?`,
+        default: true,
+        when: answers => !!answers.sequelize && !!answers.jwt,
+      },
       // ─── Jest ────────────────────────────────────────────
       {
         store: true,
@@ -104,15 +121,6 @@ module.exports = class extends Generator {
           'class-transformer'
         )} for object validation ?`,
         default: true,
-      },
-      // ─── JWT ─────────────────────────────────────────────
-      {
-        store: true,
-        type: 'confirm',
-        name: 'auth',
-        message: `Use ${yellow('JWT')} for user authentication ?`,
-        default: true,
-        when: ({ sequelize }) => !!sequelize,
       },
       // ─── SocketIO ────────────────────────────────────────
       {
@@ -201,7 +209,7 @@ module.exports = class extends Generator {
         store: true,
         type: 'confirm',
         name: 'openapi',
-        message: `Generate an ${yellow('OpenAPI')} documentation file ?`,
+        message: `Generate ${yellow('OpenAPI')} documentation ?`,
         default: true,
       },
       // ─── Monitoring ──────────────────────────────────────
@@ -239,13 +247,11 @@ module.exports = class extends Generator {
         'compression@^1.7.4',
         'convict@^5.2.1',
         'cors@^2.8.5',
+        'date-fns@^2.29.3',
         'dotenv@^8.6.0',
         'express@^4.17.1',
-        'express-promise-router@^3.0.3',
         'express-rate-limit@^5.5.1',
         'helmet@^4.6.0',
-        'http-errors@^1.8.1',
-        'moment@^2.29.1',
         'multer@^1.4.2',
         'reflect-metadata@^0.1.13',
         'routing-controllers@^0.10.1',
@@ -258,7 +264,6 @@ module.exports = class extends Generator {
         '@types/cors@^2.8.12',
         '@types/express@^4.17.13',
         '@types/express-rate-limit@^5.1.3',
-        '@types/http-errors@^1',
         '@types/multer@^1.4.2',
         '@types/node@^12.12.9',
         '@types/serve-favicon@^2.5.0',
@@ -299,6 +304,7 @@ module.exports = class extends Generator {
     copy('src/types/enums/time.enum.ts.ejs');
     copy('src/types/index.d.ts.ejs');
     copy('src/types/index.ts.ejs');
+    copy('src/utils/date.util.ts.ejs');
     copy('src/utils/index.ts.ejs');
     copy('src/utils/string.util.ts.ejs');
     copy('src/app.ts.ejs');
@@ -333,9 +339,37 @@ module.exports = class extends Generator {
       copy('src/dto/user/user.dto.ts.ejs');
       copy('src/models/index.ts.ejs');
       copy('src/models/user.model.ts.ejs');
+      copy('src/services/event.service.ts.ejs');
       copy('src/services/user.service.ts.ejs');
+      copy('src/types/enums/event.enum.ts.ejs');
       copy('src/types/enums/user-role.enum.ts.ejs');
       copy('.sequelizerc.ejs');
+    }
+
+    // ─── JWT ─────────────────────────────────────────────────────
+
+    if (answers.jwt) {
+      this.packages.dependencies.push('jsonwebtoken@^9.0.0', 'express-jwt@^6.1.0', 'uuid@^8.3.2');
+      this.packages.devDependencies.push(
+        '@types/express-jwt@^0.0.42',
+        '@types/express-unless@^2.0.1',
+        '@types/jsonwebtoken@^9.0.1',
+        '@types/uuid@^8.3.4'
+      );
+
+      copy('src/decorators/auth.decorators.ts.ejs');
+      copy('src/types/jwt.type.ts.ejs');
+      copy('src/utils/jwt.util.ts.ejs');
+    }
+
+    // ─── Auth ────────────────────────────────────────────────────
+
+    if (answers.auth) {
+      copy('src/controllers/auth.controller.ts.ejs');
+      copy('src/controllers/me.controller.ts.ejs');
+      copy('src/dto/auth/index.ts.ejs');
+      copy('src/dto/auth/login.dto.ts.ejs');
+      copy('src/services/auth.service.ts.ejs');
     }
 
     // ─── Redis ───────────────────────────────────────────────────
@@ -382,23 +416,6 @@ module.exports = class extends Generator {
       this.packages.devDependencies.push('@types/morgan@^1.9.3');
 
       copy('src/middlewares/http-request-logging.middleware.ts.ejs');
-    }
-
-    // ─── Auth ────────────────────────────────────────────────────
-
-    if (answers.auth) {
-      this.packages.dependencies.push('jsonwebtoken@^9.0.0', 'express-jwt@^6.1.0', 'uuid@^8.3.2');
-      this.packages.devDependencies.push(
-        '@types/express-jwt@^0.0.42',
-        '@types/express-unless@^2.0.1',
-        '@types/jsonwebtoken@^9.0.1',
-        '@types/uuid@^8.3.4'
-      );
-
-      copy('src/decorators/protected.decorator.ts.ejs');
-      copy('src/middlewares/auth.middleware.ts.ejs');
-      copy('src/types/jwt.type.ts.ejs');
-      copy('src/utils/jwt.util.ts.ejs');
     }
 
     // ─── Nodemailer ──────────────────────────────────────────────
@@ -485,8 +502,12 @@ module.exports = class extends Generator {
         copy('test/api/users/get.user.test.ts.ejs');
       }
 
-      if (answers.auth) {
+      if (answers.jwt) {
         copy('src/utils/__tests__/jwt.util.spec.ts.ejs');
+      }
+
+      if (answers.auth) {
+        copy('test/api/auth/post.login.test.ts.ejs');
       }
 
       if (answers.smtp) {
@@ -496,10 +517,6 @@ module.exports = class extends Generator {
 
       if (answers.docker) {
         copy('docker-compose.test.yml.ejs');
-      }
-
-      if (answers.auth) {
-        copy('test/api/auth/post.login.test.ts.ejs');
       }
     }
 
@@ -563,15 +580,6 @@ module.exports = class extends Generator {
     if (answers.monitoring) {
       this.packages.dependencies.push('express-status-monitor@^1.3.3');
       this.packages.devDependencies.push('@types/express-status-monitor@^1.2.4');
-    }
-
-    // ─── Auth ────────────────────────────────────────────────────
-
-    if (answers.auth) {
-      copy('src/controllers/auth.controller.ts.ejs');
-      copy('src/dto/auth/index.ts.ejs');
-      copy('src/dto/auth/login.dto.ts.ejs');
-      copy('src/services/auth.service.ts.ejs');
     }
 
     // ─── Git ─────────────────────────────────────────────────────

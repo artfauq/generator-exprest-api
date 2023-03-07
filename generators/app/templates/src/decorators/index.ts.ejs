@@ -1,4 +1,4 @@
 // Export custom decorators from here
-<% if (auth) { %>
-export * from './protected.decorator';<% } %>
+<% if (jwt) { %>
+export * from './auth.decorators';<% } %>
 export * from './trim.decorator';

@@ -1,47 +1,33 @@
-import { hashSync } from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import Container from 'typedi';
 import { config } from '../../config';
 import { UserRoleEnum } from '../../types/enums';
-import { generateSignedJWT, getJwtSecret } from '../jwt.util';
+import { generateSignedJWT } from '../jwt.util';
 import { generateUUID } from '../string.util';
 
 describe('JWT utils', () => {
-  let hash: string;
-
-  beforeAll(() => {
-    hash = hashSync('fake-password');
-  });
-
-  describe('getJwtSecret()', () => {
-    it('should return a JWT secret', () => {
-      const jwtSecret = getJwtSecret(hash);
-
-      expect(jwtSecret).toBe(`${config.secret}${hash}`);
-    });
-  });
-
   describe('generateSignedJWT()', () => {
     it('should return a signed JWT', () => {
       const userId = generateUUID();
       const payload = {
-        name: 'John Doe',
+        id: userId,
         email: 'john@doe.com',
+        fullName: 'John Doe',
         role: UserRoleEnum.User,
       };
 
-      const token = generateSignedJWT(userId, hash, payload);
+      const token = generateSignedJWT(userId, payload);
 
       const decodedToken = jwt.decode(token, { json: true }) as { [key: string]: any };
 
       expect(decodedToken).toStrictEqual({
-        email: payload.email,
         iat: expect.any(Number),
         iss: config.publicHost,
         jti: expect.any(String),
-        name: payload.name,
-        role: UserRoleEnum.User,
         sub: userId,
+        id: userId,
+        email: payload.email,
+        fullName: payload.fullName,
+        role: UserRoleEnum.User,
       });
     });
   });

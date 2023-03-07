@@ -1,8 +1,6 @@
 import convict from 'convict';
 import dotenv from 'dotenv';
-import moment from 'moment';
 import { resolve } from 'path';
-import 'moment/locale/<%= defaultLocale %>';
 
 type NodeEnv = 'development' | 'production' | 'test';
 
@@ -16,11 +14,6 @@ const isTest = process.env.NODE_ENV === 'test';
 if (!isTest) {
   dotenv.config();
 }
-
-/**
- * Configure moment
- */
-moment.locale('<%= defaultLocale %>');
 
 const configSchema = convict({
   /**
@@ -48,7 +41,7 @@ const configSchema = convict({
     env: 'DEBUG',
     default: false,
   },
-  
+
   /**
    * Application config
    */

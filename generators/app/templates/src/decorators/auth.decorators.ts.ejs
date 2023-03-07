@@ -1,0 +1,26 @@
+import jwt from 'express-jwt';
+import { UseBefore } from 'routing-controllers';
+import { config } from '../config';
+
+export const AuthRequired = () => {
+  return UseBefore(
+    jwt({
+      algorithms: ['HS256'],
+      secret: config.secret,
+      requestProperty: 'auth',
+      userProperty: 'user',
+    }),
+  );
+};
+
+export const AuthOptional = () => {
+  return UseBefore(
+    jwt({
+      algorithms: ['HS256'],
+      credentialsRequired: false,
+      secret: config.secret,
+      requestProperty: 'auth',
+      userProperty: 'user',
+    }),
+  );
+};

@@ -1,5 +1,6 @@
 // Export controllers from here
 <% if (auth) { %>
 export * from './auth.controller';<% } %>
-export * from './health.controller';<% if (sequelize) { %>
+export * from './health.controller';<% if (auth) { %>
+export * from './me.controller';<% } %><% if (sequelize) { %>
 export * from './users.controller';<% } %>

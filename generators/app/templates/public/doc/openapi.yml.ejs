@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
   title: <%- name %>
-  version: 0.0.0
+  version: 1.0.0
   description: |
     # Introduction
     This is the API documentation of **<%- name %>**. It is documented in *OpenAPI* format.
-<% if (auth) { %>
+<% if (jwt) { %>
     # Authentication
     <%- name %> uses **JWT** Bearer authentication to authenticate requests.
 
@@ -29,20 +29,23 @@ info:
     | **name**    | *string* | Name of the error (`ValidationError`, `NotFoundError`, etc) |
     | **message** | *string* | A readable error message
 servers:
-  - url: http://localhost:8080/api
+  - url: http://localhost:8080
     description: Local development server<% if (auth || sequelize) { %>
 tags:<% if (auth) { %>
   - name: auth-login
-    x-displayName: Login<% } %><% if (sequelize) { %>
-  - name: user
-    x-displayName: User<% } %>
+    x-displayName: Login
+  - name: me
+    x-displayName: Me<% } %>
+  - name: users
+    x-displayName: Users
 x-tagGroups:<% if (auth) { %>
   - name: Auth
     tags:
       - auth-login<% } %>
-  - name: Users<% if (sequelize) { %>
-    tags:
-      - user<% } %><% } %>
+  - name: User
+    tags:<% if (auth) { %>
+      - me<% } %>
+      - users<% } %>
 paths:
   /health:
     get:
@@ -53,7 +56,7 @@ paths:
   /auth/login:
     post:
       summary: Authenticate user
-      description: Authenticates a user and returns a JWT token.
+      description: Authenticates a user and returns a signed JWT.
       tags:
         - auth-login
       requestBody:
@@ -78,7 +81,7 @@ paths:
       summary: Create new user
       description: Creates a new user.
       tags:
-        - user
+        - users
       requestBody:
         content:
           application/json:
@@ -92,27 +95,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         400:
-          $ref: '#/components/responses/400'
-  /users/{userId}:
-    parameters:
-      - $ref: '#/components/parameters/userId'
+          $ref: '#/components/responses/400'<% } %><% if (auth) { %>
+  /me:
     get:
-      summary: Get user details
-      description: Returns the details of a user.
+      summary: Get current user
+      description: Returns the details of the authenticated user.
       tags:
-        - user
+        - me
+      security:
+        - BearerAuth: []
       responses:
         200:
           description: Ok
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'<% if (auth) { %>
+                $ref: '#/components/schemas/User'
         401:
-          $ref: '#/components/responses/401'<% } %>
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    delete:
+      summary: Delete current user
+      description: Deletes the authenticated user.
+      tags:
+        - me
+      security:
+        - BearerAuth: []
+      responses:
+        204:
+          $ref: '#/components/responses/204'
+        401:
+          $ref: '#/components/responses/401'
         404:
           $ref: '#/components/responses/404'<% } %>
-components:<% if (auth) { %>
+components:<% if (jwt) { %>
   securitySchemes:
     BearerAuth:
       type: http
@@ -238,14 +255,4 @@ components:<% if (auth) { %>
           type: string
           format: date-time
           nullable: false
-          description: Date and time of the user's profile creation
-  parameters:
-    userId:
-      in: path
-      name: userId
-      description: ID of the user
-      required: true
-      allowEmptyValue: false
-      schema:
-        type: string
-        format: uuid<% } %>
+          description: Date and time of the user's profile creation<% } %>

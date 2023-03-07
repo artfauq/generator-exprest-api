@@ -1,0 +1,41 @@
+import EventEmitter from 'events';<% if (auth) { %>
+import { Sequelize } from 'sequelize';<% } %>
+import { Service } from 'typedi';
+import { <% if (auth) { %>User, <% } %>UserAttributes } from '../models';
+import { AppEvent } from '../types/enums';
+
+@Service()
+export class EventService extends EventEmitter {
+  constructor() {
+    super();
+
+    this.on(AppEvent.UserCreated, this.onUserCreated);
+    this.on(AppEvent.UserDeleted, this.onUserDeleted);<% if (auth) { %>
+    this.on(AppEvent.UserLogin, this.onUserLogin);
+    this.on(AppEvent.UserPasswordForgot, this.onUserPasswordForgot);
+    this.on(AppEvent.UserVerified, this.onUserVerified);<% } %>
+  }
+
+  async onUserCreated(user: UserAttributes): Promise<void> {
+    // Example: send email address verification email
+  }
+
+  async onUserDeleted(user: UserAttributes): Promise<void> {
+    // Example: send deleted account confirmation email
+  }<% if (auth) { %>
+
+  async onUserLogin(user: UserAttributes): Promise<void> {
+    await User.update(
+      { lastLoginAt: Sequelize.literal('CURRENT_TIMESTAMP') },
+      { where: { id: user.id } },
+    );
+  }
+
+  async onUserPasswordForgot(user: UserAttributes): Promise<void> {
+    // Example: send password reset email
+  }
+
+  async onUserVerified(user: UserAttributes): Promise<void> {
+    // Example: send email to welcome new user
+  }<% } %>
+}

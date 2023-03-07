@@ -1,8 +1,8 @@
 <% if (validation) { -%>import { ValidationError as ClassValidationError } from 'class-validator';
-<% } %>import { ErrorRequestHandler } from 'express';<% if (auth) { %>
+<% } %>import { ErrorRequestHandler } from 'express';<% if (jwt) { %>
 import { UnauthorizedError as JWTUnauthorizedError } from 'express-jwt';<% } %><% if (i18n) { %>
 import { i18n as I18n } from 'i18next';<% } %>
-import { BadRequestError, HttpError<% if (auth) { %>, UnauthorizedError<% } %> } from 'routing-controllers';
+import { <% if (validation) { %>BadRequestError, <% } %>HttpError<% if (jwt) { %>, UnauthorizedError<% } %> } from 'routing-controllers';
 import { Container } from 'typedi';<% if (winston) { %>
 import { Logger } from 'winston';<% var loggerType = 'Logger'; %><% } else { %><% var loggerType = 'Console'; %><% } %>
 import { config } from '../config';<% if (validation) { %>
@@ -27,7 +27,7 @@ function parseHttpError(err: any): HttpError {<% if (validation) { %>
 <% } %>
   if (err instanceof HttpError) {
     return err;
-  }<% if (auth) { %>
+  }<% if (jwt) { %>
 
   if (err instanceof JWTUnauthorizedError) {
     return new UnauthorizedError(err.message);

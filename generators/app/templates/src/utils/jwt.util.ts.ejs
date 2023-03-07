@@ -4,21 +4,10 @@ import { JWTPayload } from '../types';
 import { generateUUID } from './string.util';
 
 /**
- * Returns the secret used to sign a JWT token.
- */
-export const getJwtSecret = (passwordHash: string): string => config.secret + passwordHash;
-
-/**
  * Generates and returns a signed JWT.
  */
-export const generateSignedJWT = (
-  userId: string,
-  passwordHash: string,
-  payload: JWTPayload,
-): string => {
-  const secret = getJwtSecret(passwordHash);
-
-  return jwt.sign(payload, secret, {
+export const generateSignedJWT = (userId: string, payload: JWTPayload): string => {
+  return jwt.sign(payload, config.secret, {
     algorithm: 'HS256',
     issuer: config.publicHost,
     subject: userId,

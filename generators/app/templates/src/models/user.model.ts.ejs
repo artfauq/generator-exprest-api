@@ -1,6 +1,6 @@
-import { compare } from 'bcryptjs';
-import { BadRequest } from 'http-errors';<% if (i18n) { %>
+import { compare } from 'bcryptjs';<% if (i18n) { %>
 import { i18n as I18n } from 'i18next';<% } %>
+import { BadRequestError } from 'routing-controllers';
 import {
   Attributes,
   CreationOptional,
@@ -14,7 +14,6 @@ import {
   BeforeCreate,
   BeforeUpdate,
   Column,
-  Comment,
   CreatedAt,
   DataType,
   Default,
@@ -26,7 +25,7 @@ import {
 } from 'sequelize-typescript';<% if (i18n) { %>
 import { Container } from 'typedi';<% } %>
 import { UserRoleEnum } from '../types/enums';
-import { generateHash<% if (auth) { %>, generateSignedJWT<% } %> } from '../utils';
+import { generateHash<% if (jwt) { %>, generateSignedJWT<% } %> } from '../utils';
 
 export type UserAttributes = Omit<Attributes<User>, 'password'>;
 
@@ -42,24 +41,21 @@ export type UserAttributes = Omit<Attributes<User>, 'password'>;
 })
 export class User extends Model<
   InferAttributes<User>,
-  InferCreationAttributes<User, { omit: 'fullName' }>
+  InferCreationAttributes<User, { omit: 'fullName'<% if (auth) { %> | 'lastLoginAt'<% } %> }>
 > {
   // ─── Model attributes ────────────────────────────────────────────────
 
   @PrimaryKey
   @AllowNull(false)
-  @Comment('ID of the user')
   @Default(DataType.UUIDV4)
   @Column(DataType.UUID)
   id!: CreationOptional<string>;
 
   @AllowNull(false)
-  @Comment('First name of the user')
   @Column(DataType.STRING(64))
   firstName!: string;
 
   @AllowNull(false)
-  @Comment('Last name of the user')
   @Column(DataType.STRING(64))
   lastName!: string;
 
@@ -70,24 +66,24 @@ export class User extends Model<
 
   @Unique
   @AllowNull(false)
-  @Comment('Email of the user')
   @Column(DataType.STRING(128))
   email!: string;
 
   @AllowNull(false)
-  @Comment('Password of the user')
   @Column(DataType.STRING(64))
   password!: string;
 
   @AllowNull(false)
-  @Comment('User role')
   @Default(UserRoleEnum.User)
   @Column(DataType.ENUM(...Object.values(UserRoleEnum)))
-  role!: CreationOptional<UserRoleEnum>;
+  role!: CreationOptional<UserRoleEnum>;<% if (auth) { %>
+
+  @AllowNull(true)
+  @Column(DataType.DATE)
+  lastLoginAt!: string | null;<% } %>
 
   @CreatedAt
   @AllowNull(false)
-  @Comment("Date and time of the user's profile creation")
   @Column(DataType.DATE)
   createdAt!: CreationOptional<Date>;
 
@@ -112,7 +108,7 @@ export class User extends Model<
       });
 
       if (emailCount > 0) {
-        throw new BadRequest(<% if (i18n) { %>i18n.t('errors:emailAlreadyUsed')<% } else { %>'An account with this email address already exists.'<% } %>);
+        throw new BadRequestError(<% if (i18n) { %>i18n.t('errors:emailAlreadyUsed')<% } else { %>'An account with this email address already exists.'<% } %>);
       }
     }
   }
@@ -134,26 +130,17 @@ export class User extends Model<
    */
   async comparePassword(password: string): Promise<boolean> {
     return compare(password, this.password);
-  }<% if (auth) { %>
+  }<% if (jwt) { %>
 
   /**
    * Returns a new JWT for this user.
    */
-  async generateJWT(): Promise<string> {
-    const user = await User.findByPk(this.id, {
-      attributes: {
-        include: ['password'],
-      },
-    });
-
-    if (!user) {
-      throw new Error(`User not found with id '${this.id}'`);
-    }
-
-    return generateSignedJWT(user.id, user.password, {
-      name: user.fullName,
-      email: user.email,
-      role: user.role,
+  generateJWT(): string {
+    return generateSignedJWT(this.id, {
+      id: this.id,
+      email: this.email,
+      fullName: this.fullName,
+      role: this.role,
     });
   }<% } %>
 }
